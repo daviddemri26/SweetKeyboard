@@ -63,6 +63,14 @@ struct ActionKeyInputContext {
         documentContextContainsLineBreaks = beforeInput.contains("\n") || afterInput.contains("\n")
         traitsAvailable = true
     }
+
+    var isEmailField: Bool {
+        if keyboardType == .emailAddress {
+            return true
+        }
+
+        return textContentType == String(describing: UITextContentType.emailAddress)
+    }
 }
 
 struct ActionKeyResolver {

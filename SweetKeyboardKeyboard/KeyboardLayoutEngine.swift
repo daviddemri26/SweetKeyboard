@@ -51,7 +51,7 @@ struct KeyboardLayoutEngine {
     private let rowTwo = Array("asdfghjkl").map(String.init)
     private let rowThree = Array("zxcvbnm").map(String.init)
 
-    func letterRows(isShiftEnabled: Bool) -> [KeyboardRowSpec] {
+    func letterRows(isShiftEnabled: Bool, isEmailField: Bool) -> [KeyboardRowSpec] {
         let letters = resolvedLetterRows(isShiftEnabled: isShiftEnabled)
 
         return [
@@ -67,16 +67,7 @@ struct KeyboardLayoutEngine {
                     KeyboardKeySpec(kind: .backspace, width: .units(1.5))
                 ]
             ),
-            KeyboardRowSpec(
-                items: [
-                    KeyboardKeySpec(kind: .symbolToggle, width: .units(1.25)),
-                    KeyboardKeySpec(kind: .character(","), width: .units(0.56)),
-                    KeyboardKeySpec(kind: .character("."), width: .units(0.56)),
-                    KeyboardKeySpec(kind: .character("?"), width: .units(0.56)),
-                    KeyboardKeySpec(kind: .space, width: .units(3.2)),
-                    KeyboardKeySpec(kind: .primaryAction, width: .units(1.6))
-                ]
-            )
+            bottomLetterRow(isEmailField: isEmailField)
         ]
     }
 
@@ -122,5 +113,25 @@ struct KeyboardLayoutEngine {
         KeyboardRowSpec(
             items: titles.map { KeyboardKeySpec(kind: .character($0), width: .normal) }
         )
+    }
+
+    private func bottomLetterRow(isEmailField: Bool) -> KeyboardRowSpec {
+        var items = [
+            KeyboardKeySpec(kind: .symbolToggle, width: .units(1.25)),
+            KeyboardKeySpec(kind: .character(","), width: .units(0.56)),
+            KeyboardKeySpec(kind: .character("."), width: .units(0.56)),
+            KeyboardKeySpec(kind: .character("?"), width: .units(0.56))
+        ]
+
+        if isEmailField {
+            items.append(KeyboardKeySpec(kind: .space, width: .units(2.5)))
+            items.append(KeyboardKeySpec(kind: .character("@"), width: .units(0.7)))
+        } else {
+            items.append(KeyboardKeySpec(kind: .space, width: .units(3.2)))
+        }
+
+        items.append(KeyboardKeySpec(kind: .primaryAction, width: .units(1.6)))
+
+        return KeyboardRowSpec(items: items)
     }
 }

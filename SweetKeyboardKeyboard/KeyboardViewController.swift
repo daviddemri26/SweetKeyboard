@@ -38,6 +38,7 @@ final class KeyboardViewController: UIInputViewController {
     private var backspaceDelayTimer: Timer?
     private var backspaceRepeatTimer: Timer?
     private var didRepeatBackspace = false
+    private var isEmailFieldActive = false
     private var mode: Mode = .keyboard {
         didSet {
             refreshModeUI()
@@ -261,7 +262,10 @@ final class KeyboardViewController: UIInputViewController {
         let rowSpecs: [KeyboardRowSpec]
         switch keyboardLayoutMode {
         case .letters:
-            rowSpecs = layoutEngine.letterRows(isShiftEnabled: isShiftActive)
+            rowSpecs = layoutEngine.letterRows(
+                isShiftEnabled: isShiftActive,
+                isEmailField: isEmailFieldActive
+            )
         case .symbols:
             rowSpecs = layoutEngine.symbolRows
         }
@@ -470,10 +474,17 @@ final class KeyboardViewController: UIInputViewController {
                 normal: normalConfiguration,
                 highlighted: highlightedConfiguration
             )
+            pressableKey.setForegroundColors(
+                normal: KeyboardTheme.keyLabelColor,
+                highlighted: KeyboardTheme.keyLabelColor
+            )
         } else {
             key.setPreferredSymbolConfiguration(normalConfiguration, forImageIn: .normal)
+            key.tintColor = KeyboardTheme.keyLabelColor
         }
-        key.setImage(UIImage(systemName: symbolName), for: .normal)
+        let symbolImage = UIImage(systemName: symbolName)?.withRenderingMode(.alwaysTemplate)
+        key.setImage(symbolImage, for: .normal)
+        key.setImage(symbolImage, for: .highlighted)
         key.accessibilityLabel = accessibilityLabel
         key.addTarget(self, action: #selector(shiftTapped), for: .touchUpInside)
         return key
@@ -555,6 +566,17 @@ final class KeyboardViewController: UIInputViewController {
 
     private func refreshActionKey() {
         let context = ActionKeyInputContext(proxy: textDocumentProxy)
+        let isEmailField = context.isEmailField
+
+        if isEmailFieldActive != isEmailField {
+            isEmailFieldActive = isEmailField
+
+            if keyboardLayoutMode == .letters {
+                rebuildKeyboardRows()
+                return
+            }
+        }
+
         let model = actionKeyResolver.resolve(for: context)
         applyActionKeyModel(model, context: context)
         logActionKeyState(model: model, context: context)
