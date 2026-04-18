@@ -506,7 +506,6 @@ final class KeyboardViewController: UIInputViewController {
 
     private func makePrimaryActionKey(action: Selector) -> UIButton {
         let key = makeBaseKey(title: nil, role: .primaryAction)
-        applyFunctionKeyBorder(to: key)
         key.addTarget(self, action: action, for: .touchUpInside)
 
         if let pressableKey = key as? KeyboardPressableButton {
