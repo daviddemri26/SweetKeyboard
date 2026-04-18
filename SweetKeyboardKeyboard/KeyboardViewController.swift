@@ -309,6 +309,16 @@ final class KeyboardViewController: UIInputViewController {
 
     private func makeActionKey(title: String, action: Selector, width: CGFloat) -> UIButton {
         let key = makeBaseKey(title: title, role: .system)
+        if title == "⌫" {
+            if let pressableKey = key as? KeyboardPressableButton {
+                pressableKey.setTitleFonts(
+                    normal: UIFont.systemFont(ofSize: KeyboardMetrics.backspaceKeyFontSize, weight: .regular),
+                    highlighted: UIFont.systemFont(ofSize: KeyboardMetrics.backspaceKeyFontSize, weight: .semibold)
+                )
+            } else {
+                key.titleLabel?.font = UIFont.systemFont(ofSize: KeyboardMetrics.backspaceKeyFontSize, weight: .regular)
+            }
+        }
         key.addTarget(self, action: action, for: .touchUpInside)
         key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width).isActive = true
         return key
@@ -468,17 +478,20 @@ final class KeyboardViewController: UIInputViewController {
             role: .primaryAction,
             cornerRadius: KeyboardMetrics.keyCornerRadius
         )
-        actionKeyButton.setTitleColor(isGoAction ? .white : KeyboardTheme.keyLabelColor, for: .normal)
-        actionKeyButton.setTitleColor(isGoAction ? .white : KeyboardTheme.keyLabelColor, for: .highlighted)
-        actionKeyButton.tintColor = isGoAction ? .white : KeyboardTheme.keyLabelColor
         if let pressableButton = actionKeyButton as? KeyboardPressableButton {
             let normalBackground = isGoAction ? goActionBackgroundColor : KeyboardTheme.background(for: .primaryAction)
-            let highlightedBackground = isGoAction ? goActionPressedBackgroundColor : KeyboardTheme.pressedBackground(for: .primaryAction)
+            let highlightedBackground = KeyboardTheme.pressedBackground(for: .primaryAction)
             pressableButton.setBackgroundColors(normal: normalBackground, highlighted: highlightedBackground)
+            pressableButton.setForegroundColors(
+                normal: isGoAction ? .white : KeyboardTheme.keyLabelColor,
+                highlighted: KeyboardTheme.keyLabelColor
+            )
         } else {
+            actionKeyButton.setTitleColor(isGoAction ? .white : KeyboardTheme.keyLabelColor, for: .normal)
+            actionKeyButton.setTitleColor(KeyboardTheme.keyLabelColor, for: .highlighted)
+            actionKeyButton.tintColor = isGoAction ? .white : KeyboardTheme.keyLabelColor
             actionKeyButton.backgroundColor = isGoAction ? goActionBackgroundColor : actionKeyButton.backgroundColor
         }
-        actionKeyButton.layer.borderWidth = 0.6
         actionKeyButton.layer.borderColor = UIColor.clear.cgColor
         actionKeyButton.layer.borderWidth = 0
         actionKeyButton.accessibilityLabel = model.accessibilityLabel
@@ -523,10 +536,6 @@ final class KeyboardViewController: UIInputViewController {
 
     private var goActionBackgroundColor: UIColor {
         UIColor(red: 52 / 255, green: 120 / 255, blue: 245 / 255, alpha: 1)
-    }
-
-    private var goActionPressedBackgroundColor: UIColor {
-        UIColor(red: 38 / 255, green: 102 / 255, blue: 216 / 255, alpha: 1)
     }
 
     private func copySelectedText() {

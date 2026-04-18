@@ -26,8 +26,9 @@ enum KeyboardMetrics {
     static let iconPointSize: CGFloat = 16
     static let actionSymbolPointSize: CGFloat = 20
 
-    static let characterKeyFontSize: CGFloat = 21
+    static let characterKeyFontSize: CGFloat = 25.2
     static let systemKeyFontSize: CGFloat = 18
+    static let backspaceKeyFontSize: CGFloat = 21.6
     static let primaryActionFontSize: CGFloat = 18
     static let utilityButtonFontSize: CGFloat = 17
 
@@ -182,6 +183,8 @@ final class KeyboardPressableButton: UIButton {
     private var highlightedBackgroundColor: UIColor?
     private var normalTitleFont: UIFont?
     private var highlightedTitleFont: UIFont?
+    private var normalForegroundColor: UIColor?
+    private var highlightedForegroundColor: UIColor?
 
     override var isHighlighted: Bool {
         didSet {
@@ -207,6 +210,15 @@ final class KeyboardPressableButton: UIButton {
         updatePressedAppearance()
     }
 
+    func setForegroundColors(normal: UIColor, highlighted: UIColor? = nil) {
+        let highlightedColor = highlighted ?? normal
+        normalForegroundColor = normal
+        highlightedForegroundColor = highlightedColor
+        setTitleColor(normal, for: .normal)
+        setTitleColor(highlightedColor, for: .highlighted)
+        tintColor = isHighlighted && isEnabled ? highlightedColor : normal
+    }
+
     func setSymbolConfigurations(normal: UIImage.SymbolConfiguration, highlighted: UIImage.SymbolConfiguration? = nil) {
         let highlightedConfiguration = highlighted ?? normal
         setPreferredSymbolConfiguration(normal, forImageIn: .normal)
@@ -215,6 +227,10 @@ final class KeyboardPressableButton: UIButton {
 
     private func updatePressedAppearance() {
         backgroundColor = (isHighlighted && isEnabled) ? highlightedBackgroundColor ?? normalBackgroundColor : normalBackgroundColor
+
+        if let normalForegroundColor {
+            tintColor = (isHighlighted && isEnabled) ? highlightedForegroundColor ?? normalForegroundColor : normalForegroundColor
+        }
 
         guard let normalTitleFont else {
             return
