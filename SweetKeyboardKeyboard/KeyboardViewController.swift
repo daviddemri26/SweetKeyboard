@@ -331,10 +331,22 @@ final class KeyboardViewController: UIInputViewController {
             accessibilityLabel = "Disable Caps Lock"
         }
 
-        key.setPreferredSymbolConfiguration(
-            UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.actionSymbolPointSize, weight: .semibold),
-            forImageIn: .normal
+        let normalConfiguration = UIImage.SymbolConfiguration(
+            pointSize: KeyboardMetrics.actionSymbolPointSize,
+            weight: .medium
         )
+        let highlightedConfiguration = UIImage.SymbolConfiguration(
+            pointSize: KeyboardMetrics.actionSymbolPointSize,
+            weight: .semibold
+        )
+        if let pressableKey = key as? KeyboardPressableButton {
+            pressableKey.setSymbolConfigurations(
+                normal: normalConfiguration,
+                highlighted: highlightedConfiguration
+            )
+        } else {
+            key.setPreferredSymbolConfiguration(normalConfiguration, forImageIn: .normal)
+        }
         key.setImage(UIImage(systemName: symbolName), for: .normal)
         key.accessibilityLabel = accessibilityLabel
         key.addTarget(self, action: #selector(shiftTapped), for: .touchUpInside)
@@ -357,7 +369,14 @@ final class KeyboardViewController: UIInputViewController {
         widthConstraint.isActive = true
         actionKeyWidthConstraint = widthConstraint
 
-        key.titleLabel?.font = .preferredFont(forTextStyle: .headline)
+        if let pressableKey = key as? KeyboardPressableButton {
+            pressableKey.setTitleFonts(
+                normal: UIFont.systemFont(ofSize: KeyboardMetrics.primaryActionFontSize, weight: .regular),
+                highlighted: UIFont.systemFont(ofSize: KeyboardMetrics.primaryActionFontSize, weight: .semibold)
+            )
+        } else {
+            key.titleLabel?.font = UIFont.systemFont(ofSize: KeyboardMetrics.primaryActionFontSize, weight: .regular)
+        }
         key.titleLabel?.adjustsFontSizeToFitWidth = true
         key.titleLabel?.minimumScaleFactor = 0.72
         key.accessibilityTraits.insert(.keyboardKey)
@@ -366,12 +385,30 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func makeBaseKey(title: String?, role: KeyboardButtonRole) -> UIButton {
-        let button = UIButton(type: .system)
+        let button = KeyboardPressableButton(type: .custom)
         if let title {
             button.setTitle(title, for: .normal)
         }
 
-        button.titleLabel?.font = .preferredFont(forTextStyle: .title3)
+        let normalFont: UIFont
+        let highlightedFont: UIFont
+
+        switch role {
+        case .character:
+            normalFont = UIFont.systemFont(ofSize: KeyboardMetrics.characterKeyFontSize, weight: .regular)
+            highlightedFont = UIFont.systemFont(ofSize: KeyboardMetrics.characterKeyFontSize, weight: .semibold)
+        case .system:
+            normalFont = UIFont.systemFont(ofSize: KeyboardMetrics.systemKeyFontSize, weight: .regular)
+            highlightedFont = UIFont.systemFont(ofSize: KeyboardMetrics.systemKeyFontSize, weight: .semibold)
+        case .primaryAction:
+            normalFont = UIFont.systemFont(ofSize: KeyboardMetrics.primaryActionFontSize, weight: .regular)
+            highlightedFont = UIFont.systemFont(ofSize: KeyboardMetrics.primaryActionFontSize, weight: .semibold)
+        case .utility:
+            normalFont = UIFont.systemFont(ofSize: KeyboardMetrics.utilityButtonFontSize, weight: .regular)
+            highlightedFont = UIFont.systemFont(ofSize: KeyboardMetrics.utilityButtonFontSize, weight: .semibold)
+        }
+
+        button.setTitleFonts(normal: normalFont, highlighted: highlightedFont)
         button.titleLabel?.adjustsFontSizeToFitWidth = true
         button.titleLabel?.minimumScaleFactor = 0.75
         KeyboardTheme.applyChrome(
@@ -404,10 +441,22 @@ final class KeyboardViewController: UIInputViewController {
         actionKeyButton.setImage(nil, for: .normal)
 
         if useIcon, let preferredSymbol {
-            actionKeyButton.setPreferredSymbolConfiguration(
-                UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.actionSymbolPointSize, weight: .semibold),
-                forImageIn: .normal
+            let normalConfiguration = UIImage.SymbolConfiguration(
+                pointSize: KeyboardMetrics.actionSymbolPointSize,
+                weight: .medium
             )
+            let highlightedConfiguration = UIImage.SymbolConfiguration(
+                pointSize: KeyboardMetrics.actionSymbolPointSize,
+                weight: .semibold
+            )
+            if let pressableButton = actionKeyButton as? KeyboardPressableButton {
+                pressableButton.setSymbolConfigurations(
+                    normal: normalConfiguration,
+                    highlighted: highlightedConfiguration
+                )
+            } else {
+                actionKeyButton.setPreferredSymbolConfiguration(normalConfiguration, forImageIn: .normal)
+            }
             actionKeyButton.setImage(preferredSymbol, for: .normal)
         } else {
             actionKeyButton.setTitle(model.fallbackTitle, for: .normal)
@@ -420,10 +469,18 @@ final class KeyboardViewController: UIInputViewController {
             cornerRadius: KeyboardMetrics.keyCornerRadius
         )
         actionKeyButton.setTitleColor(isGoAction ? .white : KeyboardTheme.keyLabelColor, for: .normal)
+        actionKeyButton.setTitleColor(isGoAction ? .white : KeyboardTheme.keyLabelColor, for: .highlighted)
         actionKeyButton.tintColor = isGoAction ? .white : KeyboardTheme.keyLabelColor
-        actionKeyButton.backgroundColor = isGoAction ? goActionBackgroundColor : actionKeyButton.backgroundColor
+        if let pressableButton = actionKeyButton as? KeyboardPressableButton {
+            let normalBackground = isGoAction ? goActionBackgroundColor : KeyboardTheme.background(for: .primaryAction)
+            let highlightedBackground = isGoAction ? goActionPressedBackgroundColor : KeyboardTheme.pressedBackground(for: .primaryAction)
+            pressableButton.setBackgroundColors(normal: normalBackground, highlighted: highlightedBackground)
+        } else {
+            actionKeyButton.backgroundColor = isGoAction ? goActionBackgroundColor : actionKeyButton.backgroundColor
+        }
         actionKeyButton.layer.borderWidth = 0.6
-        actionKeyButton.layer.borderColor = (isGoAction ? goActionBackgroundColor : primaryActionBorderColor).cgColor
+        actionKeyButton.layer.borderColor = UIColor.clear.cgColor
+        actionKeyButton.layer.borderWidth = 0
         actionKeyButton.accessibilityLabel = model.accessibilityLabel
         actionKeyButton.accessibilityHint = model.accessibilityHint
         actionKeyButton.accessibilityIdentifier = "action-key-\(model.actionType.rawValue)"
@@ -464,12 +521,12 @@ final class KeyboardViewController: UIInputViewController {
         return nil
     }
 
-    private var primaryActionBorderColor: UIColor {
-        KeyboardTheme.borderColor
-    }
-
     private var goActionBackgroundColor: UIColor {
         UIColor(red: 52 / 255, green: 120 / 255, blue: 245 / 255, alpha: 1)
+    }
+
+    private var goActionPressedBackgroundColor: UIColor {
+        UIColor(red: 38 / 255, green: 102 / 255, blue: 216 / 255, alpha: 1)
     }
 
     private func copySelectedText() {

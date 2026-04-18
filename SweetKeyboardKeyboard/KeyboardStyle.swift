@@ -18,13 +18,18 @@ enum KeyboardMetrics {
     static let keyboardKeySpacing: CGFloat = 6
 
     static let keyUnitWidth: CGFloat = 28
-    static let keyCornerRadius: CGFloat = 10
+    static let keyCornerRadius: CGFloat = 9
     static let utilityCornerRadius: CGFloat = 9
     static let feedbackCornerRadius: CGFloat = 11
 
     static let iconButtonWidth: CGFloat = 34
     static let iconPointSize: CGFloat = 16
-    static let actionSymbolPointSize: CGFloat = 19
+    static let actionSymbolPointSize: CGFloat = 20
+
+    static let characterKeyFontSize: CGFloat = 21
+    static let systemKeyFontSize: CGFloat = 18
+    static let primaryActionFontSize: CGFloat = 18
+    static let utilityButtonFontSize: CGFloat = 17
 
     static let settingsPanelCornerRadius: CGFloat = 14
     static let panelItemCornerRadius: CGFloat = 12
@@ -98,20 +103,6 @@ enum KeyboardTheme {
         keyBackground
     }
 
-    static var borderColor: UIColor {
-        UIColor { traits in
-            if traits.userInterfaceStyle == .dark {
-                return UIColor.white.withAlphaComponent(0.14)
-            }
-
-            return UIColor.black.withAlphaComponent(0.12)
-        }
-    }
-
-    static var keyShadowColor: UIColor {
-        UIColor.black.withAlphaComponent(0.18)
-    }
-
     static var feedbackBackground: UIColor {
         UIColor { traits in
             if traits.userInterfaceStyle == .dark {
@@ -145,16 +136,91 @@ enum KeyboardTheme {
         }
     }
 
+    static func pressedBackground(for role: KeyboardButtonRole, isActive: Bool = false) -> UIColor {
+        switch role {
+        case .character, .system, .primaryAction:
+            return UIColor { traits in
+                if traits.userInterfaceStyle == .dark {
+                    return UIColor(hex: 0x7F7F81)
+                }
+
+                return UIColor(hex: 0xC5C4C9)
+            }
+        case .utility:
+            return background(for: role, isActive: isActive)
+        }
+    }
+
     static func applyChrome(to button: UIButton, role: KeyboardButtonRole, isActive: Bool = false, cornerRadius: CGFloat) {
-        button.backgroundColor = background(for: role, isActive: isActive)
+        let normalBackground = background(for: role, isActive: isActive)
+        let highlightedBackground = pressedBackground(for: role, isActive: isActive)
+
+        if let pressableButton = button as? KeyboardPressableButton {
+            pressableButton.setBackgroundColors(normal: normalBackground, highlighted: highlightedBackground)
+        } else {
+            button.backgroundColor = normalBackground
+        }
+
         button.setTitleColor(keyLabelColor, for: .normal)
+        button.setTitleColor(keyLabelColor, for: .highlighted)
+        button.setTitleColor(keyLabelColor, for: .selected)
+        button.setTitleColor(keyLabelColor, for: .disabled)
         button.tintColor = keyLabelColor
         button.layer.cornerRadius = cornerRadius
         button.layer.cornerCurve = .continuous
-        button.layer.shadowColor = keyShadowColor.cgColor
-        button.layer.shadowOpacity = 1
+        button.layer.shadowColor = UIColor.clear.cgColor
+        button.layer.shadowOpacity = 0
         button.layer.shadowRadius = 0
-        button.layer.shadowOffset = CGSize(width: 0, height: 1)
+        button.layer.shadowOffset = .zero
+        button.layer.borderWidth = 0
+        button.layer.borderColor = UIColor.clear.cgColor
+    }
+}
+
+final class KeyboardPressableButton: UIButton {
+    private var normalBackgroundColor: UIColor?
+    private var highlightedBackgroundColor: UIColor?
+    private var normalTitleFont: UIFont?
+    private var highlightedTitleFont: UIFont?
+
+    override var isHighlighted: Bool {
+        didSet {
+            updatePressedAppearance()
+        }
+    }
+
+    override var isEnabled: Bool {
+        didSet {
+            updatePressedAppearance()
+        }
+    }
+
+    func setBackgroundColors(normal: UIColor, highlighted: UIColor) {
+        normalBackgroundColor = normal
+        highlightedBackgroundColor = highlighted
+        updatePressedAppearance()
+    }
+
+    func setTitleFonts(normal: UIFont, highlighted: UIFont? = nil) {
+        normalTitleFont = normal
+        highlightedTitleFont = highlighted ?? UIFont.boldSystemFont(ofSize: normal.pointSize)
+        updatePressedAppearance()
+    }
+
+    func setSymbolConfigurations(normal: UIImage.SymbolConfiguration, highlighted: UIImage.SymbolConfiguration? = nil) {
+        let highlightedConfiguration = highlighted ?? normal
+        setPreferredSymbolConfiguration(normal, forImageIn: .normal)
+        setPreferredSymbolConfiguration(highlightedConfiguration, forImageIn: .highlighted)
+    }
+
+    private func updatePressedAppearance() {
+        backgroundColor = (isHighlighted && isEnabled) ? highlightedBackgroundColor ?? normalBackgroundColor : normalBackgroundColor
+
+        guard let normalTitleFont else {
+            return
+        }
+
+        titleLabel?.font = (isHighlighted && isEnabled) ? highlightedTitleFont ?? normalTitleFont : normalTitleFont
     }
 }
 

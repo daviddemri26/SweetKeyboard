@@ -128,9 +128,12 @@ final class KeyboardActionBarView: UIView {
     }
 
     private static func makeTextButton(title: String) -> UIButton {
-        let button = UIButton(type: .system)
+        let button = KeyboardPressableButton(type: .custom)
         button.setTitle(title, for: .normal)
-        button.titleLabel?.font = .preferredFont(forTextStyle: .subheadline)
+        button.setTitleFonts(
+            normal: UIFont.systemFont(ofSize: KeyboardMetrics.utilityButtonFontSize, weight: .regular),
+            highlighted: UIFont.systemFont(ofSize: KeyboardMetrics.utilityButtonFontSize, weight: .semibold)
+        )
         button.titleLabel?.adjustsFontSizeToFitWidth = true
         button.titleLabel?.minimumScaleFactor = 0.8
         if #available(iOS 15.0, *) {
@@ -155,10 +158,10 @@ final class KeyboardActionBarView: UIView {
     }
 
     private static func makeIconButton(symbolName: String) -> UIButton {
-        let button = UIButton(type: .system)
-        button.setPreferredSymbolConfiguration(
-            UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.iconPointSize, weight: .semibold),
-            forImageIn: .normal
+        let button = KeyboardPressableButton(type: .custom)
+        button.setSymbolConfigurations(
+            normal: UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.iconPointSize, weight: .medium),
+            highlighted: UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.iconPointSize, weight: .semibold)
         )
         button.setImage(UIImage(systemName: symbolName), for: .normal)
         button.widthAnchor.constraint(equalToConstant: KeyboardMetrics.iconButtonWidth).isActive = true
