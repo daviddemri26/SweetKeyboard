@@ -254,90 +254,74 @@ final class KeyboardViewController: UIInputViewController {
 
     private func rebuildKeyboardRows() {
         stopKeyRepeats()
+        actionKeyButton = nil
+        actionKeyWidthConstraint = nil
         keyboardRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
+        let rowSpecs: [KeyboardRowSpec]
         switch keyboardLayoutMode {
         case .letters:
-            rebuildLetterKeyboardRows()
+            rowSpecs = layoutEngine.letterRows(isShiftEnabled: isShiftActive)
         case .symbols:
-            rebuildSymbolKeyboardRows()
+            rowSpecs = layoutEngine.symbolRows
+        }
+
+        for rowSpec in rowSpecs {
+            keyboardRows.addArrangedSubview(makeRow(from: rowSpec))
         }
 
         refreshActionKey()
     }
 
-    private func rebuildLetterKeyboardRows() {
-        addCharacterRow(layoutEngine.numberRow)
-
-        let letters = layoutEngine.letterRows(isShiftEnabled: isShiftActive)
-        addCharacterRow(letters[0])
-        addCharacterRow(letters[1])
-
-        let thirdRow = makeRow(distribution: .fillProportionally)
-        thirdRow.addArrangedSubview(makeShiftKey(width: 1.5))
-
-        for letter in letters[2] {
-            thirdRow.addArrangedSubview(makeCharacterKey(letter))
-        }
-
-        thirdRow.addArrangedSubview(makeActionKey(title: "⌫", action: #selector(backspaceTapped), width: 1.5))
-        keyboardRows.addArrangedSubview(thirdRow)
-
-        let bottomRow = makeRow(distribution: .fillProportionally)
-        bottomRow.addArrangedSubview(makeActionSymbolKey(symbolName: "command", action: #selector(symbolKeyboardTapped), width: 1.35))
-        bottomRow.addArrangedSubview(makeCharacterActionKey(title: ",", action: #selector(characterKeyTapped(_:)), width: 0.8))
-        bottomRow.addArrangedSubview(makeCharacterActionKey(title: ".", action: #selector(characterKeyTapped(_:)), width: 0.8))
-        bottomRow.addArrangedSubview(makeCharacterActionKey(title: "?", action: #selector(characterKeyTapped(_:)), width: 0.8))
-        bottomRow.addArrangedSubview(makeCharacterActionKey(title: "", action: #selector(spaceTapped), width: 3.2))
-        let actionKey = makePrimaryActionKey(action: #selector(actionKeyTapped), width: 1.6)
-        actionKeyButton = actionKey
-        bottomRow.addArrangedSubview(actionKey)
-        keyboardRows.addArrangedSubview(bottomRow)
-    }
-
-    private func rebuildSymbolKeyboardRows() {
-        for rowKeys in layoutEngine.symbolRows {
-            addCharacterRow(rowKeys)
-        }
-
-        let punctuationRow = makeRow(distribution: .fillProportionally)
-        for symbol in layoutEngine.symbolPunctuationRow {
-            punctuationRow.addArrangedSubview(
-                makeCharacterActionKey(
-                    title: symbol,
-                    action: #selector(characterKeyTapped(_:)),
-                    width: 1
-                )
-            )
-        }
-        punctuationRow.addArrangedSubview(makeCursorMovementKey(symbolName: "arrow.left", offset: -1, width: 1.15))
-        punctuationRow.addArrangedSubview(makeCursorMovementKey(symbolName: "arrow.right", offset: 1, width: 1.15))
-        punctuationRow.addArrangedSubview(makeActionKey(title: "⌫", action: #selector(backspaceTapped), width: 1.5))
-        keyboardRows.addArrangedSubview(punctuationRow)
-
-        let bottomRow = makeRow(distribution: .fillProportionally)
-        bottomRow.addArrangedSubview(makeActionKey(title: "ABC", action: #selector(letterKeyboardTapped), width: 1.35))
-        bottomRow.addArrangedSubview(makeCharacterActionKey(title: "", action: #selector(spaceTapped), width: 4.8))
-        let actionKey = makePrimaryActionKey(action: #selector(actionKeyTapped), width: 1.6)
-        actionKeyButton = actionKey
-        bottomRow.addArrangedSubview(actionKey)
-        keyboardRows.addArrangedSubview(bottomRow)
-    }
-
-    private func addCharacterRow(_ keys: [String]) {
-        let row = makeRow(distribution: .fillEqually)
-        keys.forEach { row.addArrangedSubview(makeCharacterKey($0)) }
-        keyboardRows.addArrangedSubview(row)
-    }
-
-    private func makeRow(distribution: UIStackView.Distribution) -> UIStackView {
+    private func makeRow(from spec: KeyboardRowSpec) -> UIStackView {
         let row = UIStackView()
         row.axis = .horizontal
-        row.distribution = distribution
+        row.distribution = .fill
         row.alignment = .fill
         row.spacing = KeyboardMetrics.keyboardKeySpacing
         row.setContentHuggingPriority(.required, for: .vertical)
         row.setContentCompressionResistancePriority(.required, for: .vertical)
+
+        guard let firstItem = spec.items.first else {
+            return row
+        }
+
+        let referenceButton = makeKey(for: firstItem.kind)
+        row.addArrangedSubview(referenceButton)
+        let referenceMinimumWidthConstraint = referenceButton.widthAnchor.constraint(
+            greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * firstItem.width.minimumUnits
+        )
+        referenceMinimumWidthConstraint.isActive = true
+
+        if case .primaryAction = firstItem.kind {
+            actionKeyButton = referenceButton
+            actionKeyWidthConstraint = referenceMinimumWidthConstraint
+        }
+
+        let referenceShare = max(firstItem.width.share, 0.001)
+
+        for item in spec.items.dropFirst() {
+            let button = makeKey(for: item.kind)
+            row.addArrangedSubview(button)
+
+            let minimumWidthConstraint = button.widthAnchor.constraint(
+                greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * item.width.minimumUnits
+            )
+            minimumWidthConstraint.isActive = true
+
+            let widthRatioConstraint = button.widthAnchor.constraint(
+                equalTo: referenceButton.widthAnchor,
+                multiplier: max(item.width.share, 0.001) / referenceShare
+            )
+            widthRatioConstraint.priority = UILayoutPriority(999)
+            widthRatioConstraint.isActive = true
+
+            if case .primaryAction = item.kind {
+                actionKeyButton = button
+                actionKeyWidthConstraint = minimumWidthConstraint
+            }
+        }
+
         return row
     }
 
@@ -371,7 +355,32 @@ final class KeyboardViewController: UIInputViewController {
         return key
     }
 
-    private func makeActionKey(title: String, action: Selector, width: CGFloat) -> UIButton {
+    private func makeKey(for kind: KeyboardKeyKind) -> UIButton {
+        switch kind {
+        case .character(let title):
+            return makeCharacterKey(title)
+        case .shift:
+            return makeShiftKey()
+        case .backspace:
+            return makeActionKey(title: "⌫")
+        case .space:
+            return makeCharacterActionKey(title: "", action: #selector(spaceTapped))
+        case .symbolToggle:
+            return makeActionSymbolKey(symbolName: "command", action: #selector(symbolKeyboardTapped))
+        case .letterToggle:
+            return makeActionKey(title: "ABC", action: #selector(letterKeyboardTapped))
+        case .primaryAction:
+            return makePrimaryActionKey(action: #selector(actionKeyTapped))
+        case .systemText(let title):
+            return makeActionKey(title: title)
+        case .systemSymbol(let symbolName):
+            return makeActionSymbolKey(symbolName: symbolName)
+        case .cursor(let offset, let symbolName):
+            return makeCursorMovementKey(symbolName: symbolName, offset: offset)
+        }
+    }
+
+    private func makeActionKey(title: String, action: Selector? = nil) -> UIButton {
         let key = makeBaseKey(title: title, role: .system)
         if title == "⌫" {
             if let pressableKey = key as? KeyboardPressableButton {
@@ -387,14 +396,13 @@ final class KeyboardViewController: UIInputViewController {
             key.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchUpOutside)
             key.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchCancel)
             key.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchDragExit)
-        } else {
+        } else if let action {
             key.addTarget(self, action: action, for: .touchUpInside)
         }
-        key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width).isActive = true
         return key
     }
 
-    private func makeActionSymbolKey(symbolName: String, action: Selector, width: CGFloat) -> UIButton {
+    private func makeActionSymbolKey(symbolName: String, action: Selector? = nil) -> UIButton {
         let key = makeBaseKey(title: nil, role: .system)
         let normalConfiguration = UIImage.SymbolConfiguration(
             pointSize: KeyboardMetrics.systemKeyFontSize,
@@ -426,12 +434,13 @@ final class KeyboardViewController: UIInputViewController {
             key.setImage(symbolImage?.withRenderingMode(.alwaysTemplate), for: .normal)
             key.setImage(symbolImage?.withRenderingMode(.alwaysTemplate), for: .highlighted)
         }
-        key.addTarget(self, action: action, for: .touchUpInside)
-        key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width).isActive = true
+        if let action {
+            key.addTarget(self, action: action, for: .touchUpInside)
+        }
         return key
     }
 
-    private func makeShiftKey(width: CGFloat) -> UIButton {
+    private func makeShiftKey() -> UIButton {
         let key = makeBaseKey(title: nil, role: .system)
         let symbolName: String
         let accessibilityLabel: String
@@ -467,24 +476,18 @@ final class KeyboardViewController: UIInputViewController {
         key.setImage(UIImage(systemName: symbolName), for: .normal)
         key.accessibilityLabel = accessibilityLabel
         key.addTarget(self, action: #selector(shiftTapped), for: .touchUpInside)
-        key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width).isActive = true
         return key
     }
 
-    private func makeCharacterActionKey(title: String, action: Selector, width: CGFloat) -> UIButton {
+    private func makeCharacterActionKey(title: String, action: Selector) -> UIButton {
         let key = makeBaseKey(title: title, role: .character)
         key.addTarget(self, action: action, for: .touchUpInside)
-        key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width).isActive = true
         return key
     }
 
-    private func makePrimaryActionKey(action: Selector, width: CGFloat) -> UIButton {
+    private func makePrimaryActionKey(action: Selector) -> UIButton {
         let key = makeBaseKey(title: nil, role: .primaryAction)
         key.addTarget(self, action: action, for: .touchUpInside)
-
-        let widthConstraint = key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width)
-        widthConstraint.isActive = true
-        actionKeyWidthConstraint = widthConstraint
 
         if let pressableKey = key as? KeyboardPressableButton {
             pressableKey.setTitleFonts(
@@ -501,8 +504,8 @@ final class KeyboardViewController: UIInputViewController {
         return key
     }
 
-    private func makeCursorMovementKey(symbolName: String, offset: Int, width: CGFloat) -> UIButton {
-        let key = makeActionSymbolKey(symbolName: symbolName, action: #selector(cursorMovementKeyTapped(_:)), width: width)
+    private func makeCursorMovementKey(symbolName: String, offset: Int) -> UIButton {
+        let key = makeActionSymbolKey(symbolName: symbolName, action: #selector(cursorMovementKeyTapped(_:)))
         key.tag = offset
         key.accessibilityLabel = (offset < 0) ? "Move cursor left" : "Move cursor right"
         key.accessibilityHint = "Moves the insertion point by one character."
@@ -626,7 +629,7 @@ final class KeyboardViewController: UIInputViewController {
         actionKeyButton.accessibilityLabel = model.accessibilityLabel
         actionKeyButton.accessibilityHint = model.accessibilityHint
         actionKeyButton.accessibilityIdentifier = "action-key-\(model.actionType.rawValue)"
-        actionKeyWidthConstraint?.constant = KeyboardMetrics.keyUnitWidth * model.minimumWidthMultiplier
+        actionKeyWidthConstraint?.constant = KeyboardMetrics.keyUnitWidth * model.minimumWidthUnits
     }
 
     private func logActionKeyState(model: ActionKeyModel, context: ActionKeyInputContext) {

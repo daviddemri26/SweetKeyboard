@@ -31,7 +31,7 @@ struct ActionKeyModel: Equatable {
     let accessibilityHint: String
     let performsPrimaryAction: Bool
     let debugDescription: String
-    let minimumWidthMultiplier: CGFloat
+    let minimumWidthUnits: CGFloat
 }
 
 struct ActionKeyInputContext {
@@ -81,7 +81,7 @@ struct ActionKeyResolver {
                 accessibilityHint: "Inserts a line break or triggers the host field’s default return action.",
                 performsPrimaryAction: true,
                 debugDescription: debugDescription(for: .default, context: context),
-                minimumWidthMultiplier: 2.0
+                minimumWidthUnits: 2.0
             )
         case .search:
             return ActionKeyModel(
@@ -94,7 +94,7 @@ struct ActionKeyResolver {
                 accessibilityHint: "Triggers the host field’s search return action.",
                 performsPrimaryAction: true,
                 debugDescription: debugDescription(for: .search, context: context),
-                minimumWidthMultiplier: 2.0
+                minimumWidthUnits: 2.0
             )
         case .go:
             return ActionKeyModel(
@@ -107,10 +107,10 @@ struct ActionKeyResolver {
                 accessibilityHint: "Triggers the host field’s Go return action.",
                 performsPrimaryAction: true,
                 debugDescription: debugDescription(for: .go, context: context),
-                minimumWidthMultiplier: 2.0
+                minimumWidthUnits: 2.0
             )
         case .google:
-            return makeTextModel(type: .google, title: "Google", accessibilityHint: "Triggers the host field’s Google return action.", context: context, minimumWidthMultiplier: 2.4)
+            return makeTextModel(type: .google, title: "Google", accessibilityHint: "Triggers the host field’s Google return action.", context: context, minimumWidthUnits: 2.4)
         case .join:
             return makeTextModel(type: .join, title: "Join", accessibilityHint: "Triggers the host field’s Join return action.", context: context)
         case .next:
@@ -120,13 +120,13 @@ struct ActionKeyResolver {
         case .send:
             return makeTextModel(type: .send, title: "Send", accessibilityHint: "Triggers the host field’s Send return action.", context: context)
         case .yahoo:
-            return makeTextModel(type: .yahoo, title: "Yahoo", accessibilityHint: "Triggers the host field’s Yahoo return action.", context: context, minimumWidthMultiplier: 2.3)
+            return makeTextModel(type: .yahoo, title: "Yahoo", accessibilityHint: "Triggers the host field’s Yahoo return action.", context: context, minimumWidthUnits: 2.3)
         case .done:
             return makeTextModel(type: .done, title: "Done", accessibilityHint: "Triggers the host field’s Done return action.", context: context)
         case .emergencyCall:
-            return makeTextModel(type: .emergencyCall, title: "Emergency", accessibilityLabel: "Emergency Call", accessibilityHint: "Triggers the host field’s Emergency Call return action.", context: context, minimumWidthMultiplier: 3.1)
+            return makeTextModel(type: .emergencyCall, title: "Emergency", accessibilityLabel: "Emergency Call", accessibilityHint: "Triggers the host field’s Emergency Call return action.", context: context, minimumWidthUnits: 3.1)
         case .continue:
-            return makeTextModel(type: .continue, title: "Continue", accessibilityHint: "Triggers the host field’s Continue return action.", context: context, minimumWidthMultiplier: 2.8)
+            return makeTextModel(type: .continue, title: "Continue", accessibilityHint: "Triggers the host field’s Continue return action.", context: context, minimumWidthUnits: 2.8)
         case .unknown:
             return makeTextModel(type: .unknown, title: "Return", accessibilityLabel: "Return", accessibilityHint: "Triggers the host field’s default return action.", context: context)
         }
@@ -179,7 +179,7 @@ struct ActionKeyResolver {
         accessibilityLabel: String? = nil,
         accessibilityHint: String,
         context: ActionKeyInputContext,
-        minimumWidthMultiplier: CGFloat = 2.0
+        minimumWidthUnits: CGFloat = 2.0
     ) -> ActionKeyModel {
         ActionKeyModel(
             actionType: type,
@@ -191,7 +191,7 @@ struct ActionKeyResolver {
             accessibilityHint: accessibilityHint,
             performsPrimaryAction: true,
             debugDescription: debugDescription(for: type, context: context),
-            minimumWidthMultiplier: minimumWidthMultiplier
+            minimumWidthUnits: minimumWidthUnits
         )
     }
 
