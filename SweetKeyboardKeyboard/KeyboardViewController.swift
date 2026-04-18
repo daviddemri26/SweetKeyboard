@@ -250,7 +250,7 @@ final class KeyboardViewController: UIInputViewController {
         keyboardRows.addArrangedSubview(thirdRow)
 
         let bottomRow = makeRow(distribution: .fillProportionally)
-        bottomRow.addArrangedSubview(makeActionKey(title: "#+=", action: #selector(noopTapped), width: 1.35))
+        bottomRow.addArrangedSubview(makeActionSymbolKey(symbolName: "command", action: #selector(noopTapped), width: 1.35))
         bottomRow.addArrangedSubview(makeCharacterActionKey(title: "", action: #selector(spaceTapped), width: 5.2))
         let actionKey = makePrimaryActionKey(action: #selector(actionKeyTapped), width: 2.0)
         actionKeyButton = actionKey
@@ -318,6 +318,43 @@ final class KeyboardViewController: UIInputViewController {
             } else {
                 key.titleLabel?.font = UIFont.systemFont(ofSize: KeyboardMetrics.backspaceKeyFontSize, weight: .regular)
             }
+        }
+        key.addTarget(self, action: action, for: .touchUpInside)
+        key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width).isActive = true
+        return key
+    }
+
+    private func makeActionSymbolKey(symbolName: String, action: Selector, width: CGFloat) -> UIButton {
+        let key = makeBaseKey(title: nil, role: .system)
+        let normalConfiguration = UIImage.SymbolConfiguration(
+            pointSize: KeyboardMetrics.systemKeyFontSize,
+            weight: .medium
+        )
+        let highlightedConfiguration = UIImage.SymbolConfiguration(
+            pointSize: KeyboardMetrics.systemKeyFontSize,
+            weight: .semibold
+        )
+
+        if let pressableKey = key as? KeyboardPressableButton {
+            pressableKey.setSymbolConfigurations(
+                normal: normalConfiguration,
+                highlighted: highlightedConfiguration
+            )
+            pressableKey.setForegroundColors(
+                normal: KeyboardTheme.keyLabelColor,
+                highlighted: KeyboardTheme.keyLabelColor
+            )
+        } else {
+            key.setPreferredSymbolConfiguration(normalConfiguration, forImageIn: .normal)
+            key.tintColor = KeyboardTheme.keyLabelColor
+        }
+
+        let symbolImage = UIImage(systemName: symbolName)
+        if let pressableKey = key as? KeyboardPressableButton {
+            pressableKey.setSymbolImage(symbolImage)
+        } else {
+            key.setImage(symbolImage?.withRenderingMode(.alwaysTemplate), for: .normal)
+            key.setImage(symbolImage?.withRenderingMode(.alwaysTemplate), for: .highlighted)
         }
         key.addTarget(self, action: action, for: .touchUpInside)
         key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width).isActive = true
@@ -467,7 +504,13 @@ final class KeyboardViewController: UIInputViewController {
             } else {
                 actionKeyButton.setPreferredSymbolConfiguration(normalConfiguration, forImageIn: .normal)
             }
-            actionKeyButton.setImage(preferredSymbol, for: .normal)
+            if let pressableButton = actionKeyButton as? KeyboardPressableButton {
+                pressableButton.setSymbolImage(preferredSymbol)
+            } else {
+                let templatedImage = preferredSymbol.withRenderingMode(.alwaysTemplate)
+                actionKeyButton.setImage(templatedImage, for: .normal)
+                actionKeyButton.setImage(templatedImage, for: .highlighted)
+            }
         } else {
             actionKeyButton.setTitle(model.fallbackTitle, for: .normal)
         }

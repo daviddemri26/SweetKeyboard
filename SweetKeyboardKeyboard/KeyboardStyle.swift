@@ -227,6 +227,7 @@ final class KeyboardPressableButton: UIButton {
         setTitleColor(normal, for: .normal)
         setTitleColor(highlightedColor, for: .highlighted)
         tintColor = isHighlighted && isEnabled ? highlightedColor : normal
+        imageView?.tintColor = tintColor
     }
 
     func setSymbolConfigurations(normal: UIImage.SymbolConfiguration, highlighted: UIImage.SymbolConfiguration? = nil) {
@@ -235,11 +236,18 @@ final class KeyboardPressableButton: UIButton {
         setPreferredSymbolConfiguration(highlightedConfiguration, forImageIn: .highlighted)
     }
 
+    func setSymbolImage(_ image: UIImage?) {
+        let templatedImage = image?.withRenderingMode(.alwaysTemplate)
+        setImage(templatedImage, for: .normal)
+        setImage(templatedImage, for: .highlighted)
+    }
+
     private func updatePressedAppearance() {
         backgroundColor = (isHighlighted && isEnabled) ? highlightedBackgroundColor ?? normalBackgroundColor : normalBackgroundColor
 
         if let normalForegroundColor {
             tintColor = (isHighlighted && isEnabled) ? highlightedForegroundColor ?? normalForegroundColor : normalForegroundColor
+            imageView?.tintColor = tintColor
         }
 
         guard let normalTitleFont else {
