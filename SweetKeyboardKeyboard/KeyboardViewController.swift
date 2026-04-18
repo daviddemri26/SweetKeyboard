@@ -24,9 +24,16 @@ final class KeyboardViewController: UIInputViewController {
     private let actionKeyDebugStore = ActionKeyDebugStore()
 
     private let shiftDoubleTapInterval: TimeInterval = 0.35
+    private let cursorMovementRepeatDelay: TimeInterval = 1
+    private let cursorMovementRepeatInterval: TimeInterval = 0.1
     private var shiftState: ShiftState = .off
     private var lastShiftTapAt: Date?
     private var keyboardLayoutMode: KeyboardLayoutMode = .letters
+    private var activeCursorMovementOffset: Int?
+    private weak var activeCursorMovementButton: UIButton?
+    private var cursorMovementDelayTimer: Timer?
+    private var cursorMovementRepeatTimer: Timer?
+    private var didRepeatCursorMovement = false
     private var mode: Mode = .keyboard {
         didSet {
             refreshModeUI()
@@ -67,6 +74,11 @@ final class KeyboardViewController: UIInputViewController {
     override func viewSafeAreaInsetsDidChange() {
         super.viewSafeAreaInsetsDidChange()
         updateKeyboardSizingIfNeeded()
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        stopCursorMovementRepeat()
     }
 
     private func registerTraitObservers() {
@@ -237,6 +249,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func rebuildKeyboardRows() {
+        stopCursorMovementRepeat()
         keyboardRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
         switch keyboardLayoutMode {
@@ -293,6 +306,8 @@ final class KeyboardViewController: UIInputViewController {
                 )
             )
         }
+        punctuationRow.addArrangedSubview(makeCursorMovementKey(symbolName: "arrow.left", offset: -1, width: 1.15))
+        punctuationRow.addArrangedSubview(makeCursorMovementKey(symbolName: "arrow.right", offset: 1, width: 1.15))
         punctuationRow.addArrangedSubview(makeActionKey(title: "⌫", action: #selector(backspaceTapped), width: 1.5))
         keyboardRows.addArrangedSubview(punctuationRow)
 
@@ -473,6 +488,19 @@ final class KeyboardViewController: UIInputViewController {
         key.titleLabel?.minimumScaleFactor = 0.72
         key.accessibilityTraits.insert(.keyboardKey)
 
+        return key
+    }
+
+    private func makeCursorMovementKey(symbolName: String, offset: Int, width: CGFloat) -> UIButton {
+        let key = makeActionSymbolKey(symbolName: symbolName, action: #selector(cursorMovementKeyTapped(_:)), width: width)
+        key.tag = offset
+        key.accessibilityLabel = (offset < 0) ? "Move cursor left" : "Move cursor right"
+        key.accessibilityHint = "Moves the insertion point by one character."
+        key.addTarget(self, action: #selector(cursorMovementTouchDown(_:)), for: .touchDown)
+        key.addTarget(self, action: #selector(cursorMovementTouchEnded(_:)), for: .touchUpInside)
+        key.addTarget(self, action: #selector(cursorMovementTouchEnded(_:)), for: .touchUpOutside)
+        key.addTarget(self, action: #selector(cursorMovementTouchEnded(_:)), for: .touchCancel)
+        key.addTarget(self, action: #selector(cursorMovementTouchEnded(_:)), for: .touchDragExit)
         return key
     }
 
@@ -699,6 +727,62 @@ final class KeyboardViewController: UIInputViewController {
         textDocumentProxy.deleteBackward()
     }
 
+    @objc private func cursorMovementTouchDown(_ sender: UIButton) {
+        stopCursorMovementRepeat()
+
+        activeCursorMovementOffset = sender.tag
+        activeCursorMovementButton = sender
+        didRepeatCursorMovement = false
+
+        cursorMovementDelayTimer = scheduleCursorMovementTimer(
+            interval: cursorMovementRepeatDelay,
+            repeats: false
+        ) { [weak self, weak sender] _ in
+            guard
+                let self,
+                let sender,
+                self.activeCursorMovementButton === sender,
+                self.activeCursorMovementOffset == sender.tag
+            else {
+                return
+            }
+
+            self.didRepeatCursorMovement = true
+            self.moveCursor(by: sender.tag)
+            self.cursorMovementRepeatTimer = self.scheduleCursorMovementTimer(
+                interval: self.cursorMovementRepeatInterval,
+                repeats: true
+            ) { [weak self, weak sender] _ in
+                guard
+                    let self,
+                    let sender,
+                    self.activeCursorMovementButton === sender,
+                    self.activeCursorMovementOffset == sender.tag
+                else {
+                    return
+                }
+
+                self.moveCursor(by: sender.tag)
+            }
+        }
+    }
+
+    @objc private func cursorMovementKeyTapped(_ sender: UIButton) {
+        defer {
+            stopCursorMovementRepeat()
+        }
+
+        guard !didRepeatCursorMovement else {
+            return
+        }
+
+        moveCursor(by: sender.tag)
+    }
+
+    @objc private func cursorMovementTouchEnded(_ sender: UIButton) {
+        stopCursorMovementRepeat()
+    }
+
     @objc private func spaceTapped() {
         textDocumentProxy.insertText(" ")
     }
@@ -719,6 +803,30 @@ final class KeyboardViewController: UIInputViewController {
     @objc private func letterKeyboardTapped() {
         keyboardLayoutMode = .letters
         rebuildKeyboardRows()
+    }
+
+    private func moveCursor(by offset: Int) {
+        textDocumentProxy.adjustTextPosition(byCharacterOffset: offset)
+    }
+
+    private func stopCursorMovementRepeat() {
+        cursorMovementDelayTimer?.invalidate()
+        cursorMovementRepeatTimer?.invalidate()
+        cursorMovementDelayTimer = nil
+        cursorMovementRepeatTimer = nil
+        activeCursorMovementOffset = nil
+        activeCursorMovementButton = nil
+        didRepeatCursorMovement = false
+    }
+
+    private func scheduleCursorMovementTimer(
+        interval: TimeInterval,
+        repeats: Bool,
+        handler: @escaping (Timer) -> Void
+    ) -> Timer {
+        let timer = Timer(timeInterval: interval, repeats: repeats, block: handler)
+        RunLoop.main.add(timer, forMode: .common)
+        return timer
     }
 
     private var isShiftActive: Bool {

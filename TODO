@@ -4,4 +4,8 @@ Implémenter la vue pour les symboles.
 
 Flèche de direction gauche et droite 
 
+Ajouter un repeat sur le bouton de suppression. 
+
 Supprimer vers l'avant. Quand on appuie sur Shift, ça change le bouton supprimer. 
+
+Améliorer la fonction et le visuel des boutons de la barre d'action tout en haut. 
