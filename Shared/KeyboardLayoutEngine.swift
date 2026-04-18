@@ -84,8 +84,8 @@ struct KeyboardLayoutEngine {
             KeyboardRowSpec(
                 items: symbolPunctuationRow.map { KeyboardKeySpec(kind: .character($0), width: .normal) } +
                 [
-                    KeyboardKeySpec(kind: .cursor(offset: -1, symbolName: "arrow.left"), width: .units(1.725)),
-                    KeyboardKeySpec(kind: .cursor(offset: 1, symbolName: "arrow.right"), width: .units(1.725)),
+                    KeyboardKeySpec(kind: .cursor(offset: -1, symbolName: "arrowtriangle.left.fill"), width: .units(1.725)),
+                    KeyboardKeySpec(kind: .cursor(offset: 1, symbolName: "arrowtriangle.right.fill"), width: .units(1.725)),
                     KeyboardKeySpec(kind: .backspace, width: .units(1.5))
                 ]
             )

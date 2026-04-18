@@ -376,9 +376,13 @@ final class KeyboardViewController: UIInputViewController {
         case .space:
             return makeCharacterActionKey(title: "", action: #selector(spaceTapped))
         case .symbolToggle:
-            return makeActionSymbolKey(symbolName: "command", action: #selector(symbolKeyboardTapped))
+            let key = makeActionSymbolKey(symbolName: "command", action: #selector(symbolKeyboardTapped))
+            applyFunctionKeyBorder(to: key)
+            return key
         case .letterToggle:
-            return makeActionKey(title: "ABC", action: #selector(letterKeyboardTapped))
+            let key = makeActionKey(title: "ABC", action: #selector(letterKeyboardTapped))
+            applyFunctionKeyBorder(to: key)
+            return key
         case .primaryAction:
             return makePrimaryActionKey(action: #selector(actionKeyTapped))
         case .cursor(let offset, let symbolName):
@@ -389,6 +393,7 @@ final class KeyboardViewController: UIInputViewController {
     private func makeActionKey(title: String, action: Selector? = nil) -> UIButton {
         let key = makeBaseKey(title: title, role: .system)
         if title == "⌫" {
+            applyFunctionKeyBorder(to: key)
             if let pressableKey = key as? KeyboardPressableButton {
                 pressableKey.setTitleFonts(
                     normal: UIFont.systemFont(ofSize: KeyboardMetrics.backspaceKeyFontSize, weight: .regular),
@@ -448,6 +453,7 @@ final class KeyboardViewController: UIInputViewController {
 
     private func makeShiftKey() -> UIButton {
         let key = makeBaseKey(title: nil, role: .system)
+        applyFunctionKeyBorder(to: key)
         let symbolName: String
         let accessibilityLabel: String
 
@@ -500,6 +506,7 @@ final class KeyboardViewController: UIInputViewController {
 
     private func makePrimaryActionKey(action: Selector) -> UIButton {
         let key = makeBaseKey(title: nil, role: .primaryAction)
+        applyFunctionKeyBorder(to: key)
         key.addTarget(self, action: action, for: .touchUpInside)
 
         if let pressableKey = key as? KeyboardPressableButton {
@@ -519,6 +526,27 @@ final class KeyboardViewController: UIInputViewController {
 
     private func makeCursorMovementKey(symbolName: String, offset: Int) -> UIButton {
         let key = makeActionSymbolKey(symbolName: symbolName, action: #selector(cursorMovementKeyTapped(_:)))
+
+        let normalConfiguration = UIImage.SymbolConfiguration(
+            pointSize: KeyboardMetrics.cursorSymbolPointSize,
+            weight: .semibold
+        )
+        let highlightedConfiguration = UIImage.SymbolConfiguration(
+            pointSize: KeyboardMetrics.cursorSymbolPointSize,
+            weight: .bold
+        )
+
+        if let pressableKey = key as? KeyboardPressableButton {
+            pressableKey.setSymbolConfigurations(
+                normal: normalConfiguration,
+                highlighted: highlightedConfiguration
+            )
+        } else {
+            key.setPreferredSymbolConfiguration(normalConfiguration, forImageIn: .normal)
+            key.setPreferredSymbolConfiguration(highlightedConfiguration, forImageIn: .highlighted)
+        }
+        applyFunctionKeyBorder(to: key)
+
         key.tag = offset
         key.accessibilityLabel = (offset < 0) ? "Move cursor left" : "Move cursor right"
         key.accessibilityHint = "Moves the insertion point by one character."
@@ -564,6 +592,18 @@ final class KeyboardViewController: UIInputViewController {
         )
         button.heightAnchor.constraint(equalToConstant: KeyboardMetrics.keyboardRowHeight).isActive = true
         return button
+    }
+
+    private func applyFunctionKeyBorder(to key: UIButton) {
+        if let pressableKey = key as? KeyboardPressableButton {
+            pressableKey.setBorder(
+                width: KeyboardMetrics.functionKeyBorderWidth,
+                colorProvider: { _ in KeyboardTheme.functionKeyBorderColor }
+            )
+        } else {
+            key.layer.borderWidth = KeyboardMetrics.functionKeyBorderWidth
+            key.layer.borderColor = KeyboardTheme.functionKeyBorderColor.resolvedColor(with: key.traitCollection).cgColor
+        }
     }
 
     private func refreshActionKey() {

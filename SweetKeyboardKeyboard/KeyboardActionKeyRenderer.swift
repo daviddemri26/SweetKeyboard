@@ -67,8 +67,15 @@ enum KeyboardActionKeyRenderer {
             button.backgroundColor = isGoAction ? goActionBackgroundColor : button.backgroundColor
         }
 
-        button.layer.borderColor = UIColor.clear.cgColor
-        button.layer.borderWidth = 0
+        if let pressableButton = button as? KeyboardPressableButton {
+            pressableButton.setBorder(
+                width: KeyboardMetrics.functionKeyBorderWidth,
+                colorProvider: { _ in KeyboardTheme.functionKeyBorderColor }
+            )
+        } else {
+            button.layer.borderWidth = KeyboardMetrics.functionKeyBorderWidth
+            button.layer.borderColor = KeyboardTheme.functionKeyBorderColor.resolvedColor(with: button.traitCollection).cgColor
+        }
         button.accessibilityLabel = model.accessibilityLabel
         button.accessibilityHint = model.accessibilityHint
         button.accessibilityIdentifier = "action-key-\(model.actionType.rawValue)"

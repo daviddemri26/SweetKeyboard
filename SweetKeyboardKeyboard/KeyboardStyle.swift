@@ -25,6 +25,8 @@ enum KeyboardMetrics {
     static let iconButtonWidth: CGFloat = 34
     static let iconPointSize: CGFloat = 16
     static let actionSymbolPointSize: CGFloat = 20
+    static let cursorSymbolPointSize: CGFloat = 14
+    static let functionKeyBorderWidth: CGFloat = 0.8
 
     static let characterKeyFontSize: CGFloat = 25.2
     static let systemKeyFontSize: CGFloat = 18
@@ -91,6 +93,16 @@ enum KeyboardTheme {
             }
 
             return UIColor(hex: 0x000000)
+        }
+    }
+
+    static var functionKeyBorderColor: UIColor {
+        UIColor { traits in
+            if traits.userInterfaceStyle == .dark {
+                return UIColor(hex: 0x66666A, alpha: 0.88)
+            }
+
+            return UIColor(hex: 0xC8CDD6)
         }
     }
 
@@ -193,6 +205,7 @@ final class KeyboardPressableButton: UIButton {
     private var highlightedTitleFont: UIFont?
     private var normalForegroundColor: UIColor?
     private var highlightedForegroundColor: UIColor?
+    private var borderColorProvider: ((UITraitCollection) -> UIColor)?
 
     override var isHighlighted: Bool {
         didSet {
@@ -204,6 +217,11 @@ final class KeyboardPressableButton: UIButton {
         didSet {
             updatePressedAppearance()
         }
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        updateBorderAppearance()
     }
 
     func setBackgroundColors(normal: UIColor, highlighted: UIColor) {
@@ -240,6 +258,12 @@ final class KeyboardPressableButton: UIButton {
         setImage(templatedImage, for: .highlighted)
     }
 
+    func setBorder(width: CGFloat, colorProvider: ((UITraitCollection) -> UIColor)? = nil) {
+        layer.borderWidth = width
+        borderColorProvider = colorProvider
+        updateBorderAppearance()
+    }
+
     private func updatePressedAppearance() {
         backgroundColor = (isHighlighted && isEnabled) ? highlightedBackgroundColor ?? normalBackgroundColor : normalBackgroundColor
 
@@ -253,6 +277,15 @@ final class KeyboardPressableButton: UIButton {
         }
 
         titleLabel?.font = (isHighlighted && isEnabled) ? highlightedTitleFont ?? normalTitleFont : normalTitleFont
+    }
+
+    private func updateBorderAppearance() {
+        guard layer.borderWidth > 0, let borderColorProvider else {
+            layer.borderColor = UIColor.clear.cgColor
+            return
+        }
+
+        layer.borderColor = borderColorProvider(traitCollection).cgColor
     }
 }
 
