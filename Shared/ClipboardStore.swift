@@ -1,12 +1,6 @@
 import Foundation
 
-protocol ClipboardStoreProtocol {
-    func allItems() -> [ClipboardItem]
-    func add(text: String, source: ClipboardItem.Source)
-    func clearAll()
-}
-
-final class ClipboardStore: ClipboardStoreProtocol {
+final class ClipboardStore {
     private enum Constants {
         static let storageKey = "clipboard.history.v1"
         static let maxItems = 50
@@ -44,8 +38,7 @@ final class ClipboardStore: ClipboardStoreProtocol {
             return
         }
 
-        let newItem = ClipboardItem(text: normalized, source: source)
-        items.insert(newItem, at: 0)
+        items.insert(ClipboardItem(text: normalized, source: source), at: 0)
 
         if items.count > Constants.maxItems {
             items = Array(items.prefix(Constants.maxItems))

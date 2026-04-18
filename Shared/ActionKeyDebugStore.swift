@@ -42,7 +42,11 @@ final class ActionKeyDebugStore {
         static let maxSnapshots = 40
     }
 
-    private let userDefaults = UserDefaults(suiteName: AppGroup.identifier)
+    private let userDefaults: UserDefaults?
+
+    init(userDefaults: UserDefaults? = UserDefaults(suiteName: AppGroup.identifier)) {
+        self.userDefaults = userDefaults
+    }
 
     func allSnapshots() -> [ActionKeyDebugSnapshot] {
         guard

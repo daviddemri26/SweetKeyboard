@@ -98,21 +98,19 @@ Open access is enabled for platform capability reasons only, not for remote data
 
 ```text
 SweetKeyboard/
+├── Shared/                         # Shared models + persistence for both targets
 ├── SweetKeyboard/                  # Containing app
 │   ├── ContentView.swift           # Onboarding + clipboard debug UI
 │   ├── SweetKeyboardApp.swift
-│   ├── Shared/                     # Shared clipboard model/store for the app
 │   └── SweetKeyboard.entitlements
 ├── SweetKeyboardKeyboard/          # Keyboard extension
 │   ├── KeyboardViewController.swift
 │   ├── KeyboardLayoutEngine.swift
 │   ├── KeyboardActionBarView.swift
 │   ├── ClipboardPanelView.swift
-│   ├── ClipboardStore.swift
-│   ├── ClipboardItem.swift
-│   ├── AppGroup.swift
 │   ├── Info.plist
 │   └── SweetKeyboardKeyboard.entitlements
+├── SweetKeyboardTests/             # XCTest coverage for shared persistence rules
 └── SweetKeyboard.xcodeproj
 ```
 
@@ -166,6 +164,12 @@ xcodebuild -project SweetKeyboard.xcodeproj -scheme SweetKeyboard -sdk iphonesim
 
 Simulator builds are useful for compile validation, but custom keyboard behavior should be validated on device.
 
+Shared persistence tests can be run from the command line with:
+
+```bash
+xcodebuild -project SweetKeyboard.xcodeproj -scheme SweetKeyboard -configuration Debug test -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:SweetKeyboardTests/SharedStoreTests
+```
+
 ## Known Platform Limitations
 
 - Third-party keyboards are unavailable in secure text fields
@@ -203,6 +207,5 @@ Keep commits focused. Avoid committing:
 - Improve keyboard sizing and responsiveness across device classes
 - Add stronger empty/error feedback states
 - Polish clipboard panel UI
-- Add tests around clipboard normalization and persistence rules
 - Add explicit onboarding copy for privacy and Full Access rationale
 - Validate the contextual action-key matrix on a real iPhone across Mail, Messages, Safari, Notes, and common form flows

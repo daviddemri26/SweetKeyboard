@@ -18,8 +18,6 @@ enum KeyboardKeyKind {
     case symbolToggle
     case letterToggle
     case primaryAction
-    case systemText(String)
-    case systemSymbol(String)
     case cursor(offset: Int, symbolName: String)
 }
 

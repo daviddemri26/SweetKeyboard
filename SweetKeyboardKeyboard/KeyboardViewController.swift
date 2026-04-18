@@ -24,20 +24,11 @@ final class KeyboardViewController: UIInputViewController {
     private let actionKeyDebugStore = ActionKeyDebugStore()
 
     private let shiftDoubleTapInterval: TimeInterval = 0.35
-    private let cursorMovementRepeatDelay: TimeInterval = 0.8
-    private let cursorMovementRepeatInterval: TimeInterval = 0.1
+    private let keyRepeatDelay: TimeInterval = 0.8
+    private let keyRepeatInterval: TimeInterval = 0.1
     private var shiftState: ShiftState = .off
     private var lastShiftTapAt: Date?
     private var keyboardLayoutMode: KeyboardLayoutMode = .letters
-    private var activeCursorMovementOffset: Int?
-    private weak var activeCursorMovementButton: UIButton?
-    private var cursorMovementDelayTimer: Timer?
-    private var cursorMovementRepeatTimer: Timer?
-    private var didRepeatCursorMovement = false
-    private weak var activeBackspaceButton: UIButton?
-    private var backspaceDelayTimer: Timer?
-    private var backspaceRepeatTimer: Timer?
-    private var didRepeatBackspace = false
     private var isEmailFieldActive = false
     private var mode: Mode = .keyboard {
         didSet {
@@ -52,6 +43,15 @@ final class KeyboardViewController: UIInputViewController {
     private let clipboardPanel = ClipboardPanelView()
     private let settingsPanel = UITextView()
     private let feedbackLabel = UILabel()
+    private lazy var feedbackPresenter = KeyboardFeedbackPresenter(label: feedbackLabel)
+    private lazy var backspaceRepeatController = KeyboardKeyRepeatController(
+        delay: keyRepeatDelay,
+        repeatInterval: keyRepeatInterval
+    )
+    private lazy var cursorRepeatController = KeyboardKeyRepeatController(
+        delay: keyRepeatDelay,
+        repeatInterval: keyRepeatInterval
+    )
 
     private weak var actionKeyButton: UIButton?
     private var actionKeyWidthConstraint: NSLayoutConstraint?
@@ -72,7 +72,6 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        actionBar.setGlobeHidden(!needsInputModeSwitchKey)
         updateKeyboardSizingIfNeeded()
     }
 
@@ -213,8 +212,6 @@ final class KeyboardViewController: UIInputViewController {
                 pasteFromSystemClipboard()
             case .clipboard:
                 toggleMode(.clipboard)
-            case .globe:
-                globeTapped()
             case .settings:
                 toggleMode(.settings)
             }
@@ -222,7 +219,7 @@ final class KeyboardViewController: UIInputViewController {
 
         clipboardPanel.onSelectText = { [weak self] text in
             self?.textDocumentProxy.insertText(text)
-            self?.showFeedback("Inserted")
+            self?.feedbackPresenter.show("Inserted")
             self?.mode = .keyboard
         }
     }
@@ -375,10 +372,6 @@ final class KeyboardViewController: UIInputViewController {
             return makeActionKey(title: "ABC", action: #selector(letterKeyboardTapped))
         case .primaryAction:
             return makePrimaryActionKey(action: #selector(actionKeyTapped))
-        case .systemText(let title):
-            return makeActionKey(title: title)
-        case .systemSymbol(let symbolName):
-            return makeActionSymbolKey(symbolName: symbolName)
         case .cursor(let offset, let symbolName):
             return makeCursorMovementKey(symbolName: symbolName, offset: offset)
         }
@@ -578,80 +571,17 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         let model = actionKeyResolver.resolve(for: context)
-        applyActionKeyModel(model, context: context)
-        logActionKeyState(model: model, context: context)
-    }
-
-    private func applyActionKeyModel(_ model: ActionKeyModel, context: ActionKeyInputContext) {
         guard let actionKeyButton else {
             return
         }
 
-        let preferredSymbol = model.symbolName.flatMap(primaryActionSymbol(named:))
-        let useIcon = model.displayMode == .icon && preferredSymbol != nil
-        let isEnabled = actionKeyResolver.isEnabled(for: model, context: context)
-        let isGoAction = model.actionType == .go
-
-        actionKeyButton.setTitle(nil, for: .normal)
-        actionKeyButton.setImage(nil, for: .normal)
-
-        if useIcon, let preferredSymbol {
-            let normalConfiguration = UIImage.SymbolConfiguration(
-                pointSize: KeyboardMetrics.actionSymbolPointSize,
-                weight: .medium
-            )
-            let highlightedConfiguration = UIImage.SymbolConfiguration(
-                pointSize: KeyboardMetrics.actionSymbolPointSize,
-                weight: .semibold
-            )
-            if let pressableButton = actionKeyButton as? KeyboardPressableButton {
-                pressableButton.setSymbolConfigurations(
-                    normal: normalConfiguration,
-                    highlighted: highlightedConfiguration
-                )
-            } else {
-                actionKeyButton.setPreferredSymbolConfiguration(normalConfiguration, forImageIn: .normal)
-            }
-            if let pressableButton = actionKeyButton as? KeyboardPressableButton {
-                pressableButton.setSymbolImage(preferredSymbol)
-            } else {
-                let templatedImage = preferredSymbol.withRenderingMode(.alwaysTemplate)
-                actionKeyButton.setImage(templatedImage, for: .normal)
-                actionKeyButton.setImage(templatedImage, for: .highlighted)
-            }
-        } else {
-            actionKeyButton.setTitle(model.fallbackTitle, for: .normal)
-        }
-
-        actionKeyButton.isEnabled = isEnabled
-        KeyboardTheme.applyChrome(
+        KeyboardActionKeyRenderer.apply(
+            model: model,
+            isEnabled: actionKeyResolver.isEnabled(for: model, context: context),
             to: actionKeyButton,
-            role: .primaryAction,
-            cornerRadius: KeyboardMetrics.keyCornerRadius
+            widthConstraint: actionKeyWidthConstraint
         )
-        if let pressableButton = actionKeyButton as? KeyboardPressableButton {
-            let normalBackground = isGoAction ? goActionBackgroundColor : KeyboardTheme.background(for: .primaryAction)
-            let highlightedBackground = KeyboardTheme.pressedBackground(for: .primaryAction)
-            pressableButton.setBackgroundColors(normal: normalBackground, highlighted: highlightedBackground)
-            pressableButton.setForegroundColors(
-                normal: isGoAction ? .white : KeyboardTheme.keyLabelColor,
-                highlighted: isGoAction ? KeyboardTheme.goActionPressedForegroundColor : KeyboardTheme.keyLabelColor
-            )
-        } else {
-            actionKeyButton.setTitleColor(isGoAction ? .white : KeyboardTheme.keyLabelColor, for: .normal)
-            actionKeyButton.setTitleColor(
-                isGoAction ? KeyboardTheme.goActionPressedForegroundColor : KeyboardTheme.keyLabelColor,
-                for: .highlighted
-            )
-            actionKeyButton.tintColor = isGoAction ? .white : KeyboardTheme.keyLabelColor
-            actionKeyButton.backgroundColor = isGoAction ? goActionBackgroundColor : actionKeyButton.backgroundColor
-        }
-        actionKeyButton.layer.borderColor = UIColor.clear.cgColor
-        actionKeyButton.layer.borderWidth = 0
-        actionKeyButton.accessibilityLabel = model.accessibilityLabel
-        actionKeyButton.accessibilityHint = model.accessibilityHint
-        actionKeyButton.accessibilityIdentifier = "action-key-\(model.actionType.rawValue)"
-        actionKeyWidthConstraint?.constant = KeyboardMetrics.keyUnitWidth * model.minimumWidthUnits
+        logActionKeyState(model: model, context: context)
     }
 
     private func logActionKeyState(model: ActionKeyModel, context: ActionKeyInputContext) {
@@ -676,52 +606,25 @@ final class KeyboardViewController: UIInputViewController {
         actionKeyDebugStore.record(snapshot)
     }
 
-    private func primaryActionSymbol(named name: String) -> UIImage? {
-        if let image = UIImage(systemName: name) {
-            return image
-        }
-
-        if name == "return.left" {
-            return UIImage(systemName: "arrow.turn.down.left")
-        }
-
-        return nil
-    }
-
-    private var goActionBackgroundColor: UIColor {
-        UIColor(red: 52 / 255, green: 120 / 255, blue: 245 / 255, alpha: 1)
-    }
-
     private func copySelectedText() {
         guard let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty else {
-            showFeedback("No selection")
+            feedbackPresenter.show("No selection")
             return
         }
 
         UIPasteboard.general.string = selectedText
         clipboardStore.add(text: selectedText, source: .keyboardCopy)
-        showFeedback("Copied")
+        feedbackPresenter.show("Copied")
     }
 
     private func pasteFromSystemClipboard() {
         guard let pasteText = UIPasteboard.general.string, !pasteText.isEmpty else {
-            showFeedback("Nothing to paste")
+            feedbackPresenter.show("Nothing to paste")
             return
         }
 
         textDocumentProxy.insertText(pasteText)
-        showFeedback("Pasted")
-    }
-
-    private func showFeedback(_ message: String) {
-        feedbackLabel.text = message
-        UIView.animate(withDuration: 0.15, animations: {
-            self.feedbackLabel.alpha = 1
-        }) { _ in
-            UIView.animate(withDuration: 0.25, delay: 0.8, options: [.curveEaseOut]) {
-                self.feedbackLabel.alpha = 0
-            }
-        }
+        feedbackPresenter.show("Pasted")
     }
 
     @objc private func characterKeyTapped(_ sender: UIButton) {
@@ -763,112 +666,37 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     @objc private func backspaceTouchDown(_ sender: UIButton) {
-        stopBackspaceRepeat()
-
-        activeBackspaceButton = sender
-        didRepeatBackspace = false
-
-        backspaceDelayTimer = scheduleKeyRepeatTimer(
-            interval: cursorMovementRepeatDelay,
-            repeats: false
-        ) { [weak self, weak sender] _ in
-            guard
-                let self,
-                let sender,
-                self.activeBackspaceButton === sender
-            else {
-                return
-            }
-
-            self.didRepeatBackspace = true
-            self.backspaceTapped()
-            self.backspaceRepeatTimer = self.scheduleKeyRepeatTimer(
-                interval: self.cursorMovementRepeatInterval,
-                repeats: true
-            ) { [weak self, weak sender] _ in
-                guard
-                    let self,
-                    let sender,
-                    self.activeBackspaceButton === sender
-                else {
-                    return
-                }
-
-                self.backspaceTapped()
-            }
+        backspaceRepeatController.begin(on: sender) { [weak self] in
+            self?.backspaceTapped()
         }
     }
 
     @objc private func backspaceKeyTapped(_ sender: UIButton) {
-        defer {
-            stopBackspaceRepeat()
+        backspaceRepeatController.completeTap(on: sender) { [weak self] in
+            self?.backspaceTapped()
         }
-
-        guard !didRepeatBackspace else {
-            return
-        }
-
-        backspaceTapped()
     }
 
     @objc private func backspaceTouchEnded(_ sender: UIButton) {
-        stopBackspaceRepeat()
+        _ = sender
+        backspaceRepeatController.stop()
     }
 
     @objc private func cursorMovementTouchDown(_ sender: UIButton) {
-        stopCursorMovementRepeat()
-
-        activeCursorMovementOffset = sender.tag
-        activeCursorMovementButton = sender
-        didRepeatCursorMovement = false
-
-        cursorMovementDelayTimer = scheduleKeyRepeatTimer(
-            interval: cursorMovementRepeatDelay,
-            repeats: false
-        ) { [weak self, weak sender] _ in
-            guard
-                let self,
-                let sender,
-                self.activeCursorMovementButton === sender,
-                self.activeCursorMovementOffset == sender.tag
-            else {
-                return
-            }
-
-            self.didRepeatCursorMovement = true
-            self.moveCursor(by: sender.tag)
-            self.cursorMovementRepeatTimer = self.scheduleKeyRepeatTimer(
-                interval: self.cursorMovementRepeatInterval,
-                repeats: true
-            ) { [weak self, weak sender] _ in
-                guard
-                    let self,
-                    let sender,
-                    self.activeCursorMovementButton === sender,
-                    self.activeCursorMovementOffset == sender.tag
-                else {
-                    return
-                }
-
-                self.moveCursor(by: sender.tag)
-            }
+        cursorRepeatController.begin(on: sender, identifier: sender.tag) { [weak self, offset = sender.tag] in
+            self?.moveCursor(by: offset)
         }
     }
 
     @objc private func cursorMovementKeyTapped(_ sender: UIButton) {
-        defer {
-            stopCursorMovementRepeat()
+        cursorRepeatController.completeTap(on: sender, identifier: sender.tag) { [weak self, offset = sender.tag] in
+            self?.moveCursor(by: offset)
         }
-
-        guard !didRepeatCursorMovement else {
-            return
-        }
-
-        moveCursor(by: sender.tag)
     }
 
     @objc private func cursorMovementTouchEnded(_ sender: UIButton) {
-        stopCursorMovementRepeat()
+        _ = sender
+        cursorRepeatController.stop()
     }
 
     @objc private func spaceTapped() {
@@ -877,10 +705,6 @@ final class KeyboardViewController: UIInputViewController {
 
     @objc private func actionKeyTapped() {
         textDocumentProxy.insertText("\n")
-    }
-
-    @objc private func globeTapped() {
-        advanceToNextInputMode()
     }
 
     @objc private func symbolKeyboardTapped() {
@@ -898,37 +722,8 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func stopKeyRepeats() {
-        stopCursorMovementRepeat()
-        stopBackspaceRepeat()
-    }
-
-    private func stopCursorMovementRepeat() {
-        cursorMovementDelayTimer?.invalidate()
-        cursorMovementRepeatTimer?.invalidate()
-        cursorMovementDelayTimer = nil
-        cursorMovementRepeatTimer = nil
-        activeCursorMovementOffset = nil
-        activeCursorMovementButton = nil
-        didRepeatCursorMovement = false
-    }
-
-    private func stopBackspaceRepeat() {
-        backspaceDelayTimer?.invalidate()
-        backspaceRepeatTimer?.invalidate()
-        backspaceDelayTimer = nil
-        backspaceRepeatTimer = nil
-        activeBackspaceButton = nil
-        didRepeatBackspace = false
-    }
-
-    private func scheduleKeyRepeatTimer(
-        interval: TimeInterval,
-        repeats: Bool,
-        handler: @escaping (Timer) -> Void
-    ) -> Timer {
-        let timer = Timer(timeInterval: interval, repeats: repeats, block: handler)
-        RunLoop.main.add(timer, forMode: .common)
-        return timer
+        cursorRepeatController.stop()
+        backspaceRepeatController.stop()
     }
 
     private var isShiftActive: Bool {

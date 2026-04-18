@@ -33,8 +33,6 @@ enum KeyboardMetrics {
     static let utilityButtonFontSize: CGFloat = 17
 
     static let settingsPanelCornerRadius: CGFloat = 14
-    static let panelItemCornerRadius: CGFloat = 12
-
     static let feedbackHeight: CGFloat = 28
     static let feedbackBottomInset: CGFloat = 14
 

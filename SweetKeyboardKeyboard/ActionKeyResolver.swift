@@ -25,11 +25,9 @@ struct ActionKeyModel: Equatable {
     let actionType: ActionKeyType
     let displayMode: ActionKeyDisplayMode
     let symbolName: String?
-    let assetName: String?
     let fallbackTitle: String
     let accessibilityLabel: String
     let accessibilityHint: String
-    let performsPrimaryAction: Bool
     let debugDescription: String
     let minimumWidthUnits: CGFloat
 }
@@ -43,7 +41,6 @@ struct ActionKeyInputContext {
     let hasDocumentText: Bool
     let hasSelection: Bool
     let documentContextContainsLineBreaks: Bool
-    let traitsAvailable: Bool
 
     init(proxy: any UITextDocumentProxy) {
         let traits: any UITextInputTraits = proxy
@@ -61,7 +58,6 @@ struct ActionKeyInputContext {
         self.hasDocumentText = hasDocumentText
         hasText = proxy.hasText || hasSelection || hasDocumentText
         documentContextContainsLineBreaks = beforeInput.contains("\n") || afterInput.contains("\n")
-        traitsAvailable = true
     }
 
     var isEmailField: Bool {
@@ -83,11 +79,9 @@ struct ActionKeyResolver {
                 actionType: .default,
                 displayMode: .icon,
                 symbolName: ActionKeySymbol.defaultReturn,
-                assetName: nil,
                 fallbackTitle: "Return",
                 accessibilityLabel: "Return",
                 accessibilityHint: "Inserts a line break or triggers the host field’s default return action.",
-                performsPrimaryAction: true,
                 debugDescription: debugDescription(for: .default, context: context),
                 minimumWidthUnits: 2.0
             )
@@ -96,11 +90,9 @@ struct ActionKeyResolver {
                 actionType: .search,
                 displayMode: .icon,
                 symbolName: "magnifyingglass",
-                assetName: nil,
                 fallbackTitle: "Search",
                 accessibilityLabel: "Search",
                 accessibilityHint: "Triggers the host field’s search return action.",
-                performsPrimaryAction: true,
                 debugDescription: debugDescription(for: .search, context: context),
                 minimumWidthUnits: 2.0
             )
@@ -109,11 +101,9 @@ struct ActionKeyResolver {
                 actionType: .go,
                 displayMode: .icon,
                 symbolName: "arrow.right",
-                assetName: nil,
                 fallbackTitle: "Go",
                 accessibilityLabel: "Go",
                 accessibilityHint: "Triggers the host field’s Go return action.",
-                performsPrimaryAction: true,
                 debugDescription: debugDescription(for: .go, context: context),
                 minimumWidthUnits: 2.0
             )
@@ -193,11 +183,9 @@ struct ActionKeyResolver {
             actionType: type,
             displayMode: .text,
             symbolName: nil,
-            assetName: nil,
             fallbackTitle: title,
             accessibilityLabel: accessibilityLabel ?? title,
             accessibilityHint: accessibilityHint,
-            performsPrimaryAction: true,
             debugDescription: debugDescription(for: type, context: context),
             minimumWidthUnits: minimumWidthUnits
         )
@@ -208,11 +196,7 @@ struct ActionKeyResolver {
             return "Resolved \(actionType.rawValue) from returnKeyType=\(returnKeyType.debugName)"
         }
 
-        if context.traitsAvailable {
-            return "Fell back to default because returnKeyType was unavailable on the proxy."
-        }
-
-        return "Fell back to default because the host app did not expose text input traits to the custom keyboard."
+        return "Fell back to default because returnKeyType was unavailable on the proxy."
     }
 }
 

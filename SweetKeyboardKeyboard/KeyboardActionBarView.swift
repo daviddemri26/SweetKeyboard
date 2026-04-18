@@ -5,7 +5,6 @@ final class KeyboardActionBarView: UIView {
         case copy
         case paste
         case clipboard
-        case globe
         case settings
     }
 
@@ -14,7 +13,6 @@ final class KeyboardActionBarView: UIView {
     private let copyButton = KeyboardActionBarView.makeTextButton(title: "Copy")
     private let pasteButton = KeyboardActionBarView.makeTextButton(title: "Paste")
     private let clipboardButton = KeyboardActionBarView.makeTextButton(title: "Clipboard")
-    private let globeButton = KeyboardActionBarView.makeIconButton(symbolName: "globe")
     private let settingsButton = KeyboardActionBarView.makeIconButton(symbolName: "gearshape")
 
     private var isClipboardActive = false
@@ -41,10 +39,6 @@ final class KeyboardActionBarView: UIView {
         applyTheme()
     }
 
-    func setGlobeHidden(_ hidden: Bool) {
-        globeButton.isHidden = hidden
-    }
-
     private func observeTraitChanges() {
         registerForTraitChanges([UITraitUserInterfaceStyle.self, UITraitAccessibilityContrast.self]) {
             (self: Self, _: UITraitCollection) in
@@ -60,7 +54,7 @@ final class KeyboardActionBarView: UIView {
         leftStack.alignment = .fill
         leftStack.spacing = KeyboardMetrics.utilityRowButtonSpacing
 
-        let rightStack = UIStackView(arrangedSubviews: [globeButton, settingsButton])
+        let rightStack = UIStackView(arrangedSubviews: [settingsButton])
         rightStack.axis = .horizontal
         rightStack.alignment = .fill
         rightStack.spacing = KeyboardMetrics.utilityGroupSpacing
@@ -88,11 +82,8 @@ final class KeyboardActionBarView: UIView {
         copyButton.addTarget(self, action: #selector(copyTapped), for: .touchUpInside)
         pasteButton.addTarget(self, action: #selector(pasteTapped), for: .touchUpInside)
         clipboardButton.addTarget(self, action: #selector(clipboardTapped), for: .touchUpInside)
-        globeButton.addTarget(self, action: #selector(globeTapped), for: .touchUpInside)
         settingsButton.addTarget(self, action: #selector(settingsTapped), for: .touchUpInside)
 
-        globeButton.accessibilityLabel = "Next Keyboard"
-        globeButton.accessibilityHint = "Switches to the next enabled keyboard."
         settingsButton.accessibilityLabel = "Settings"
         settingsButton.accessibilityHint = "Shows SweetKeyboard settings."
     }
@@ -112,11 +103,6 @@ final class KeyboardActionBarView: UIView {
             to: clipboardButton,
             role: .utility,
             isActive: isClipboardActive,
-            cornerRadius: KeyboardMetrics.utilityCornerRadius
-        )
-        KeyboardTheme.applyChrome(
-            to: globeButton,
-            role: .utility,
             cornerRadius: KeyboardMetrics.utilityCornerRadius
         )
         KeyboardTheme.applyChrome(
@@ -179,10 +165,6 @@ final class KeyboardActionBarView: UIView {
 
     @objc private func clipboardTapped() {
         onAction?(.clipboard)
-    }
-
-    @objc private func globeTapped() {
-        onAction?(.globe)
     }
 
     @objc private func settingsTapped() {

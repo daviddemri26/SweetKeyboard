@@ -18,6 +18,13 @@
 			remoteGlobalIDString = 149A77142F92F9B600831DAA;
 			remoteInfo = SweetKeyboardKeyboard;
 		};
+		14B0A0062F93000000831DAA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 143DA6252F92E9F90023B657 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 143DA62C2F92E9F90023B657;
+			remoteInfo = SweetKeyboard;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -37,6 +44,7 @@
 /* Begin PBXFileReference section */
 		143DA62D2F92E9F90023B657 /* SweetKeyboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SweetKeyboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		149A77152F92F9B600831DAA /* SweetKeyboardKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SweetKeyboardKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		14B0A0052F93000000831DAA /* SweetKeyboardTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SweetKeyboardTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -63,6 +71,16 @@
 			path = SweetKeyboardKeyboard;
 			sourceTree = "<group>";
 		};
+		14B0A0012F93000000831DAA /* Shared */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		14B0A0022F93000000831DAA /* SweetKeyboardTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SweetKeyboardTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +98,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		14B0A0032F93000000831DAA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -87,6 +112,8 @@
 			isa = PBXGroup;
 			children = (
 				143DA62F2F92E9F90023B657 /* SweetKeyboard */,
+				14B0A0012F93000000831DAA /* Shared */,
+				14B0A0022F93000000831DAA /* SweetKeyboardTests */,
 				149A77162F92F9B600831DAA /* SweetKeyboardKeyboard */,
 				143DA62E2F92E9F90023B657 /* Products */,
 			);
@@ -96,6 +123,7 @@
 			isa = PBXGroup;
 			children = (
 				143DA62D2F92E9F90023B657 /* SweetKeyboard.app */,
+				14B0A0052F93000000831DAA /* SweetKeyboardTests.xctest */,
 				149A77152F92F9B600831DAA /* SweetKeyboardKeyboard.appex */,
 			);
 			name = Products;
@@ -120,6 +148,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				143DA62F2F92E9F90023B657 /* SweetKeyboard */,
+				14B0A0012F93000000831DAA /* Shared */,
 			);
 			name = SweetKeyboard;
 			packageProductDependencies = (
@@ -142,6 +171,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				149A77162F92F9B600831DAA /* SweetKeyboardKeyboard */,
+				14B0A0012F93000000831DAA /* Shared */,
 			);
 			name = SweetKeyboardKeyboard;
 			packageProductDependencies = (
@@ -149,6 +179,29 @@
 			productName = SweetKeyboardKeyboard;
 			productReference = 149A77152F92F9B600831DAA /* SweetKeyboardKeyboard.appex */;
 			productType = "com.apple.product-type.app-extension";
+		};
+		14B0A0042F93000000831DAA /* SweetKeyboardTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 14B0A00A2F93000000831DAA /* Build configuration list for PBXNativeTarget "SweetKeyboardTests" */;
+			buildPhases = (
+				14B0A0082F93000000831DAA /* Sources */,
+				14B0A0032F93000000831DAA /* Frameworks */,
+				14B0A0092F93000000831DAA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				14B0A0072F93000000831DAA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				14B0A0022F93000000831DAA /* SweetKeyboardTests */,
+			);
+			name = SweetKeyboardTests;
+			packageProductDependencies = (
+			);
+			productName = SweetKeyboardTests;
+			productReference = 14B0A0052F93000000831DAA /* SweetKeyboardTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -183,6 +236,7 @@
 			projectRoot = "";
 			targets = (
 				143DA62C2F92E9F90023B657 /* SweetKeyboard */,
+				14B0A0042F93000000831DAA /* SweetKeyboardTests */,
 				149A77142F92F9B600831DAA /* SweetKeyboardKeyboard */,
 			);
 		};
@@ -197,6 +251,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		149A77132F92F9B600831DAA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		14B0A0092F93000000831DAA /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -220,6 +281,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		14B0A0082F93000000831DAA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -227,6 +295,11 @@
 			isa = PBXTargetDependency;
 			target = 149A77142F92F9B600831DAA /* SweetKeyboardKeyboard */;
 			targetProxy = 149A771A2F92F9B600831DAA /* PBXContainerItemProxy */;
+		};
+		14B0A0072F93000000831DAA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 143DA62C2F92E9F90023B657 /* SweetKeyboard */;
+			targetProxy = 14B0A0062F93000000831DAA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -476,6 +549,70 @@
 			};
 			name = Release;
 		};
+		14B0A00B2F93000000831DAA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/SweetKeyboard.app/SweetKeyboard";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 57XAAX65VC;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@loader_path/Frameworks",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					XCTest,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.daviddemri.SweetKeyboardTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				TEST_TARGET_NAME = SweetKeyboard;
+			};
+			name = Debug;
+		};
+		14B0A00C2F93000000831DAA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/SweetKeyboard.app/SweetKeyboard";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 57XAAX65VC;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.4;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@loader_path/Frameworks",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					XCTest,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.daviddemri.SweetKeyboardTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				TEST_TARGET_NAME = SweetKeyboard;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -502,6 +639,15 @@
 			buildConfigurations = (
 				149A771F2F92F9B600831DAA /* Debug */,
 				149A77202F92F9B600831DAA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		14B0A00A2F93000000831DAA /* Build configuration list for PBXNativeTarget "SweetKeyboardTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				14B0A00B2F93000000831DAA /* Debug */,
+				14B0A00C2F93000000831DAA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
