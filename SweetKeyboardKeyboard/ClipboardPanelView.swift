@@ -17,6 +17,7 @@ final class ClipboardPanelView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
+        registerForTraitChangesIfNeeded()
         applyTheme()
     }
 
@@ -48,11 +49,6 @@ final class ClipboardPanelView: UIView {
 
             stackView.addArrangedSubview(row)
         }
-    }
-
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        applyTheme()
     }
 
     private func setup() {
@@ -90,6 +86,14 @@ final class ClipboardPanelView: UIView {
     private func applyTheme() {
         scrollView.backgroundColor = KeyboardTheme.panelBackground
         emptyLabel.textColor = KeyboardTheme.keyLabelColor
+    }
+
+    private func registerForTraitChangesIfNeeded() {
+        if #available(iOS 17.0, *) {
+            registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (self: Self, _) in
+                self.applyTheme()
+            }
+        }
     }
 
     private func makeRow() -> UIStackView {

@@ -23,6 +23,7 @@ final class KeyboardActionBarView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
+        observeTraitChanges()
         applyTheme()
     }
 
@@ -44,9 +45,11 @@ final class KeyboardActionBarView: UIView {
         globeButton.isHidden = hidden
     }
 
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        applyTheme()
+    private func observeTraitChanges() {
+        registerForTraitChanges([UITraitUserInterfaceStyle.self, UITraitAccessibilityContrast.self]) {
+            (self: Self, _: UITraitCollection) in
+            self.applyTheme()
+        }
     }
 
     private func setup() {
@@ -130,12 +133,23 @@ final class KeyboardActionBarView: UIView {
         button.titleLabel?.font = .preferredFont(forTextStyle: .subheadline)
         button.titleLabel?.adjustsFontSizeToFitWidth = true
         button.titleLabel?.minimumScaleFactor = 0.8
-        button.contentEdgeInsets = UIEdgeInsets(
-            top: 0,
-            left: KeyboardMetrics.utilityButtonHorizontalPadding,
-            bottom: 0,
-            right: KeyboardMetrics.utilityButtonHorizontalPadding
-        )
+        if #available(iOS 15.0, *) {
+            var configuration = button.configuration ?? .plain()
+            configuration.contentInsets = NSDirectionalEdgeInsets(
+                top: 0,
+                leading: KeyboardMetrics.utilityButtonHorizontalPadding,
+                bottom: 0,
+                trailing: KeyboardMetrics.utilityButtonHorizontalPadding
+            )
+            button.configuration = configuration
+        } else {
+            button.contentEdgeInsets = UIEdgeInsets(
+                top: 0,
+                left: KeyboardMetrics.utilityButtonHorizontalPadding,
+                bottom: 0,
+                right: KeyboardMetrics.utilityButtonHorizontalPadding
+            )
+        }
         button.heightAnchor.constraint(equalToConstant: KeyboardMetrics.utilityRowHeight).isActive = true
         return button
     }

@@ -44,6 +44,7 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        registerTraitObservers()
         updateKeyboardSizingIfNeeded()
         bindActions()
         rebuildKeyboardRows()
@@ -62,10 +63,15 @@ final class KeyboardViewController: UIInputViewController {
         updateKeyboardSizingIfNeeded()
     }
 
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-        super.traitCollectionDidChange(previousTraitCollection)
-        applyTheme()
-        refreshActionKey()
+    private func registerTraitObservers() {
+        registerForTraitChanges([
+            UITraitUserInterfaceStyle.self,
+            UITraitAccessibilityContrast.self,
+            UITraitPreferredContentSizeCategory.self
+        ]) { (self: Self, _) in
+            self.applyTheme()
+            self.refreshActionKey()
+        }
     }
 
     override func textDidChange(_ textInput: UITextInput?) {
@@ -392,6 +398,7 @@ final class KeyboardViewController: UIInputViewController {
         let preferredSymbol = model.symbolName.flatMap(primaryActionSymbol(named:))
         let useIcon = model.displayMode == .icon && preferredSymbol != nil
         let isEnabled = actionKeyResolver.isEnabled(for: model, context: context)
+        let isGoAction = model.actionType == .go
 
         actionKeyButton.setTitle(nil, for: .normal)
         actionKeyButton.setImage(nil, for: .normal)
@@ -412,10 +419,11 @@ final class KeyboardViewController: UIInputViewController {
             role: .primaryAction,
             cornerRadius: KeyboardMetrics.keyCornerRadius
         )
-        actionKeyButton.setTitleColor(KeyboardTheme.keyLabelColor, for: .normal)
-        actionKeyButton.tintColor = KeyboardTheme.keyLabelColor
+        actionKeyButton.setTitleColor(isGoAction ? .white : KeyboardTheme.keyLabelColor, for: .normal)
+        actionKeyButton.tintColor = isGoAction ? .white : KeyboardTheme.keyLabelColor
+        actionKeyButton.backgroundColor = isGoAction ? goActionBackgroundColor : actionKeyButton.backgroundColor
         actionKeyButton.layer.borderWidth = 0.6
-        actionKeyButton.layer.borderColor = primaryActionBorderColor.cgColor
+        actionKeyButton.layer.borderColor = (isGoAction ? goActionBackgroundColor : primaryActionBorderColor).cgColor
         actionKeyButton.accessibilityLabel = model.accessibilityLabel
         actionKeyButton.accessibilityHint = model.accessibilityHint
         actionKeyButton.accessibilityIdentifier = "action-key-\(model.actionType.rawValue)"
@@ -458,6 +466,10 @@ final class KeyboardViewController: UIInputViewController {
 
     private var primaryActionBorderColor: UIColor {
         KeyboardTheme.borderColor
+    }
+
+    private var goActionBackgroundColor: UIColor {
+        UIColor(red: 52 / 255, green: 120 / 255, blue: 245 / 255, alpha: 1)
     }
 
     private func copySelectedText() {
