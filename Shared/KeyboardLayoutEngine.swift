@@ -1,16 +1,16 @@
 import CoreGraphics
 import Foundation
 
-struct KeyboardRowSpec {
+struct KeyboardRowSpec: Equatable {
     let items: [KeyboardKeySpec]
 }
 
-struct KeyboardKeySpec {
+struct KeyboardKeySpec: Equatable {
     let kind: KeyboardKeyKind
     let width: KeyboardKeyWidth
 }
 
-enum KeyboardKeyKind {
+enum KeyboardKeyKind: Equatable {
     case character(String)
     case shift
     case backspace
@@ -21,7 +21,7 @@ enum KeyboardKeyKind {
     case cursor(offset: Int, symbolName: String)
 }
 
-struct KeyboardKeyWidth {
+struct KeyboardKeyWidth: Equatable {
     let share: CGFloat
     let minimumUnits: CGFloat
 
@@ -49,18 +49,26 @@ struct KeyboardLayoutEngine {
     private let rowTwo = Array("asdfghjkl").map(String.init)
     private let rowThree = Array("zxcvbnm").map(String.init)
 
-    func letterRows(isShiftEnabled: Bool, isEmailField: Bool) -> [KeyboardRowSpec] {
+    func letterRows(
+        isShiftEnabled: Bool,
+        isEmailField: Bool,
+        accentState: AccentReplacementState? = nil
+    ) -> [KeyboardRowSpec] {
         let letters = resolvedLetterRows(isShiftEnabled: isShiftEnabled)
+        let characterRows = resolvedCharacterRows(
+            letters: letters,
+            accentState: accentState
+        )
 
         return [
-            makeCharacterRow(numberRow),
-            makeCharacterRow(letters[0]),
-            makeCharacterRow(letters[1]),
+            makeCharacterRow(characterRows[0]),
+            makeCharacterRow(characterRows[1]),
+            makeCharacterRow(characterRows[2]),
             KeyboardRowSpec(
                 items: [
                     KeyboardKeySpec(kind: .shift, width: .units(1.5))
                 ] +
-                letters[2].map { KeyboardKeySpec(kind: .character($0), width: .normal) } +
+                characterRows[3].map { KeyboardKeySpec(kind: .character($0), width: .normal) } +
                 [
                     KeyboardKeySpec(kind: .backspace, width: .units(1.5))
                 ]
@@ -105,6 +113,19 @@ struct KeyboardLayoutEngine {
         return rows.map { row in
             row.map { $0.uppercased() }
         }
+    }
+
+    private func resolvedCharacterRows(
+        letters: [[String]],
+        accentState: AccentReplacementState?
+    ) -> [[String]] {
+        var rows = [numberRow, letters[0], letters[1], letters[2]]
+
+        if let accentState, accentState.replacedRow.rawValue < rows.count {
+            rows[accentState.replacedRow.rawValue] = accentState.variants
+        }
+
+        return rows
     }
 
     private func makeCharacterRow(_ titles: [String]) -> KeyboardRowSpec {

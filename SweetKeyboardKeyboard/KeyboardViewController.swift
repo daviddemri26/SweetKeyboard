@@ -24,12 +24,14 @@ final class KeyboardViewController: UIInputViewController {
     private let actionKeyDebugStore = ActionKeyDebugStore()
 
     private let shiftDoubleTapInterval: TimeInterval = 0.35
+    private let accentHoldDelay: TimeInterval = 0.8
     private let keyRepeatDelay: TimeInterval = 0.8
     private let keyRepeatInterval: TimeInterval = 0.1
     private var shiftState: ShiftState = .off
     private var lastShiftTapAt: Date?
     private var keyboardLayoutMode: KeyboardLayoutMode = .letters
     private var isEmailFieldActive = false
+    private var accentState: AccentReplacementState?
     private var mode: Mode = .keyboard {
         didSet {
             refreshModeUI()
@@ -48,6 +50,7 @@ final class KeyboardViewController: UIInputViewController {
         delay: keyRepeatDelay,
         repeatInterval: keyRepeatInterval
     )
+    private lazy var characterHoldController = KeyboardLongPressController(delay: accentHoldDelay)
     private lazy var cursorRepeatController = KeyboardKeyRepeatController(
         delay: keyRepeatDelay,
         repeatInterval: keyRepeatInterval
@@ -234,6 +237,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func toggleMode(_ targetMode: Mode) {
+        clearAccentState(rebuild: mode == .keyboard)
         mode = (mode == targetMode) ? .keyboard : targetMode
     }
 
@@ -261,7 +265,8 @@ final class KeyboardViewController: UIInputViewController {
         case .letters:
             rowSpecs = layoutEngine.letterRows(
                 isShiftEnabled: isShiftActive,
-                isEmailField: isEmailFieldActive
+                isEmailField: isEmailFieldActive,
+                accentState: accentState
             )
         case .symbols:
             rowSpecs = layoutEngine.symbolRows
@@ -352,7 +357,11 @@ final class KeyboardViewController: UIInputViewController {
 
     private func makeCharacterKey(_ title: String) -> UIButton {
         let key = makeBaseKey(title: title, role: .character)
+        key.addTarget(self, action: #selector(characterKeyTouchDown(_:)), for: .touchDown)
         key.addTarget(self, action: #selector(characterKeyTapped(_:)), for: .touchUpInside)
+        key.addTarget(self, action: #selector(characterKeyTouchEnded(_:)), for: .touchUpOutside)
+        key.addTarget(self, action: #selector(characterKeyTouchEnded(_:)), for: .touchCancel)
+        key.addTarget(self, action: #selector(characterKeyTouchEnded(_:)), for: .touchDragExit)
         return key
     }
 
@@ -632,15 +641,41 @@ final class KeyboardViewController: UIInputViewController {
             return
         }
 
-        textDocumentProxy.insertText(title)
-        if shiftState == .enabled {
-            shiftState = .off
-            lastShiftTapAt = nil
-            rebuildKeyboardRows()
+        let didTriggerAccentReveal = characterHoldController.wasTriggered(on: sender)
+        let didHandleTap = characterHoldController.completeTap(on: sender) { [weak self] in
+            self?.insertCharacter(title)
+        }
+
+        guard !didHandleTap, !didTriggerAccentReveal else {
+            return
+        }
+
+        insertCharacter(title)
+    }
+
+    @objc private func characterKeyTouchDown(_ sender: UIButton) {
+        guard
+            keyboardLayoutMode == .letters,
+            accentState == nil,
+            let title = sender.currentTitle,
+            AccentCatalog.replacementState(for: title, isUppercase: isShiftActive) != nil
+        else {
+            characterHoldController.stop()
+            return
+        }
+
+        characterHoldController.begin(on: sender) { [weak self] in
+            self?.revealAccentVariants(for: title)
         }
     }
 
+    @objc private func characterKeyTouchEnded(_ sender: UIButton) {
+        _ = sender
+        characterHoldController.stop()
+    }
+
     @objc private func shiftTapped() {
+        clearAccentState(rebuild: false)
         let now = Date()
 
         if let lastShiftTapAt, now.timeIntervalSince(lastShiftTapAt) <= shiftDoubleTapInterval {
@@ -662,6 +697,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     @objc private func backspaceTapped() {
+        clearAccentState(rebuild: true)
         textDocumentProxy.deleteBackward()
     }
 
@@ -700,19 +736,23 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     @objc private func spaceTapped() {
+        clearAccentState(rebuild: true)
         textDocumentProxy.insertText(" ")
     }
 
     @objc private func actionKeyTapped() {
+        clearAccentState(rebuild: true)
         textDocumentProxy.insertText("\n")
     }
 
     @objc private func symbolKeyboardTapped() {
+        clearAccentState(rebuild: false)
         keyboardLayoutMode = .symbols
         rebuildKeyboardRows()
     }
 
     @objc private func letterKeyboardTapped() {
+        clearAccentState(rebuild: false)
         keyboardLayoutMode = .letters
         rebuildKeyboardRows()
     }
@@ -722,11 +762,56 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func stopKeyRepeats() {
+        characterHoldController.stop()
         cursorRepeatController.stop()
         backspaceRepeatController.stop()
     }
 
     private var isShiftActive: Bool {
         shiftState != .off
+    }
+
+    private func revealAccentVariants(for displayedLetter: String) {
+        guard keyboardLayoutMode == .letters else {
+            return
+        }
+
+        accentState = AccentCatalog.replacementState(
+            for: displayedLetter,
+            isUppercase: isShiftActive
+        )
+        rebuildKeyboardRows()
+    }
+
+    private func insertCharacter(_ title: String) {
+        textDocumentProxy.insertText(title)
+
+        let shouldDisableShift = shiftState == .enabled
+        let shouldResetAccentState = accentState != nil
+
+        if shouldDisableShift {
+            shiftState = .off
+            lastShiftTapAt = nil
+        }
+
+        if shouldResetAccentState {
+            accentState = nil
+        }
+
+        if shouldDisableShift || shouldResetAccentState {
+            rebuildKeyboardRows()
+        }
+    }
+
+    private func clearAccentState(rebuild: Bool) {
+        guard accentState != nil else {
+            return
+        }
+
+        accentState = nil
+
+        if rebuild && keyboardLayoutMode == .letters && mode == .keyboard {
+            rebuildKeyboardRows()
+        }
     }
 }
