@@ -24,7 +24,7 @@ final class KeyboardViewController: UIInputViewController {
     private let actionKeyDebugStore = ActionKeyDebugStore()
 
     private let shiftDoubleTapInterval: TimeInterval = 0.35
-    private let cursorMovementRepeatDelay: TimeInterval = 1
+    private let cursorMovementRepeatDelay: TimeInterval = 0.8
     private let cursorMovementRepeatInterval: TimeInterval = 0.1
     private var shiftState: ShiftState = .off
     private var lastShiftTapAt: Date?
