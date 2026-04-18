@@ -251,8 +251,11 @@ final class KeyboardViewController: UIInputViewController {
 
         let bottomRow = makeRow(distribution: .fillProportionally)
         bottomRow.addArrangedSubview(makeActionSymbolKey(symbolName: "command", action: #selector(noopTapped), width: 1.35))
-        bottomRow.addArrangedSubview(makeCharacterActionKey(title: "", action: #selector(spaceTapped), width: 5.2))
-        let actionKey = makePrimaryActionKey(action: #selector(actionKeyTapped), width: 2.0)
+        bottomRow.addArrangedSubview(makeCharacterActionKey(title: ",", action: #selector(characterKeyTapped(_:)), width: 0.8))
+        bottomRow.addArrangedSubview(makeCharacterActionKey(title: ".", action: #selector(characterKeyTapped(_:)), width: 0.8))
+        bottomRow.addArrangedSubview(makeCharacterActionKey(title: "?", action: #selector(characterKeyTapped(_:)), width: 0.8))
+        bottomRow.addArrangedSubview(makeCharacterActionKey(title: "", action: #selector(spaceTapped), width: 3.2))
+        let actionKey = makePrimaryActionKey(action: #selector(actionKeyTapped), width: 1.6)
         actionKeyButton = actionKey
         bottomRow.addArrangedSubview(actionKey)
         keyboardRows.addArrangedSubview(bottomRow)
