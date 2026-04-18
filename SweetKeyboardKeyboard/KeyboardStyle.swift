@@ -96,6 +96,16 @@ enum KeyboardTheme {
         }
     }
 
+    static var goActionPressedForegroundColor: UIColor {
+        UIColor { traits in
+            if traits.userInterfaceStyle == .dark {
+                return UIColor(hex: 0xFFFFFF)
+            }
+
+            return UIColor(hex: 0x000000)
+        }
+    }
+
     static var panelBackground: UIColor {
         keyBackground
     }

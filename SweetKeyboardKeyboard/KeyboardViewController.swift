@@ -250,8 +250,8 @@ final class KeyboardViewController: UIInputViewController {
         keyboardRows.addArrangedSubview(thirdRow)
 
         let bottomRow = makeRow(distribution: .fillProportionally)
-        bottomRow.addArrangedSubview(makeActionKey(title: "123", action: #selector(noopTapped), width: 1.35))
-        bottomRow.addArrangedSubview(makeCharacterActionKey(title: "space", action: #selector(spaceTapped), width: 5.2))
+        bottomRow.addArrangedSubview(makeActionKey(title: "#+=", action: #selector(noopTapped), width: 1.35))
+        bottomRow.addArrangedSubview(makeCharacterActionKey(title: "", action: #selector(spaceTapped), width: 5.2))
         let actionKey = makePrimaryActionKey(action: #selector(actionKeyTapped), width: 2.0)
         actionKeyButton = actionKey
         bottomRow.addArrangedSubview(actionKey)
@@ -484,11 +484,14 @@ final class KeyboardViewController: UIInputViewController {
             pressableButton.setBackgroundColors(normal: normalBackground, highlighted: highlightedBackground)
             pressableButton.setForegroundColors(
                 normal: isGoAction ? .white : KeyboardTheme.keyLabelColor,
-                highlighted: KeyboardTheme.keyLabelColor
+                highlighted: isGoAction ? KeyboardTheme.goActionPressedForegroundColor : KeyboardTheme.keyLabelColor
             )
         } else {
             actionKeyButton.setTitleColor(isGoAction ? .white : KeyboardTheme.keyLabelColor, for: .normal)
-            actionKeyButton.setTitleColor(KeyboardTheme.keyLabelColor, for: .highlighted)
+            actionKeyButton.setTitleColor(
+                isGoAction ? KeyboardTheme.goActionPressedForegroundColor : KeyboardTheme.keyLabelColor,
+                for: .highlighted
+            )
             actionKeyButton.tintColor = isGoAction ? .white : KeyboardTheme.keyLabelColor
             actionKeyButton.backgroundColor = isGoAction ? goActionBackgroundColor : actionKeyButton.backgroundColor
         }
