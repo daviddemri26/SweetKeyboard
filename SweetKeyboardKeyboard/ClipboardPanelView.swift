@@ -9,7 +9,7 @@ final class ClipboardPanelView: UIView {
         let label = UILabel()
         label.text = "Clipboard history is empty"
         label.textAlignment = .center
-        label.textColor = .secondaryLabel
+        label.textColor = KeyboardTheme.keyLabelColor
         label.numberOfLines = 0
         return label
     }()
@@ -34,22 +34,19 @@ final class ClipboardPanelView: UIView {
 
         emptyLabel.isHidden = true
 
-        for item in items {
-            let button = UIButton(type: .system)
-            var configuration = UIButton.Configuration.plain()
-            configuration.title = item.text
-            configuration.baseForegroundColor = KeyboardTheme.keyLabelColor
-            configuration.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
-            configuration.background.backgroundColor = KeyboardTheme.panelItemBackground
-            configuration.background.cornerRadius = KeyboardMetrics.panelItemCornerRadius
-            button.configuration = configuration
-            button.contentHorizontalAlignment = .leading
-            button.titleLabel?.numberOfLines = 3
-            button.titleLabel?.lineBreakMode = .byTruncatingTail
-            button.addAction(UIAction { [weak self] _ in
-                self?.onSelectText?(item.text)
-            }, for: .touchUpInside)
-            stackView.addArrangedSubview(button)
+        for rowStart in stride(from: 0, to: items.count, by: 3) {
+            let row = makeRow()
+            let rowItems = Array(items[rowStart..<min(rowStart + 3, items.count)])
+
+            for item in rowItems {
+                row.addArrangedSubview(makeItemButton(for: item))
+            }
+
+            while row.arrangedSubviews.count < 3 {
+                row.addArrangedSubview(makeSpacerCell())
+            }
+
+            stackView.addArrangedSubview(row)
         }
     }
 
@@ -92,6 +89,43 @@ final class ClipboardPanelView: UIView {
 
     private func applyTheme() {
         scrollView.backgroundColor = KeyboardTheme.panelBackground
-        emptyLabel.textColor = .secondaryLabel
+        emptyLabel.textColor = KeyboardTheme.keyLabelColor
+    }
+
+    private func makeRow() -> UIStackView {
+        let row = UIStackView()
+        row.axis = .horizontal
+        row.alignment = .fill
+        row.distribution = .fillEqually
+        row.spacing = KeyboardMetrics.keyboardKeySpacing
+        return row
+    }
+
+    private func makeItemButton(for item: ClipboardItem) -> UIButton {
+        let button = UIButton(type: .system)
+        var configuration = UIButton.Configuration.plain()
+        configuration.title = item.text
+        configuration.baseForegroundColor = KeyboardTheme.keyLabelColor
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
+        configuration.background.backgroundColor = KeyboardTheme.panelItemBackground
+        configuration.background.cornerRadius = KeyboardMetrics.panelItemCornerRadius
+        button.configuration = configuration
+        button.contentHorizontalAlignment = .leading
+        button.contentVerticalAlignment = .top
+        button.titleLabel?.numberOfLines = 3
+        button.titleLabel?.lineBreakMode = .byTruncatingTail
+        button.titleLabel?.textAlignment = .left
+        button.heightAnchor.constraint(equalTo: button.widthAnchor).isActive = true
+        button.addAction(UIAction { [weak self] _ in
+            self?.onSelectText?(item.text)
+        }, for: .touchUpInside)
+        return button
+    }
+
+    private func makeSpacerCell() -> UIView {
+        let spacer = UIView()
+        spacer.backgroundColor = .clear
+        spacer.heightAnchor.constraint(equalTo: spacer.widthAnchor).isActive = true
+        return spacer
     }
 }

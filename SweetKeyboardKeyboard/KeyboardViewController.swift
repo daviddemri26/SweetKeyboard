@@ -7,12 +7,20 @@ final class KeyboardViewController: UIInputViewController {
         case settings
     }
 
+    private enum ShiftState {
+        case off
+        case enabled
+        case locked
+    }
+
     private let layoutEngine = KeyboardLayoutEngine()
     private let clipboardStore = ClipboardStore()
     private let actionKeyResolver = ActionKeyResolver()
     private let actionKeyDebugStore = ActionKeyDebugStore()
 
-    private var isShiftEnabled = false
+    private let shiftDoubleTapInterval: TimeInterval = 0.35
+    private var shiftState: ShiftState = .off
+    private var lastShiftTapAt: Date?
     private var mode: Mode = .keyboard {
         didSet {
             refreshModeUI()
@@ -29,10 +37,14 @@ final class KeyboardViewController: UIInputViewController {
 
     private weak var actionKeyButton: UIButton?
     private var actionKeyWidthConstraint: NSLayoutConstraint?
+    private var inputViewHeightConstraint: NSLayoutConstraint?
+    private var keyboardContainerHeightConstraint: NSLayoutConstraint?
+    private var keyboardRowsBottomConstraint: NSLayoutConstraint?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        updateKeyboardSizingIfNeeded()
         bindActions()
         rebuildKeyboardRows()
         refreshModeUI()
@@ -42,6 +54,12 @@ final class KeyboardViewController: UIInputViewController {
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         actionBar.setGlobeHidden(!needsInputModeSwitchKey)
+        updateKeyboardSizingIfNeeded()
+    }
+
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        updateKeyboardSizingIfNeeded()
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
@@ -64,10 +82,19 @@ final class KeyboardViewController: UIInputViewController {
         view.backgroundColor = KeyboardTheme.keyboardBackground
 
         rootStack.axis = .vertical
+        rootStack.alignment = .fill
+        rootStack.distribution = .fill
         rootStack.spacing = KeyboardMetrics.utilityRowSpacing
 
         keyboardRows.axis = .vertical
+        keyboardRows.alignment = .fill
+        keyboardRows.distribution = .fill
         keyboardRows.spacing = KeyboardMetrics.keyboardRowSpacing
+
+        actionBar.setContentHuggingPriority(.required, for: .vertical)
+        actionBar.setContentCompressionResistancePriority(.required, for: .vertical)
+        keyboardContainer.setContentHuggingPriority(.required, for: .vertical)
+        keyboardContainer.setContentCompressionResistancePriority(.required, for: .vertical)
 
         feedbackLabel.alpha = 0
         feedbackLabel.font = .preferredFont(forTextStyle: .caption1)
@@ -96,11 +123,20 @@ final class KeyboardViewController: UIInputViewController {
         settingsPanel.translatesAutoresizingMaskIntoConstraints = false
         feedbackLabel.translatesAutoresizingMaskIntoConstraints = false
 
+        keyboardRowsBottomConstraint = keyboardRows.bottomAnchor.constraint(
+            equalTo: keyboardContainer.bottomAnchor,
+            constant: -KeyboardMetrics.minimumKeyboardBottomInset
+        )
+        keyboardContainerHeightConstraint = keyboardContainer.heightAnchor.constraint(
+            equalToConstant: KeyboardMetrics.keyboardContainerHeight(
+                bottomInset: KeyboardMetrics.minimumKeyboardBottomInset
+            )
+        )
+
         NSLayoutConstraint.activate([
             keyboardRows.leadingAnchor.constraint(equalTo: keyboardContainer.leadingAnchor),
             keyboardRows.trailingAnchor.constraint(equalTo: keyboardContainer.trailingAnchor),
             keyboardRows.topAnchor.constraint(equalTo: keyboardContainer.topAnchor, constant: KeyboardMetrics.keyboardTopPadding),
-            keyboardRows.bottomAnchor.constraint(equalTo: keyboardContainer.bottomAnchor, constant: -KeyboardMetrics.keyboardBottomSafeInset),
 
             clipboardPanel.leadingAnchor.constraint(equalTo: keyboardContainer.leadingAnchor),
             clipboardPanel.trailingAnchor.constraint(equalTo: keyboardContainer.trailingAnchor),
@@ -116,7 +152,8 @@ final class KeyboardViewController: UIInputViewController {
             feedbackLabel.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -KeyboardMetrics.feedbackBottomInset),
             feedbackLabel.heightAnchor.constraint(equalToConstant: KeyboardMetrics.feedbackHeight),
             feedbackLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 48),
-            feedbackLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -48)
+            feedbackLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -48),
+            keyboardRowsBottomConstraint!
         ])
 
         rootStack.addArrangedSubview(actionBar)
@@ -129,8 +166,8 @@ final class KeyboardViewController: UIInputViewController {
             rootStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: KeyboardMetrics.outerHorizontalPadding),
             rootStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -KeyboardMetrics.outerHorizontalPadding),
             rootStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -KeyboardMetrics.outerBottomPadding),
-            rootStack.topAnchor.constraint(greaterThanOrEqualTo: view.topAnchor, constant: KeyboardMetrics.outerTopPadding),
-            keyboardContainer.heightAnchor.constraint(equalToConstant: KeyboardMetrics.keyboardContainerHeight)
+            rootStack.topAnchor.constraint(equalTo: view.topAnchor, constant: KeyboardMetrics.outerTopPadding),
+            keyboardContainerHeightConstraint!
         ])
 
         applyTheme()
@@ -192,12 +229,12 @@ final class KeyboardViewController: UIInputViewController {
 
         addCharacterRow(layoutEngine.numberRow)
 
-        let letters = layoutEngine.letterRows(isShiftEnabled: isShiftEnabled)
+        let letters = layoutEngine.letterRows(isShiftEnabled: isShiftActive)
         addCharacterRow(letters[0])
         addCharacterRow(letters[1])
 
         let thirdRow = makeRow(distribution: .fillProportionally)
-        thirdRow.addArrangedSubview(makeActionKey(title: "Shift", action: #selector(shiftTapped), width: 1.5))
+        thirdRow.addArrangedSubview(makeShiftKey(width: 1.5))
 
         for letter in letters[2] {
             thirdRow.addArrangedSubview(makeCharacterKey(letter))
@@ -229,7 +266,33 @@ final class KeyboardViewController: UIInputViewController {
         row.distribution = distribution
         row.alignment = .fill
         row.spacing = KeyboardMetrics.keyboardKeySpacing
+        row.setContentHuggingPriority(.required, for: .vertical)
+        row.setContentCompressionResistancePriority(.required, for: .vertical)
         return row
+    }
+
+    private func updateKeyboardSizingIfNeeded() {
+        let bottomInset = KeyboardMetrics.keyboardBottomInset(for: view.safeAreaInsets)
+        let containerHeight = KeyboardMetrics.keyboardContainerHeight(bottomInset: bottomInset)
+        let totalHeight = KeyboardMetrics.totalKeyboardHeight(bottomInset: bottomInset)
+
+        if keyboardRowsBottomConstraint?.constant != -bottomInset {
+            keyboardRowsBottomConstraint?.constant = -bottomInset
+        }
+
+        if keyboardContainerHeightConstraint?.constant != containerHeight {
+            keyboardContainerHeightConstraint?.constant = containerHeight
+        }
+
+        let heightAnchorItem: UIView = inputView ?? view
+        if inputViewHeightConstraint?.firstItem !== heightAnchorItem {
+            inputViewHeightConstraint?.isActive = false
+            inputViewHeightConstraint = heightAnchorItem.heightAnchor.constraint(equalToConstant: totalHeight)
+            inputViewHeightConstraint?.priority = .required
+            inputViewHeightConstraint?.isActive = true
+        } else if inputViewHeightConstraint?.constant != totalHeight {
+            inputViewHeightConstraint?.constant = totalHeight
+        }
     }
 
     private func makeCharacterKey(_ title: String) -> UIButton {
@@ -241,6 +304,34 @@ final class KeyboardViewController: UIInputViewController {
     private func makeActionKey(title: String, action: Selector, width: CGFloat) -> UIButton {
         let key = makeBaseKey(title: title, role: .system)
         key.addTarget(self, action: action, for: .touchUpInside)
+        key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width).isActive = true
+        return key
+    }
+
+    private func makeShiftKey(width: CGFloat) -> UIButton {
+        let key = makeBaseKey(title: nil, role: .system)
+        let symbolName: String
+        let accessibilityLabel: String
+
+        switch shiftState {
+        case .off:
+            symbolName = "shift"
+            accessibilityLabel = "Enable Shift"
+        case .enabled:
+            symbolName = "shift.fill"
+            accessibilityLabel = "Disable Shift"
+        case .locked:
+            symbolName = "capslock.fill"
+            accessibilityLabel = "Disable Caps Lock"
+        }
+
+        key.setPreferredSymbolConfiguration(
+            UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.actionSymbolPointSize, weight: .semibold),
+            forImageIn: .normal
+        )
+        key.setImage(UIImage(systemName: symbolName), for: .normal)
+        key.accessibilityLabel = accessibilityLabel
+        key.addTarget(self, action: #selector(shiftTapped), for: .touchUpInside)
         key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width).isActive = true
         return key
     }
@@ -407,14 +498,31 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         textDocumentProxy.insertText(title)
-        if isShiftEnabled {
-            isShiftEnabled = false
+        if shiftState == .enabled {
+            shiftState = .off
+            lastShiftTapAt = nil
             rebuildKeyboardRows()
         }
     }
 
     @objc private func shiftTapped() {
-        isShiftEnabled.toggle()
+        let now = Date()
+
+        if let lastShiftTapAt, now.timeIntervalSince(lastShiftTapAt) <= shiftDoubleTapInterval {
+            shiftState = (shiftState == .locked) ? .off : .locked
+            self.lastShiftTapAt = nil
+            rebuildKeyboardRows()
+            return
+        }
+
+        switch shiftState {
+        case .off:
+            shiftState = .enabled
+        case .enabled, .locked:
+            shiftState = .off
+        }
+
+        lastShiftTapAt = now
         rebuildKeyboardRows()
     }
 
@@ -436,5 +544,9 @@ final class KeyboardViewController: UIInputViewController {
 
     @objc private func noopTapped() {
         // Placeholder for future alternate layouts.
+    }
+
+    private var isShiftActive: Bool {
+        shiftState != .off
     }
 }

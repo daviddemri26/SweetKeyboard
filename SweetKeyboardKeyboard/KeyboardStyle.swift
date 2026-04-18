@@ -2,8 +2,8 @@ import UIKit
 
 enum KeyboardMetrics {
     static let outerHorizontalPadding: CGFloat = 6
-    static let outerTopPadding: CGFloat = 8
-    static let outerBottomPadding: CGFloat = 4
+    static let outerTopPadding: CGFloat = 4
+    static let outerBottomPadding: CGFloat = 0
 
     static let utilityRowHeight: CGFloat = 34
     static let utilityRowSpacing: CGFloat = 6
@@ -12,15 +12,10 @@ enum KeyboardMetrics {
     static let utilityGroupSpacing: CGFloat = 6
 
     static let keyboardTopPadding: CGFloat = 4
-    static let keyboardBottomSafeInset: CGFloat = 10
+    static let minimumKeyboardBottomInset: CGFloat = 4
     static let keyboardRowHeight: CGFloat = 42
     static let keyboardRowSpacing: CGFloat = 6
     static let keyboardKeySpacing: CGFloat = 6
-    static let keyboardContainerHeight: CGFloat =
-        keyboardTopPadding +
-        (keyboardRowHeight * 5) +
-        (keyboardRowSpacing * 4) +
-        keyboardBottomSafeInset
 
     static let keyUnitWidth: CGFloat = 28
     static let keyCornerRadius: CGFloat = 10
@@ -36,6 +31,25 @@ enum KeyboardMetrics {
 
     static let feedbackHeight: CGFloat = 28
     static let feedbackBottomInset: CGFloat = 14
+
+    static func keyboardBottomInset(for safeAreaInsets: UIEdgeInsets) -> CGFloat {
+        max(minimumKeyboardBottomInset, safeAreaInsets.bottom)
+    }
+
+    static func keyboardContainerHeight(bottomInset: CGFloat) -> CGFloat {
+        keyboardTopPadding +
+        (keyboardRowHeight * 5) +
+        (keyboardRowSpacing * 4) +
+        bottomInset
+    }
+
+    static func totalKeyboardHeight(bottomInset: CGFloat) -> CGFloat {
+        outerTopPadding +
+        utilityRowHeight +
+        utilityRowSpacing +
+        keyboardContainerHeight(bottomInset: bottomInset) +
+        outerBottomPadding
+    }
 }
 
 enum KeyboardButtonRole {
@@ -77,23 +91,11 @@ enum KeyboardTheme {
     }
 
     static var panelBackground: UIColor {
-        UIColor { traits in
-            if traits.userInterfaceStyle == .dark {
-                return UIColor(hex: 0x2C2C2E)
-            }
-
-            return UIColor(hex: 0xECEEF2)
-        }
+        keyBackground
     }
 
     static var panelItemBackground: UIColor {
-        UIColor { traits in
-            if traits.userInterfaceStyle == .dark {
-                return UIColor(hex: 0x3A3A3C)
-            }
-
-            return UIColor(hex: 0xF7F8FA)
-        }
+        keyBackground
     }
 
     static var borderColor: UIColor {

@@ -97,7 +97,18 @@ struct ActionKeyResolver {
                 minimumWidthMultiplier: 2.0
             )
         case .go:
-            return makeTextModel(type: .go, title: "Go", accessibilityHint: "Triggers the host field’s Go return action.", context: context)
+            return ActionKeyModel(
+                actionType: .go,
+                displayMode: .icon,
+                symbolName: "arrow.right",
+                assetName: nil,
+                fallbackTitle: "Go",
+                accessibilityLabel: "Go",
+                accessibilityHint: "Triggers the host field’s Go return action.",
+                performsPrimaryAction: true,
+                debugDescription: debugDescription(for: .go, context: context),
+                minimumWidthMultiplier: 2.0
+            )
         case .google:
             return makeTextModel(type: .google, title: "Google", accessibilityHint: "Triggers the host field’s Google return action.", context: context, minimumWidthMultiplier: 2.4)
         case .join:
