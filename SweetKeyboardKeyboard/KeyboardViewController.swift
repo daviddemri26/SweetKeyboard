@@ -7,6 +7,11 @@ final class KeyboardViewController: UIInputViewController {
         case settings
     }
 
+    private enum KeyboardLayoutMode {
+        case letters
+        case symbols
+    }
+
     private enum ShiftState {
         case off
         case enabled
@@ -21,6 +26,7 @@ final class KeyboardViewController: UIInputViewController {
     private let shiftDoubleTapInterval: TimeInterval = 0.35
     private var shiftState: ShiftState = .off
     private var lastShiftTapAt: Date?
+    private var keyboardLayoutMode: KeyboardLayoutMode = .letters
     private var mode: Mode = .keyboard {
         didSet {
             refreshModeUI()
@@ -233,6 +239,17 @@ final class KeyboardViewController: UIInputViewController {
     private func rebuildKeyboardRows() {
         keyboardRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
+        switch keyboardLayoutMode {
+        case .letters:
+            rebuildLetterKeyboardRows()
+        case .symbols:
+            rebuildSymbolKeyboardRows()
+        }
+
+        refreshActionKey()
+    }
+
+    private func rebuildLetterKeyboardRows() {
         addCharacterRow(layoutEngine.numberRow)
 
         let letters = layoutEngine.letterRows(isShiftEnabled: isShiftActive)
@@ -250,7 +267,7 @@ final class KeyboardViewController: UIInputViewController {
         keyboardRows.addArrangedSubview(thirdRow)
 
         let bottomRow = makeRow(distribution: .fillProportionally)
-        bottomRow.addArrangedSubview(makeActionSymbolKey(symbolName: "command", action: #selector(noopTapped), width: 1.35))
+        bottomRow.addArrangedSubview(makeActionSymbolKey(symbolName: "command", action: #selector(symbolKeyboardTapped), width: 1.35))
         bottomRow.addArrangedSubview(makeCharacterActionKey(title: ",", action: #selector(characterKeyTapped(_:)), width: 0.8))
         bottomRow.addArrangedSubview(makeCharacterActionKey(title: ".", action: #selector(characterKeyTapped(_:)), width: 0.8))
         bottomRow.addArrangedSubview(makeCharacterActionKey(title: "?", action: #selector(characterKeyTapped(_:)), width: 0.8))
@@ -259,8 +276,33 @@ final class KeyboardViewController: UIInputViewController {
         actionKeyButton = actionKey
         bottomRow.addArrangedSubview(actionKey)
         keyboardRows.addArrangedSubview(bottomRow)
+    }
 
-        refreshActionKey()
+    private func rebuildSymbolKeyboardRows() {
+        for rowKeys in layoutEngine.symbolRows {
+            addCharacterRow(rowKeys)
+        }
+
+        let punctuationRow = makeRow(distribution: .fillProportionally)
+        for symbol in layoutEngine.symbolPunctuationRow {
+            punctuationRow.addArrangedSubview(
+                makeCharacterActionKey(
+                    title: symbol,
+                    action: #selector(characterKeyTapped(_:)),
+                    width: 1
+                )
+            )
+        }
+        punctuationRow.addArrangedSubview(makeActionKey(title: "⌫", action: #selector(backspaceTapped), width: 1.5))
+        keyboardRows.addArrangedSubview(punctuationRow)
+
+        let bottomRow = makeRow(distribution: .fillProportionally)
+        bottomRow.addArrangedSubview(makeActionKey(title: "ABC", action: #selector(letterKeyboardTapped), width: 1.35))
+        bottomRow.addArrangedSubview(makeCharacterActionKey(title: "", action: #selector(spaceTapped), width: 4.8))
+        let actionKey = makePrimaryActionKey(action: #selector(actionKeyTapped), width: 1.6)
+        actionKeyButton = actionKey
+        bottomRow.addArrangedSubview(actionKey)
+        keyboardRows.addArrangedSubview(bottomRow)
     }
 
     private func addCharacterRow(_ keys: [String]) {
@@ -669,8 +711,14 @@ final class KeyboardViewController: UIInputViewController {
         advanceToNextInputMode()
     }
 
-    @objc private func noopTapped() {
-        // Placeholder for future alternate layouts.
+    @objc private func symbolKeyboardTapped() {
+        keyboardLayoutMode = .symbols
+        rebuildKeyboardRows()
+    }
+
+    @objc private func letterKeyboardTapped() {
+        keyboardLayoutMode = .letters
+        rebuildKeyboardRows()
     }
 
     private var isShiftActive: Bool {

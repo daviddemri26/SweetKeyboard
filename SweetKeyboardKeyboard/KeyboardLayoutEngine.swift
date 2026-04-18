@@ -2,6 +2,12 @@ import Foundation
 
 struct KeyboardLayoutEngine {
     let numberRow = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"]
+    let symbolRows = [
+        ["[", "]", "{", "}", "#", "%", "^", "*", "+", "="],
+        ["-", "/", ":", ";", "(", ")", "$", "&", "@", "\""],
+        ["_", "\\", "|", "~", "<", ">", "€", "£", "¥", "•"]
+    ]
+    let symbolPunctuationRow = [".", ",", "?", "!", "'"]
 
     private let rowOne = Array("qwertyuiop").map(String.init)
     private let rowTwo = Array("asdfghjkl").map(String.init)
