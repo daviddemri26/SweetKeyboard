@@ -64,6 +64,13 @@ final class ClipboardPanelView: UIView {
 
         stackView.axis = .vertical
         stackView.spacing = KeyboardMetrics.keyboardRowSpacing
+        stackView.isLayoutMarginsRelativeArrangement = true
+        stackView.directionalLayoutMargins = NSDirectionalEdgeInsets(
+            top: KeyboardMetrics.keyboardKeySpacing,
+            leading: KeyboardMetrics.keyboardKeySpacing,
+            bottom: KeyboardMetrics.keyboardKeySpacing,
+            trailing: KeyboardMetrics.keyboardKeySpacing
+        )
 
         NSLayoutConstraint.activate([
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -84,7 +91,7 @@ final class ClipboardPanelView: UIView {
     }
 
     private func applyTheme() {
-        scrollView.backgroundColor = KeyboardTheme.panelBackground
+        scrollView.backgroundColor = .clear
         emptyLabel.textColor = KeyboardTheme.keyLabelColor
     }
 
@@ -112,7 +119,7 @@ final class ClipboardPanelView: UIView {
         configuration.baseForegroundColor = KeyboardTheme.keyLabelColor
         configuration.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
         configuration.background.backgroundColor = KeyboardTheme.panelItemBackground
-        configuration.background.cornerRadius = KeyboardMetrics.panelItemCornerRadius
+        configuration.background.cornerRadius = KeyboardMetrics.keyCornerRadius
         button.configuration = configuration
         button.contentHorizontalAlignment = .leading
         button.contentVerticalAlignment = .top
