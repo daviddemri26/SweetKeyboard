@@ -6,9 +6,48 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		149A771C2F92F9B600831DAA /* SweetKeyboardKeyboard.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 149A77152F92F9B600831DAA /* SweetKeyboardKeyboard.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		149A771A2F92F9B600831DAA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 143DA6252F92E9F90023B657 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 149A77142F92F9B600831DAA;
+			remoteInfo = SweetKeyboardKeyboard;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		149A77212F92F9B600831DAA /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				149A771C2F92F9B600831DAA /* SweetKeyboardKeyboard.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		143DA62D2F92E9F90023B657 /* SweetKeyboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SweetKeyboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		149A77152F92F9B600831DAA /* SweetKeyboardKeyboard.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SweetKeyboardKeyboard.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		149A771D2F92F9B600831DAA /* Exceptions for "SweetKeyboardKeyboard" folder in "SweetKeyboardKeyboard" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 149A77142F92F9B600831DAA /* SweetKeyboardKeyboard */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		143DA62F2F92E9F90023B657 /* SweetKeyboard */ = {
@@ -16,10 +55,25 @@
 			path = SweetKeyboard;
 			sourceTree = "<group>";
 		};
+		149A77162F92F9B600831DAA /* SweetKeyboardKeyboard */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				149A771D2F92F9B600831DAA /* Exceptions for "SweetKeyboardKeyboard" folder in "SweetKeyboardKeyboard" target */,
+			);
+			path = SweetKeyboardKeyboard;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		143DA62A2F92E9F90023B657 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		149A77122F92F9B600831DAA /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				143DA62F2F92E9F90023B657 /* SweetKeyboard */,
+				149A77162F92F9B600831DAA /* SweetKeyboardKeyboard */,
 				143DA62E2F92E9F90023B657 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +96,7 @@
 			isa = PBXGroup;
 			children = (
 				143DA62D2F92E9F90023B657 /* SweetKeyboard.app */,
+				149A77152F92F9B600831DAA /* SweetKeyboardKeyboard.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -55,10 +111,12 @@
 				143DA6292F92E9F90023B657 /* Sources */,
 				143DA62A2F92E9F90023B657 /* Frameworks */,
 				143DA62B2F92E9F90023B657 /* Resources */,
+				149A77212F92F9B600831DAA /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				149A771B2F92F9B600831DAA /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				143DA62F2F92E9F90023B657 /* SweetKeyboard */,
@@ -69,6 +127,28 @@
 			productName = SweetKeyboard;
 			productReference = 143DA62D2F92E9F90023B657 /* SweetKeyboard.app */;
 			productType = "com.apple.product-type.application";
+		};
+		149A77142F92F9B600831DAA /* SweetKeyboardKeyboard */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 149A771E2F92F9B600831DAA /* Build configuration list for PBXNativeTarget "SweetKeyboardKeyboard" */;
+			buildPhases = (
+				149A77112F92F9B600831DAA /* Sources */,
+				149A77122F92F9B600831DAA /* Frameworks */,
+				149A77132F92F9B600831DAA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				149A77162F92F9B600831DAA /* SweetKeyboardKeyboard */,
+			);
+			name = SweetKeyboardKeyboard;
+			packageProductDependencies = (
+			);
+			productName = SweetKeyboardKeyboard;
+			productReference = 149A77152F92F9B600831DAA /* SweetKeyboardKeyboard.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -81,6 +161,9 @@
 				LastUpgradeCheck = 2640;
 				TargetAttributes = {
 					143DA62C2F92E9F90023B657 = {
+						CreatedOnToolsVersion = 26.4.1;
+					};
+					149A77142F92F9B600831DAA = {
 						CreatedOnToolsVersion = 26.4.1;
 					};
 				};
@@ -100,12 +183,20 @@
 			projectRoot = "";
 			targets = (
 				143DA62C2F92E9F90023B657 /* SweetKeyboard */,
+				149A77142F92F9B600831DAA /* SweetKeyboardKeyboard */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		143DA62B2F92E9F90023B657 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		149A77132F92F9B600831DAA /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -122,7 +213,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		149A77112F92F9B600831DAA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		149A771B2F92F9B600831DAA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 149A77142F92F9B600831DAA /* SweetKeyboardKeyboard */;
+			targetProxy = 149A771A2F92F9B600831DAA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		143DA6362F92E9FA0023B657 /* Debug */ = {
@@ -251,6 +357,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SweetKeyboard/SweetKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 57XAAX65VC;
@@ -283,6 +390,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = SweetKeyboard/SweetKeyboard.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 57XAAX65VC;
@@ -310,6 +418,64 @@
 			};
 			name = Release;
 		};
+		149A771F2F92F9B600831DAA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = SweetKeyboardKeyboard/SweetKeyboardKeyboard.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 57XAAX65VC;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SweetKeyboardKeyboard/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SweetKeyboardKeyboard;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.daviddemri.SweetKeyboard.keyboard;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		149A77202F92F9B600831DAA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = SweetKeyboardKeyboard/SweetKeyboardKeyboard.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 57XAAX65VC;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = SweetKeyboardKeyboard/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = SweetKeyboardKeyboard;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.daviddemri.SweetKeyboard.keyboard;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -327,6 +493,15 @@
 			buildConfigurations = (
 				143DA6392F92E9FA0023B657 /* Debug */,
 				143DA63A2F92E9FA0023B657 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		149A771E2F92F9B600831DAA /* Build configuration list for PBXNativeTarget "SweetKeyboardKeyboard" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				149A771F2F92F9B600831DAA /* Debug */,
+				149A77202F92F9B600831DAA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

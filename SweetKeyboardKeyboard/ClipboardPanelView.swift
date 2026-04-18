@@ -35,14 +35,16 @@ final class ClipboardPanelView: UIView {
 
         for item in items {
             let button = UIButton(type: .system)
-            button.backgroundColor = .secondarySystemFill
-            button.layer.cornerRadius = 12
-            button.layer.cornerCurve = .continuous
-            button.contentHorizontalAlignment = .left
-            button.contentEdgeInsets = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+            var configuration = UIButton.Configuration.plain()
+            configuration.title = item.text
+            configuration.baseForegroundColor = .label
+            configuration.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
+            configuration.background.backgroundColor = .secondarySystemFill
+            configuration.background.cornerRadius = 12
+            button.configuration = configuration
+            button.contentHorizontalAlignment = .leading
             button.titleLabel?.numberOfLines = 3
             button.titleLabel?.lineBreakMode = .byTruncatingTail
-            button.setTitle(item.text, for: .normal)
             button.addAction(UIAction { [weak self] _ in
                 self?.onSelectText?(item.text)
             }, for: .touchUpInside)
