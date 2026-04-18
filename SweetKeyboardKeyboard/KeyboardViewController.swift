@@ -34,6 +34,10 @@ final class KeyboardViewController: UIInputViewController {
     private var cursorMovementDelayTimer: Timer?
     private var cursorMovementRepeatTimer: Timer?
     private var didRepeatCursorMovement = false
+    private weak var activeBackspaceButton: UIButton?
+    private var backspaceDelayTimer: Timer?
+    private var backspaceRepeatTimer: Timer?
+    private var didRepeatBackspace = false
     private var mode: Mode = .keyboard {
         didSet {
             refreshModeUI()
@@ -78,7 +82,7 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        stopCursorMovementRepeat()
+        stopKeyRepeats()
     }
 
     private func registerTraitObservers() {
@@ -249,7 +253,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func rebuildKeyboardRows() {
-        stopCursorMovementRepeat()
+        stopKeyRepeats()
         keyboardRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
         switch keyboardLayoutMode {
@@ -378,8 +382,14 @@ final class KeyboardViewController: UIInputViewController {
             } else {
                 key.titleLabel?.font = UIFont.systemFont(ofSize: KeyboardMetrics.backspaceKeyFontSize, weight: .regular)
             }
+            key.addTarget(self, action: #selector(backspaceTouchDown(_:)), for: .touchDown)
+            key.addTarget(self, action: #selector(backspaceKeyTapped(_:)), for: .touchUpInside)
+            key.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchUpOutside)
+            key.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchCancel)
+            key.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchDragExit)
+        } else {
+            key.addTarget(self, action: action, for: .touchUpInside)
         }
-        key.addTarget(self, action: action, for: .touchUpInside)
         key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width).isActive = true
         return key
     }
@@ -727,6 +737,59 @@ final class KeyboardViewController: UIInputViewController {
         textDocumentProxy.deleteBackward()
     }
 
+    @objc private func backspaceTouchDown(_ sender: UIButton) {
+        stopBackspaceRepeat()
+
+        activeBackspaceButton = sender
+        didRepeatBackspace = false
+
+        backspaceDelayTimer = scheduleKeyRepeatTimer(
+            interval: cursorMovementRepeatDelay,
+            repeats: false
+        ) { [weak self, weak sender] _ in
+            guard
+                let self,
+                let sender,
+                self.activeBackspaceButton === sender
+            else {
+                return
+            }
+
+            self.didRepeatBackspace = true
+            self.backspaceTapped()
+            self.backspaceRepeatTimer = self.scheduleKeyRepeatTimer(
+                interval: self.cursorMovementRepeatInterval,
+                repeats: true
+            ) { [weak self, weak sender] _ in
+                guard
+                    let self,
+                    let sender,
+                    self.activeBackspaceButton === sender
+                else {
+                    return
+                }
+
+                self.backspaceTapped()
+            }
+        }
+    }
+
+    @objc private func backspaceKeyTapped(_ sender: UIButton) {
+        defer {
+            stopBackspaceRepeat()
+        }
+
+        guard !didRepeatBackspace else {
+            return
+        }
+
+        backspaceTapped()
+    }
+
+    @objc private func backspaceTouchEnded(_ sender: UIButton) {
+        stopBackspaceRepeat()
+    }
+
     @objc private func cursorMovementTouchDown(_ sender: UIButton) {
         stopCursorMovementRepeat()
 
@@ -734,7 +797,7 @@ final class KeyboardViewController: UIInputViewController {
         activeCursorMovementButton = sender
         didRepeatCursorMovement = false
 
-        cursorMovementDelayTimer = scheduleCursorMovementTimer(
+        cursorMovementDelayTimer = scheduleKeyRepeatTimer(
             interval: cursorMovementRepeatDelay,
             repeats: false
         ) { [weak self, weak sender] _ in
@@ -749,7 +812,7 @@ final class KeyboardViewController: UIInputViewController {
 
             self.didRepeatCursorMovement = true
             self.moveCursor(by: sender.tag)
-            self.cursorMovementRepeatTimer = self.scheduleCursorMovementTimer(
+            self.cursorMovementRepeatTimer = self.scheduleKeyRepeatTimer(
                 interval: self.cursorMovementRepeatInterval,
                 repeats: true
             ) { [weak self, weak sender] _ in
@@ -809,6 +872,11 @@ final class KeyboardViewController: UIInputViewController {
         textDocumentProxy.adjustTextPosition(byCharacterOffset: offset)
     }
 
+    private func stopKeyRepeats() {
+        stopCursorMovementRepeat()
+        stopBackspaceRepeat()
+    }
+
     private func stopCursorMovementRepeat() {
         cursorMovementDelayTimer?.invalidate()
         cursorMovementRepeatTimer?.invalidate()
@@ -819,7 +887,16 @@ final class KeyboardViewController: UIInputViewController {
         didRepeatCursorMovement = false
     }
 
-    private func scheduleCursorMovementTimer(
+    private func stopBackspaceRepeat() {
+        backspaceDelayTimer?.invalidate()
+        backspaceRepeatTimer?.invalidate()
+        backspaceDelayTimer = nil
+        backspaceRepeatTimer = nil
+        activeBackspaceButton = nil
+        didRepeatBackspace = false
+    }
+
+    private func scheduleKeyRepeatTimer(
         interval: TimeInterval,
         repeats: Bool,
         handler: @escaping (Timer) -> Void
