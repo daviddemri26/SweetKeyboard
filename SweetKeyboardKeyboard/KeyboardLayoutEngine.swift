@@ -69,10 +69,10 @@ struct KeyboardLayoutEngine {
             ),
             KeyboardRowSpec(
                 items: [
-                    KeyboardKeySpec(kind: .symbolToggle, width: .units(1.35)),
-                    KeyboardKeySpec(kind: .character(","), width: .units(0.8)),
-                    KeyboardKeySpec(kind: .character("."), width: .units(0.8)),
-                    KeyboardKeySpec(kind: .character("?"), width: .units(0.8)),
+                    KeyboardKeySpec(kind: .symbolToggle, width: .units(1.25)),
+                    KeyboardKeySpec(kind: .character(","), width: .units(0.56)),
+                    KeyboardKeySpec(kind: .character("."), width: .units(0.56)),
+                    KeyboardKeySpec(kind: .character("?"), width: .units(0.56)),
                     KeyboardKeySpec(kind: .space, width: .units(3.2)),
                     KeyboardKeySpec(kind: .primaryAction, width: .units(1.6))
                 ]
@@ -87,8 +87,8 @@ struct KeyboardLayoutEngine {
             KeyboardRowSpec(
                 items: symbolPunctuationRow.map { KeyboardKeySpec(kind: .character($0), width: .normal) } +
                 [
-                    KeyboardKeySpec(kind: .cursor(offset: -1, symbolName: "arrow.left"), width: .units(1.15)),
-                    KeyboardKeySpec(kind: .cursor(offset: 1, symbolName: "arrow.right"), width: .units(1.15)),
+                    KeyboardKeySpec(kind: .cursor(offset: -1, symbolName: "arrow.left"), width: .units(1.725)),
+                    KeyboardKeySpec(kind: .cursor(offset: 1, symbolName: "arrow.right"), width: .units(1.725)),
                     KeyboardKeySpec(kind: .backspace, width: .units(1.5))
                 ]
             )
