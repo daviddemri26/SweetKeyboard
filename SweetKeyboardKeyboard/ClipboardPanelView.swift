@@ -17,6 +17,7 @@ final class ClipboardPanelView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
+        applyTheme()
     }
 
     required init?(coder: NSCoder) {
@@ -37,10 +38,10 @@ final class ClipboardPanelView: UIView {
             let button = UIButton(type: .system)
             var configuration = UIButton.Configuration.plain()
             configuration.title = item.text
-            configuration.baseForegroundColor = .label
+            configuration.baseForegroundColor = KeyboardTheme.keyLabelColor
             configuration.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 12, bottom: 12, trailing: 12)
-            configuration.background.backgroundColor = .secondarySystemFill
-            configuration.background.cornerRadius = 12
+            configuration.background.backgroundColor = KeyboardTheme.panelItemBackground
+            configuration.background.cornerRadius = KeyboardMetrics.panelItemCornerRadius
             button.configuration = configuration
             button.contentHorizontalAlignment = .leading
             button.titleLabel?.numberOfLines = 3
@@ -50,6 +51,11 @@ final class ClipboardPanelView: UIView {
             }, for: .touchUpInside)
             stackView.addArrangedSubview(button)
         }
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        applyTheme()
     }
 
     private func setup() {
@@ -64,7 +70,7 @@ final class ClipboardPanelView: UIView {
         emptyLabel.translatesAutoresizingMaskIntoConstraints = false
 
         stackView.axis = .vertical
-        stackView.spacing = 8
+        stackView.spacing = KeyboardMetrics.keyboardRowSpacing
 
         NSLayoutConstraint.activate([
             scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -82,5 +88,10 @@ final class ClipboardPanelView: UIView {
             emptyLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
             emptyLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
+    }
+
+    private func applyTheme() {
+        scrollView.backgroundColor = KeyboardTheme.panelBackground
+        emptyLabel.textColor = .secondaryLabel
     }
 }

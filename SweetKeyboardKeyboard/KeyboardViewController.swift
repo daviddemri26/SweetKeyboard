@@ -27,7 +27,6 @@ final class KeyboardViewController: UIInputViewController {
     private let settingsPanel = UITextView()
     private let feedbackLabel = UILabel()
 
-    private var globeButton: UIButton?
     private weak var actionKeyButton: UIButton?
     private var actionKeyWidthConstraint: NSLayoutConstraint?
 
@@ -42,7 +41,13 @@ final class KeyboardViewController: UIInputViewController {
 
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
-        globeButton?.isHidden = !needsInputModeSwitchKey
+        actionBar.setGlobeHidden(!needsInputModeSwitchKey)
+    }
+
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        applyTheme()
+        refreshActionKey()
     }
 
     override func textDidChange(_ textInput: UITextInput?) {
@@ -56,41 +61,46 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func setupUI() {
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = KeyboardTheme.keyboardBackground
 
         rootStack.axis = .vertical
-        rootStack.spacing = 8
+        rootStack.spacing = KeyboardMetrics.utilityRowSpacing
 
         keyboardRows.axis = .vertical
-        keyboardRows.spacing = 8
+        keyboardRows.spacing = KeyboardMetrics.keyboardRowSpacing
 
         feedbackLabel.alpha = 0
         feedbackLabel.font = .preferredFont(forTextStyle: .caption1)
-        feedbackLabel.textColor = .secondaryLabel
         feedbackLabel.textAlignment = .center
+        feedbackLabel.backgroundColor = KeyboardTheme.feedbackBackground
+        feedbackLabel.textColor = KeyboardTheme.keyLabelColor
+        feedbackLabel.layer.cornerRadius = KeyboardMetrics.feedbackCornerRadius
+        feedbackLabel.layer.cornerCurve = .continuous
+        feedbackLabel.clipsToBounds = true
 
         settingsPanel.text = "Settings are available in the SweetKeyboard app.\n\nPrivacy:\n- Data stays on-device\n- No network calls\n- No analytics\n- No keystroke upload"
         settingsPanel.font = .preferredFont(forTextStyle: .body)
-        settingsPanel.backgroundColor = .secondarySystemBackground
-        settingsPanel.textColor = .label
+        settingsPanel.backgroundColor = KeyboardTheme.panelBackground
+        settingsPanel.textColor = KeyboardTheme.keyLabelColor
         settingsPanel.isEditable = false
-        settingsPanel.layer.cornerRadius = 12
+        settingsPanel.layer.cornerRadius = KeyboardMetrics.settingsPanelCornerRadius
         settingsPanel.layer.cornerCurve = .continuous
         settingsPanel.textContainerInset = UIEdgeInsets(top: 12, left: 10, bottom: 12, right: 10)
 
         keyboardContainer.addSubview(keyboardRows)
         keyboardContainer.addSubview(clipboardPanel)
         keyboardContainer.addSubview(settingsPanel)
-
+        view.addSubview(feedbackLabel)
         keyboardRows.translatesAutoresizingMaskIntoConstraints = false
         clipboardPanel.translatesAutoresizingMaskIntoConstraints = false
         settingsPanel.translatesAutoresizingMaskIntoConstraints = false
+        feedbackLabel.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
             keyboardRows.leadingAnchor.constraint(equalTo: keyboardContainer.leadingAnchor),
             keyboardRows.trailingAnchor.constraint(equalTo: keyboardContainer.trailingAnchor),
-            keyboardRows.topAnchor.constraint(equalTo: keyboardContainer.topAnchor),
-            keyboardRows.bottomAnchor.constraint(equalTo: keyboardContainer.bottomAnchor),
+            keyboardRows.topAnchor.constraint(equalTo: keyboardContainer.topAnchor, constant: KeyboardMetrics.keyboardTopPadding),
+            keyboardRows.bottomAnchor.constraint(equalTo: keyboardContainer.bottomAnchor, constant: -KeyboardMetrics.keyboardBottomSafeInset),
 
             clipboardPanel.leadingAnchor.constraint(equalTo: keyboardContainer.leadingAnchor),
             clipboardPanel.trailingAnchor.constraint(equalTo: keyboardContainer.trailingAnchor),
@@ -100,24 +110,30 @@ final class KeyboardViewController: UIInputViewController {
             settingsPanel.leadingAnchor.constraint(equalTo: keyboardContainer.leadingAnchor),
             settingsPanel.trailingAnchor.constraint(equalTo: keyboardContainer.trailingAnchor),
             settingsPanel.topAnchor.constraint(equalTo: keyboardContainer.topAnchor),
-            settingsPanel.bottomAnchor.constraint(equalTo: keyboardContainer.bottomAnchor)
+            settingsPanel.bottomAnchor.constraint(equalTo: keyboardContainer.bottomAnchor),
+
+            feedbackLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            feedbackLabel.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -KeyboardMetrics.feedbackBottomInset),
+            feedbackLabel.heightAnchor.constraint(equalToConstant: KeyboardMetrics.feedbackHeight),
+            feedbackLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 48),
+            feedbackLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -48)
         ])
 
         rootStack.addArrangedSubview(actionBar)
         rootStack.addArrangedSubview(keyboardContainer)
-        rootStack.addArrangedSubview(feedbackLabel)
 
         view.addSubview(rootStack)
         rootStack.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            rootStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
-            rootStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -6),
-            rootStack.topAnchor.constraint(equalTo: view.topAnchor, constant: 6),
-            rootStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -6),
-            keyboardContainer.heightAnchor.constraint(equalToConstant: 212),
-            feedbackLabel.heightAnchor.constraint(equalToConstant: 14)
+            rootStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: KeyboardMetrics.outerHorizontalPadding),
+            rootStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -KeyboardMetrics.outerHorizontalPadding),
+            rootStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -KeyboardMetrics.outerBottomPadding),
+            rootStack.topAnchor.constraint(greaterThanOrEqualTo: view.topAnchor, constant: KeyboardMetrics.outerTopPadding),
+            keyboardContainer.heightAnchor.constraint(equalToConstant: KeyboardMetrics.keyboardContainerHeight)
         ])
+
+        applyTheme()
     }
 
     private func bindActions() {
@@ -131,6 +147,8 @@ final class KeyboardViewController: UIInputViewController {
                 pasteFromSystemClipboard()
             case .clipboard:
                 toggleMode(.clipboard)
+            case .globe:
+                globeTapped()
             case .settings:
                 toggleMode(.settings)
             }
@@ -141,6 +159,15 @@ final class KeyboardViewController: UIInputViewController {
             self?.showFeedback("Inserted")
             self?.mode = .keyboard
         }
+    }
+
+    private func applyTheme() {
+        view.backgroundColor = KeyboardTheme.keyboardBackground
+        keyboardContainer.backgroundColor = .clear
+        settingsPanel.backgroundColor = KeyboardTheme.panelBackground
+        settingsPanel.textColor = KeyboardTheme.keyLabelColor
+        feedbackLabel.backgroundColor = KeyboardTheme.feedbackBackground
+        feedbackLabel.textColor = KeyboardTheme.keyLabelColor
     }
 
     private func toggleMode(_ targetMode: Mode) {
@@ -180,12 +207,8 @@ final class KeyboardViewController: UIInputViewController {
         keyboardRows.addArrangedSubview(thirdRow)
 
         let bottomRow = makeRow(distribution: .fillProportionally)
-        let globe = makeActionKey(title: "🌐", action: #selector(globeTapped), width: 1.2)
-        globeButton = globe
-
-        bottomRow.addArrangedSubview(makeActionKey(title: "123", action: #selector(noopTapped), width: 1.2))
-        bottomRow.addArrangedSubview(globe)
-        bottomRow.addArrangedSubview(makeActionKey(title: "space", action: #selector(spaceTapped), width: 4.5))
+        bottomRow.addArrangedSubview(makeActionKey(title: "123", action: #selector(noopTapped), width: 1.35))
+        bottomRow.addArrangedSubview(makeCharacterActionKey(title: "space", action: #selector(spaceTapped), width: 5.2))
         let actionKey = makePrimaryActionKey(action: #selector(actionKeyTapped), width: 2.0)
         actionKeyButton = actionKey
         bottomRow.addArrangedSubview(actionKey)
@@ -205,32 +228,38 @@ final class KeyboardViewController: UIInputViewController {
         row.axis = .horizontal
         row.distribution = distribution
         row.alignment = .fill
-        row.spacing = 6
+        row.spacing = KeyboardMetrics.keyboardKeySpacing
         return row
     }
 
     private func makeCharacterKey(_ title: String) -> UIButton {
-        let key = makeBaseKey(title: title)
+        let key = makeBaseKey(title: title, role: .character)
         key.addTarget(self, action: #selector(characterKeyTapped(_:)), for: .touchUpInside)
         return key
     }
 
     private func makeActionKey(title: String, action: Selector, width: CGFloat) -> UIButton {
-        let key = makeBaseKey(title: title)
+        let key = makeBaseKey(title: title, role: .system)
         key.addTarget(self, action: action, for: .touchUpInside)
-        key.widthAnchor.constraint(greaterThanOrEqualToConstant: 28 * width).isActive = true
+        key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width).isActive = true
+        return key
+    }
+
+    private func makeCharacterActionKey(title: String, action: Selector, width: CGFloat) -> UIButton {
+        let key = makeBaseKey(title: title, role: .character)
+        key.addTarget(self, action: action, for: .touchUpInside)
+        key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width).isActive = true
         return key
     }
 
     private func makePrimaryActionKey(action: Selector, width: CGFloat) -> UIButton {
-        let key = makeBaseKey(title: nil)
+        let key = makeBaseKey(title: nil, role: .primaryAction)
         key.addTarget(self, action: action, for: .touchUpInside)
 
-        let widthConstraint = key.widthAnchor.constraint(greaterThanOrEqualToConstant: 28 * width)
+        let widthConstraint = key.widthAnchor.constraint(greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * width)
         widthConstraint.isActive = true
         actionKeyWidthConstraint = widthConstraint
 
-        key.layer.borderWidth = 0.6
         key.titleLabel?.font = .preferredFont(forTextStyle: .headline)
         key.titleLabel?.adjustsFontSizeToFitWidth = true
         key.titleLabel?.minimumScaleFactor = 0.72
@@ -239,7 +268,7 @@ final class KeyboardViewController: UIInputViewController {
         return key
     }
 
-    private func makeBaseKey(title: String?) -> UIButton {
+    private func makeBaseKey(title: String?, role: KeyboardButtonRole) -> UIButton {
         let button = UIButton(type: .system)
         if let title {
             button.setTitle(title, for: .normal)
@@ -248,11 +277,12 @@ final class KeyboardViewController: UIInputViewController {
         button.titleLabel?.font = .preferredFont(forTextStyle: .title3)
         button.titleLabel?.adjustsFontSizeToFitWidth = true
         button.titleLabel?.minimumScaleFactor = 0.75
-        button.backgroundColor = .secondarySystemFill
-        button.setTitleColor(.label, for: .normal)
-        button.layer.cornerRadius = 10
-        button.layer.cornerCurve = .continuous
-        button.heightAnchor.constraint(equalToConstant: 42).isActive = true
+        KeyboardTheme.applyChrome(
+            to: button,
+            role: role,
+            cornerRadius: KeyboardMetrics.keyCornerRadius
+        )
+        button.heightAnchor.constraint(equalToConstant: KeyboardMetrics.keyboardRowHeight).isActive = true
         return button
     }
 
@@ -277,7 +307,7 @@ final class KeyboardViewController: UIInputViewController {
 
         if useIcon, let preferredSymbol {
             actionKeyButton.setPreferredSymbolConfiguration(
-                UIImage.SymbolConfiguration(pointSize: 19, weight: .semibold),
+                UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.actionSymbolPointSize, weight: .semibold),
                 forImageIn: .normal
             )
             actionKeyButton.setImage(preferredSymbol, for: .normal)
@@ -286,14 +316,19 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         actionKeyButton.isEnabled = isEnabled
-        actionKeyButton.backgroundColor = primaryActionBackgroundColor
-        actionKeyButton.setTitleColor(.label, for: .normal)
-        actionKeyButton.tintColor = .label
+        KeyboardTheme.applyChrome(
+            to: actionKeyButton,
+            role: .primaryAction,
+            cornerRadius: KeyboardMetrics.keyCornerRadius
+        )
+        actionKeyButton.setTitleColor(KeyboardTheme.keyLabelColor, for: .normal)
+        actionKeyButton.tintColor = KeyboardTheme.keyLabelColor
+        actionKeyButton.layer.borderWidth = 0.6
         actionKeyButton.layer.borderColor = primaryActionBorderColor.cgColor
         actionKeyButton.accessibilityLabel = model.accessibilityLabel
         actionKeyButton.accessibilityHint = model.accessibilityHint
         actionKeyButton.accessibilityIdentifier = "action-key-\(model.actionType.rawValue)"
-        actionKeyWidthConstraint?.constant = 28 * model.minimumWidthMultiplier
+        actionKeyWidthConstraint?.constant = KeyboardMetrics.keyUnitWidth * model.minimumWidthMultiplier
     }
 
     private func logActionKeyState(model: ActionKeyModel, context: ActionKeyInputContext) {
@@ -330,24 +365,8 @@ final class KeyboardViewController: UIInputViewController {
         return nil
     }
 
-    private var primaryActionBackgroundColor: UIColor {
-        UIColor { traitCollection in
-            if traitCollection.userInterfaceStyle == .dark {
-                return UIColor.secondarySystemBackground
-            }
-
-            return UIColor.systemBackground
-        }
-    }
-
     private var primaryActionBorderColor: UIColor {
-        UIColor { traitCollection in
-            if traitCollection.userInterfaceStyle == .dark {
-                return UIColor.separator.withAlphaComponent(0.35)
-            }
-
-            return UIColor.separator.withAlphaComponent(0.18)
-        }
+        KeyboardTheme.borderColor
     }
 
     private func copySelectedText() {
