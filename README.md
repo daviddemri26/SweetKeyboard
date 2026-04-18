@@ -1,6 +1,63 @@
 # SweetKeyboard
 
-SweetKeyboard is an iOS MVP for a custom third-party keyboard with a privacy-first clipboard workflow.
+SweetKeyboard is an iOS custom third-party keyboard with a privacy-first clipboard workflow.
+
+## App Overview
+
+SweetKeyboard is a clean, fast, modern keyboard designed to make typing simpler, quicker, and more practical every day.
+
+Built in 2026, it is designed with modern iOS technologies and an interface language that feels at home on iOS 26.
+
+It brings together the essentials people use all the time, with a few smart tools that make a real difference:
+
+- familiar English QWERTY typing
+- a built-in top number row for faster input
+- direct arrow keys for quick cursor movement
+- all main special characters and symbols in one dedicated view
+- direct `@` access in email fields
+- one-tap copy and paste actions
+- instant clipboard history inside the keyboard
+- a contextual action key that adapts to the current field
+
+### Why It Feels Different
+
+SweetKeyboard is built around simple actions that save time immediately.
+
+Instead of overloading the interface, it focuses on speed, clarity, and useful shortcuts:
+
+- type numbers faster without switching views
+- move the cursor instantly with dedicated arrow keys
+- access symbols and special characters in one place
+- type email addresses faster with direct `@` access when relevant
+- copy, paste, and reopen recent clipboard items without leaving the keyboard
+- keep a layout that stays simple, familiar, and efficient
+
+### Privacy-First Promise
+
+SweetKeyboard is intentionally local-first and privacy-first.
+
+- no analytics
+- no cloud sync
+- no keystroke upload
+- no network-based clipboard service
+
+Your clipboard history stays on-device through the shared App Group container used by the app and keyboard extension.
+
+### Core Product Pitch
+
+SweetKeyboard gives you:
+
+- a faster daily typing experience
+- a simpler way to access numbers, symbols, and cursor controls
+- practical clipboard tools built directly into the keyboard
+- a modern experience aligned with the look and feel of iOS 26
+- the confidence of a local-only privacy model
+
+It is meant to feel simple, fast, useful, and trustworthy from the first launch.
+
+---
+
+## Technical Overview
 
 The project contains:
 
@@ -8,12 +65,13 @@ The project contains:
 - A custom keyboard extension built with `UIInputViewController`
 - A shared local clipboard history stored through an App Group
 
-## Current MVP Scope
+## Current Feature Set
 
 Implemented in the current codebase:
 
 - English QWERTY keyboard
 - Extra top number row: `1 2 3 4 5 6 7 8 9 0`
+- Direct `@` access in email fields
 - Top action bar with `Copy`, `Paste`, `Clipboard`, and `Settings`
 - Globe key for keyboard switching
 - Shift, backspace, space, and a contextual bottom-right action key
@@ -87,7 +145,7 @@ SweetKeyboard is intentionally local-only.
 - No keystroke upload
 - Clipboard history stored locally in an App Group shared container
 
-The keyboard requests Full Access because the MVP needs:
+The keyboard requests Full Access because the app needs:
 
 - `UIPasteboard` integration
 - shared storage between the app and the keyboard extension
@@ -202,7 +260,7 @@ Keep commits focused. Avoid committing:
 - local build outputs
 - machine-specific secrets or signing artifacts
 
-## Next MVP Steps
+## Next Steps
 
 - Improve keyboard sizing and responsiveness across device classes
 - Add stronger empty/error feedback states
