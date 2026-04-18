@@ -16,7 +16,7 @@ Implemented in the current codebase:
 - Extra top number row: `1 2 3 4 5 6 7 8 9 0`
 - Top action bar with `Copy`, `Paste`, `Clipboard`, and `Settings`
 - Globe key for keyboard switching
-- Shift, backspace, space, and return keys
+- Shift, backspace, space, and a contextual bottom-right action key
 - Local clipboard history with:
   - newest first
   - max 50 items
@@ -25,6 +25,57 @@ Implemented in the current codebase:
 - Clipboard panel inside the keyboard UI
 - Containing app onboarding and local debug screen
 - Light and dark mode native system styling
+- Action-key trait logging through the shared App Group for host-app testing
+
+## Contextual Action Key
+
+The bottom-right key resolves from the active input object's traits exposed through `textDocumentProxy`.
+
+### Mapping Table
+
+| `UIReturnKeyType` | UI treatment | Notes |
+| --- | --- | --- |
+| `default` | icon | Uses SF Symbol `return.left` with `arrow.turn.down.left` fallback |
+| `search` | icon | Uses `magnifyingglass`; falls back to `Search` text if the symbol is unavailable |
+| `go` | text | `Go` |
+| `google` | text | `Google` |
+| `join` | text | `Join` |
+| `next` | text | `Next` |
+| `route` | text | `Route` |
+| `send` | text | `Send` |
+| `yahoo` | text | `Yahoo` |
+| `done` | text | `Done` |
+| `emergencyCall` | text | `Emergency` visible label, `Emergency Call` accessibility label |
+| `continue` | text | `Continue` |
+| unknown / unavailable | default icon | Conservative fallback |
+
+### Reliable Cases
+
+- Fields that surface `returnKeyType` through the keyboard extension proxy
+- Search bars and search fields that expose `returnKeyType.search`
+- Form flows that expose `returnKeyType.next`
+- Chat, compose, or submit flows that expose `send`, `done`, or `go`
+- Disablement when the host sets `enablesReturnKeyAutomatically` and the field is empty
+
+### Approximate Cases
+
+- Matching the exact native visual treatment of every host app: third-party keyboards can mirror the intent, not the private system artwork
+- Determining whether a generic `.default` field is truly multiline versus a single-line field with no special return key trait
+- Search inference when a host app exposes incomplete traits: SweetKeyboard intentionally falls back to the default return icon instead of guessing
+- Host-specific next/send/search behavior: the keyboard inserts `"\n"` through the proxy and relies on the host text control to interpret it as its configured return action
+
+### Not Possible From a Third-Party Keyboard Extension
+
+- Calling private host-app submit handlers directly
+- Reliably identifying the host app or field name from the extension
+- Accessing secure text fields, phone pad fields, or apps that reject custom keyboards
+- Reproducing private system-only keycap artwork or inline system controls exactly
+
+### Debugging
+
+- The containing app shows recent action-key snapshots recorded by the extension
+- Snapshots include resolved action type, display mode, `returnKeyType`, `keyboardType`, `textContentType`, and empty/non-empty state
+- Snapshots intentionally exclude typed text for privacy
 
 ## Privacy Model
 
@@ -121,6 +172,7 @@ Simulator builds are useful for compile validation, but custom keyboard behavior
 - Some apps or input contexts may block custom keyboards
 - Copy only works when selected text is exposed to the keyboard extension through `textDocumentProxy`
 - System-wide passive clipboard capture is intentionally out of scope
+- Host apps may not expose enough text-input traits for exact action-key matching; SweetKeyboard falls back to the default return icon in those cases
 
 ## Git Conventions
 
@@ -153,4 +205,4 @@ Keep commits focused. Avoid committing:
 - Polish clipboard panel UI
 - Add tests around clipboard normalization and persistence rules
 - Add explicit onboarding copy for privacy and Full Access rationale
-
+- Validate the contextual action-key matrix on a real iPhone across Mail, Messages, Safari, Notes, and common form flows

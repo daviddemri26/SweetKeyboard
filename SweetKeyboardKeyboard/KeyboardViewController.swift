@@ -9,6 +9,8 @@ final class KeyboardViewController: UIInputViewController {
 
     private let layoutEngine = KeyboardLayoutEngine()
     private let clipboardStore = ClipboardStore()
+    private let actionKeyResolver = ActionKeyResolver()
+    private let actionKeyDebugStore = ActionKeyDebugStore()
 
     private var isShiftEnabled = false
     private var mode: Mode = .keyboard {
@@ -26,6 +28,8 @@ final class KeyboardViewController: UIInputViewController {
     private let feedbackLabel = UILabel()
 
     private var globeButton: UIButton?
+    private weak var actionKeyButton: UIButton?
+    private var actionKeyWidthConstraint: NSLayoutConstraint?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -33,11 +37,22 @@ final class KeyboardViewController: UIInputViewController {
         bindActions()
         rebuildKeyboardRows()
         refreshModeUI()
+        refreshActionKey()
     }
 
     override func viewWillLayoutSubviews() {
         super.viewWillLayoutSubviews()
         globeButton?.isHidden = !needsInputModeSwitchKey
+    }
+
+    override func textDidChange(_ textInput: UITextInput?) {
+        super.textDidChange(textInput)
+        refreshActionKey()
+    }
+
+    override func selectionDidChange(_ textInput: UITextInput?) {
+        super.selectionDidChange(textInput)
+        refreshActionKey()
     }
 
     private func setupUI() {
@@ -171,8 +186,12 @@ final class KeyboardViewController: UIInputViewController {
         bottomRow.addArrangedSubview(makeActionKey(title: "123", action: #selector(noopTapped), width: 1.2))
         bottomRow.addArrangedSubview(globe)
         bottomRow.addArrangedSubview(makeActionKey(title: "space", action: #selector(spaceTapped), width: 4.5))
-        bottomRow.addArrangedSubview(makeActionKey(title: "Return", action: #selector(returnTapped), width: 2.0))
+        let actionKey = makePrimaryActionKey(action: #selector(actionKeyTapped), width: 2.0)
+        actionKeyButton = actionKey
+        bottomRow.addArrangedSubview(actionKey)
         keyboardRows.addArrangedSubview(bottomRow)
+
+        refreshActionKey()
     }
 
     private func addCharacterRow(_ keys: [String]) {
@@ -203,16 +222,132 @@ final class KeyboardViewController: UIInputViewController {
         return key
     }
 
-    private func makeBaseKey(title: String) -> UIButton {
+    private func makePrimaryActionKey(action: Selector, width: CGFloat) -> UIButton {
+        let key = makeBaseKey(title: nil)
+        key.addTarget(self, action: action, for: .touchUpInside)
+
+        let widthConstraint = key.widthAnchor.constraint(greaterThanOrEqualToConstant: 28 * width)
+        widthConstraint.isActive = true
+        actionKeyWidthConstraint = widthConstraint
+
+        key.layer.borderWidth = 0.6
+        key.titleLabel?.font = .preferredFont(forTextStyle: .headline)
+        key.titleLabel?.adjustsFontSizeToFitWidth = true
+        key.titleLabel?.minimumScaleFactor = 0.72
+        key.accessibilityTraits.insert(.keyboardKey)
+
+        return key
+    }
+
+    private func makeBaseKey(title: String?) -> UIButton {
         let button = UIButton(type: .system)
-        button.setTitle(title, for: .normal)
+        if let title {
+            button.setTitle(title, for: .normal)
+        }
+
         button.titleLabel?.font = .preferredFont(forTextStyle: .title3)
+        button.titleLabel?.adjustsFontSizeToFitWidth = true
+        button.titleLabel?.minimumScaleFactor = 0.75
         button.backgroundColor = .secondarySystemFill
         button.setTitleColor(.label, for: .normal)
         button.layer.cornerRadius = 10
         button.layer.cornerCurve = .continuous
         button.heightAnchor.constraint(equalToConstant: 42).isActive = true
         return button
+    }
+
+    private func refreshActionKey() {
+        let context = ActionKeyInputContext(proxy: textDocumentProxy)
+        let model = actionKeyResolver.resolve(for: context)
+        applyActionKeyModel(model, context: context)
+        logActionKeyState(model: model, context: context)
+    }
+
+    private func applyActionKeyModel(_ model: ActionKeyModel, context: ActionKeyInputContext) {
+        guard let actionKeyButton else {
+            return
+        }
+
+        let preferredSymbol = model.symbolName.flatMap(primaryActionSymbol(named:))
+        let useIcon = model.displayMode == .icon && preferredSymbol != nil
+        let isEnabled = actionKeyResolver.isEnabled(for: model, context: context)
+
+        actionKeyButton.setTitle(nil, for: .normal)
+        actionKeyButton.setImage(nil, for: .normal)
+
+        if useIcon, let preferredSymbol {
+            actionKeyButton.setPreferredSymbolConfiguration(
+                UIImage.SymbolConfiguration(pointSize: 19, weight: .semibold),
+                forImageIn: .normal
+            )
+            actionKeyButton.setImage(preferredSymbol, for: .normal)
+        } else {
+            actionKeyButton.setTitle(model.fallbackTitle, for: .normal)
+        }
+
+        actionKeyButton.isEnabled = isEnabled
+        actionKeyButton.backgroundColor = primaryActionBackgroundColor
+        actionKeyButton.setTitleColor(.label, for: .normal)
+        actionKeyButton.tintColor = .label
+        actionKeyButton.layer.borderColor = primaryActionBorderColor.cgColor
+        actionKeyButton.accessibilityLabel = model.accessibilityLabel
+        actionKeyButton.accessibilityHint = model.accessibilityHint
+        actionKeyButton.accessibilityIdentifier = "action-key-\(model.actionType.rawValue)"
+        actionKeyWidthConstraint?.constant = 28 * model.minimumWidthMultiplier
+    }
+
+    private func logActionKeyState(model: ActionKeyModel, context: ActionKeyInputContext) {
+        let snapshot = ActionKeyDebugSnapshot(
+            id: UUID(),
+            createdAt: Date(),
+            actionType: model.actionType.rawValue,
+            displayMode: model.displayMode.rawValue,
+            visibleLabel: model.fallbackTitle,
+            accessibilityLabel: model.accessibilityLabel,
+            debugDescription: model.debugDescription,
+            returnKeyType: context.returnKeyType?.debugName,
+            keyboardType: context.keyboardType?.debugName,
+            textContentType: context.textContentType,
+            enablesReturnKeyAutomatically: context.enablesReturnKeyAutomatically,
+            hasText: context.hasText,
+            hasDocumentText: context.hasDocumentText,
+            hasSelection: context.hasSelection,
+            documentContextContainsLineBreaks: context.documentContextContainsLineBreaks
+        )
+
+        actionKeyDebugStore.record(snapshot)
+    }
+
+    private func primaryActionSymbol(named name: String) -> UIImage? {
+        if let image = UIImage(systemName: name) {
+            return image
+        }
+
+        if name == "return.left" {
+            return UIImage(systemName: "arrow.turn.down.left")
+        }
+
+        return nil
+    }
+
+    private var primaryActionBackgroundColor: UIColor {
+        UIColor { traitCollection in
+            if traitCollection.userInterfaceStyle == .dark {
+                return UIColor.secondarySystemBackground
+            }
+
+            return UIColor.systemBackground
+        }
+    }
+
+    private var primaryActionBorderColor: UIColor {
+        UIColor { traitCollection in
+            if traitCollection.userInterfaceStyle == .dark {
+                return UIColor.separator.withAlphaComponent(0.35)
+            }
+
+            return UIColor.separator.withAlphaComponent(0.18)
+        }
     }
 
     private func copySelectedText() {
@@ -272,7 +407,7 @@ final class KeyboardViewController: UIInputViewController {
         textDocumentProxy.insertText(" ")
     }
 
-    @objc private func returnTapped() {
+    @objc private func actionKeyTapped() {
         textDocumentProxy.insertText("\n")
     }
 

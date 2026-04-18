@@ -1,10 +1,14 @@
 import SwiftUI
 
 struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
+
     @State private var manualClipboardText = ""
     @State private var history: [ClipboardItem] = []
+    @State private var actionSnapshots: [ActionKeyDebugSnapshot] = []
 
     private let store = ClipboardStore()
+    private let actionKeyDebugStore = ActionKeyDebugStore()
 
     var body: some View {
         NavigationStack {
@@ -12,10 +16,18 @@ struct ContentView: View {
                 setupSection
                 privacySection
                 debugSection
+                actionKeyDebugSection
                 limitationsSection
             }
             .navigationTitle("SweetKeyboard")
-            .onAppear(perform: reloadHistory)
+            .onAppear(perform: reloadDebugState)
+            .onChange(of: scenePhase) { _, newPhase in
+                guard newPhase == .active else {
+                    return
+                }
+
+                reloadDebugState()
+            }
         }
     }
 
@@ -45,12 +57,12 @@ struct ContentView: View {
                 guard !trimmed.isEmpty else { return }
                 store.add(text: trimmed, source: .manualImport)
                 manualClipboardText = ""
-                reloadHistory()
+                reloadDebugState()
             }
 
             Button("Clear History", role: .destructive) {
                 store.clearAll()
-                reloadHistory()
+                reloadDebugState()
             }
 
             if history.isEmpty {
@@ -71,6 +83,44 @@ struct ContentView: View {
         }
     }
 
+    private var actionKeyDebugSection: some View {
+        Section("Action Key Debug") {
+            Text("Recent trait snapshots recorded by the keyboard extension. The log excludes typed text and stores only action-key metadata.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
+            Button("Clear Action Key Log", role: .destructive) {
+                actionKeyDebugStore.clearAll()
+                reloadDebugState()
+            }
+
+            if actionSnapshots.isEmpty {
+                Text("No action-key observations yet. Use SweetKeyboard in a few apps and fields, then return here.")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(actionSnapshots) { snapshot in
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("\(snapshot.accessibilityLabel) · \(snapshot.displayMode)")
+                            .font(.headline)
+
+                        Text(snapshot.debugDescription)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        Text(snapshotSummary(snapshot))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        Text(snapshot.createdAt.formatted(date: .abbreviated, time: .shortened))
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+        }
+    }
+
     private var limitationsSection: some View {
         Section("Platform Limitations") {
             Text("Third-party keyboards are unavailable in secure text fields and some restricted input contexts.")
@@ -78,8 +128,18 @@ struct ContentView: View {
         }
     }
 
-    private func reloadHistory() {
+    private func reloadDebugState() {
         history = store.allItems()
+        actionSnapshots = actionKeyDebugStore.allSnapshots()
+    }
+
+    private func snapshotSummary(_ snapshot: ActionKeyDebugSnapshot) -> String {
+        let returnKey = snapshot.returnKeyType ?? "unavailable"
+        let keyboardType = snapshot.keyboardType ?? "unavailable"
+        let textContentType = snapshot.textContentType ?? "nil"
+        let autoReturn = snapshot.enablesReturnKeyAutomatically.map(String.init) ?? "nil"
+
+        return "returnKeyType=\(returnKey)  keyboardType=\(keyboardType)  textContentType=\(textContentType)  autoReturn=\(autoReturn)  hasText=\(snapshot.hasText)  hasDocumentText=\(snapshot.hasDocumentText)"
     }
 }
 
