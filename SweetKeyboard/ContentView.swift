@@ -6,67 +6,115 @@ struct ContentView: View {
     @State private var manualClipboardText = ""
     @State private var history: [ClipboardItem] = []
     @State private var actionSnapshots: [ActionKeyDebugSnapshot] = []
+    @State private var sharedSettings = SharedKeyboardSettings()
+    @State private var capabilityStatus = KeyboardCapabilityStatus()
 
-    private let store = ClipboardStore()
+    private let clipboardStore = ClipboardStore()
     private let actionKeyDebugStore = ActionKeyDebugStore()
+    private let sharedSettingsStore = SharedKeyboardSettingsStore()
+    private let capabilityStatusStore = KeyboardCapabilityStatusStore()
+
+    private var canEnableClipboardMode: Bool {
+        capabilityStatus.lastConfirmedFullAccessAt != nil
+    }
 
     var body: some View {
         NavigationStack {
             List {
-                setupSection
+                keyboardSetupSection
+                keyboardFeaturesSection
                 privacySection
-                debugSection
+                clipboardDebugSection
                 actionKeyDebugSection
-                limitationsSection
+                platformNotesSection
             }
             .navigationTitle("SweetKeyboard")
-            .onAppear(perform: reloadDebugState)
+            .onAppear(perform: reloadState)
             .onChange(of: scenePhase) { _, newPhase in
                 guard newPhase == .active else {
                     return
                 }
 
-                reloadDebugState()
+                reloadState()
             }
         }
     }
 
-    private var setupSection: some View {
-        Section("Enable Keyboard") {
-            Text("1. Open Settings > General > Keyboard > Keyboards")
-            Text("2. Tap Add New Keyboard and choose SweetKeyboard")
-            Text("3. Tap SweetKeyboard and enable Allow Full Access")
+    private var keyboardSetupSection: some View {
+        Section("Keyboard Setup") {
+            Text("1. Open Settings > General > Keyboard > Keyboards.")
+            Text("2. Tap Add New Keyboard and choose SweetKeyboard.")
+            Text("3. Basic typing works right away.")
+            Text("4. If you want clipboard tools, open the SweetKeyboard keyboard entry and enable Allow Full Access.")
+        }
+    }
+
+    private var keyboardFeaturesSection: some View {
+        Section("Keyboard Features") {
+            Text("Basic typing works right away. Clipboard tools require Full Access.")
+                .foregroundStyle(.secondary)
+
+            Toggle(
+                "Clipboard toolbar",
+                isOn: Binding(
+                    get: { sharedSettings.clipboardModeEnabled },
+                    set: { newValue in
+                        guard canEnableClipboardMode || !newValue else {
+                            return
+                        }
+
+                        sharedSettings.clipboardModeEnabled = newValue
+                        sharedSettingsStore.setClipboardModeEnabled(newValue)
+                    }
+                )
+            )
+            .disabled(!canEnableClipboardMode && !sharedSettings.clipboardModeEnabled)
+
+            Text("When on, SweetKeyboard shows Copy, Paste, Clipboard, and Settings above the keyboard.")
+                .foregroundStyle(.secondary)
+
+            if !canEnableClipboardMode {
+                Text("To turn on Clipboard mode, enable Full Access for SweetKeyboard in iPhone Settings, then open the keyboard once.")
+                    .foregroundStyle(.secondary)
+            } else if !sharedSettings.clipboardModeEnabled {
+                Text("Clipboard toolbar is currently off. Basic mode keeps the keyboard compact while preserving the number row and normal typing.")
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
     private var privacySection: some View {
-        Section("Why Full Access") {
-            Text("SweetKeyboard needs Full Access to read/write system pasteboard and persist clipboard history in an App Group shared container.")
-            Text("All data remains local on your device.")
-            Text("No network calls, no analytics, no cloud sync, no keystroke upload.")
+        Section("Privacy") {
+            Text("Clipboard data stays on this device. No network, no analytics, no cloud sync.")
+            Text("SweetKeyboard uses Full Access only for local clipboard and shared settings features.")
+                .foregroundStyle(.secondary)
         }
     }
 
-    private var debugSection: some View {
+    private var clipboardDebugSection: some View {
         Section("Clipboard Debug") {
+            Text("Local clipboard history used by the optional clipboard toolbar.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+
             TextField("Manual import text", text: $manualClipboardText)
                 .textInputAutocapitalization(.never)
 
             Button("Add to Local History") {
                 let trimmed = manualClipboardText.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard !trimmed.isEmpty else { return }
-                store.add(text: trimmed, source: .manualImport)
+                clipboardStore.add(text: trimmed, source: .manualImport)
                 manualClipboardText = ""
-                reloadDebugState()
+                reloadState()
             }
 
             Button("Clear History", role: .destructive) {
-                store.clearAll()
-                reloadDebugState()
+                clipboardStore.clearAll()
+                reloadState()
             }
 
             if history.isEmpty {
-                Text("No local clipboard items yet")
+                Text("No local clipboard items yet.")
                     .foregroundStyle(.secondary)
             } else {
                 ForEach(history) { item in
@@ -91,7 +139,7 @@ struct ContentView: View {
 
             Button("Clear Action Key Log", role: .destructive) {
                 actionKeyDebugStore.clearAll()
-                reloadDebugState()
+                reloadState()
             }
 
             if actionSnapshots.isEmpty {
@@ -121,16 +169,19 @@ struct ContentView: View {
         }
     }
 
-    private var limitationsSection: some View {
-        Section("Platform Limitations") {
+    private var platformNotesSection: some View {
+        Section("Platform Notes") {
             Text("Third-party keyboards are unavailable in secure text fields and some restricted input contexts.")
-            Text("Copy only works when the active text field exposes selected text to the keyboard extension.")
+            Text("Copy works only when the active text field exposes selected text to the keyboard extension.")
+            Text("If Full Access is off, SweetKeyboard automatically stays in typing-only mode.")
         }
     }
 
-    private func reloadDebugState() {
-        history = store.allItems()
+    private func reloadState() {
+        history = clipboardStore.allItems()
         actionSnapshots = actionKeyDebugStore.allSnapshots()
+        sharedSettings = sharedSettingsStore.load()
+        capabilityStatus = capabilityStatusStore.load()
     }
 
     private func snapshotSummary(_ snapshot: ActionKeyDebugSnapshot) -> String {

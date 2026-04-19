@@ -18,10 +18,17 @@ final class KeyboardViewController: UIInputViewController {
         case locked
     }
 
+    private enum DisplayMode {
+        case basic
+        case clipboard
+    }
+
     private let layoutEngine = KeyboardLayoutEngine()
     private let clipboardStore = ClipboardStore()
     private let actionKeyResolver = ActionKeyResolver()
     private let actionKeyDebugStore = ActionKeyDebugStore()
+    private let sharedSettingsStore = SharedKeyboardSettingsStore()
+    private let capabilityStatusStore = KeyboardCapabilityStatusStore()
 
     private let shiftDoubleTapInterval: TimeInterval = 0.35
     private let accentHoldDelay: TimeInterval = 0.5
@@ -32,6 +39,7 @@ final class KeyboardViewController: UIInputViewController {
     private var keyboardLayoutMode: KeyboardLayoutMode = .letters
     private var isEmailFieldActive = false
     private var accentState: AccentReplacementState?
+    private var displayMode: DisplayMode = .basic
     private var mode: Mode = .keyboard {
         didSet {
             refreshModeUI()
@@ -43,7 +51,7 @@ final class KeyboardViewController: UIInputViewController {
     private let keyboardContainer = UIView()
     private let keyboardRows = UIStackView()
     private let clipboardPanel = ClipboardPanelView()
-    private let settingsPanel = UITextView()
+    private let settingsPanel = KeyboardSettingsPanelView()
     private let feedbackLabel = UILabel()
     private lazy var feedbackPresenter = KeyboardFeedbackPresenter(label: feedbackLabel)
     private lazy var backspaceRepeatController = KeyboardKeyRepeatController(
@@ -62,15 +70,33 @@ final class KeyboardViewController: UIInputViewController {
     private var keyboardContainerHeightConstraint: NSLayoutConstraint?
     private var keyboardRowsBottomConstraint: NSLayoutConstraint?
 
+    private var desiredClipboardModeEnabled: Bool {
+        sharedSettingsStore.load().clipboardModeEnabled
+    }
+
+    private var effectiveDisplayMode: DisplayMode {
+        (hasFullAccess && desiredClipboardModeEnabled) ? .clipboard : .basic
+    }
+
+    private var shouldShowInlineSettingsKey: Bool {
+        displayMode == .basic && keyboardLayoutMode == .symbols
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         registerTraitObservers()
-        updateKeyboardSizingIfNeeded()
         bindActions()
-        rebuildKeyboardRows()
-        refreshModeUI()
+        reloadFeatureState(rebuildKeyboard: true)
         refreshActionKey()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        mode = .keyboard
+        keyboardLayoutMode = .letters
+        clearAccentState(rebuild: false)
+        reloadFeatureState(rebuildKeyboard: true)
     }
 
     override func viewWillLayoutSubviews() {
@@ -88,6 +114,16 @@ final class KeyboardViewController: UIInputViewController {
         stopKeyRepeats()
     }
 
+    override func textDidChange(_ textInput: UITextInput?) {
+        super.textDidChange(textInput)
+        refreshActionKey()
+    }
+
+    override func selectionDidChange(_ textInput: UITextInput?) {
+        super.selectionDidChange(textInput)
+        refreshActionKey()
+    }
+
     private func registerTraitObservers() {
         registerForTraitChanges([
             UITraitUserInterfaceStyle.self,
@@ -97,16 +133,6 @@ final class KeyboardViewController: UIInputViewController {
             self.applyTheme()
             self.refreshActionKey()
         }
-    }
-
-    override func textDidChange(_ textInput: UITextInput?) {
-        super.textDidChange(textInput)
-        refreshActionKey()
-    }
-
-    override func selectionDidChange(_ textInput: UITextInput?) {
-        super.selectionDidChange(textInput)
-        refreshActionKey()
     }
 
     private func setupUI() {
@@ -136,19 +162,11 @@ final class KeyboardViewController: UIInputViewController {
         feedbackLabel.layer.cornerCurve = .continuous
         feedbackLabel.clipsToBounds = true
 
-        settingsPanel.text = "Settings are available in the SweetKeyboard app.\n\nPrivacy:\n- Data stays on-device\n- No network calls\n- No analytics\n- No keystroke upload"
-        settingsPanel.font = .preferredFont(forTextStyle: .body)
-        settingsPanel.backgroundColor = KeyboardTheme.panelBackground
-        settingsPanel.textColor = KeyboardTheme.keyLabelColor
-        settingsPanel.isEditable = false
-        settingsPanel.layer.cornerRadius = KeyboardMetrics.settingsPanelCornerRadius
-        settingsPanel.layer.cornerCurve = .continuous
-        settingsPanel.textContainerInset = UIEdgeInsets(top: 12, left: 10, bottom: 12, right: 10)
-
         keyboardContainer.addSubview(keyboardRows)
         keyboardContainer.addSubview(clipboardPanel)
         keyboardContainer.addSubview(settingsPanel)
         view.addSubview(feedbackLabel)
+
         keyboardRows.translatesAutoresizingMaskIntoConstraints = false
         clipboardPanel.translatesAutoresizingMaskIntoConstraints = false
         settingsPanel.translatesAutoresizingMaskIntoConstraints = false
@@ -225,31 +243,87 @@ final class KeyboardViewController: UIInputViewController {
             self?.feedbackPresenter.show("Inserted")
             self?.mode = .keyboard
         }
+
+        settingsPanel.onClipboardModeChanged = { [weak self] isEnabled in
+            self?.handleClipboardModeChanged(isEnabled)
+        }
+
+        settingsPanel.onDone = { [weak self] in
+            self?.returnToLetterKeyboard()
+        }
+    }
+
+    private func reloadFeatureState(rebuildKeyboard: Bool) {
+        if hasFullAccess {
+            capabilityStatusStore.confirmFullAccessNow()
+        }
+
+        let previousDisplayMode = displayMode
+        displayMode = effectiveDisplayMode
+        actionBar.isHidden = displayMode == .basic
+
+        if displayMode == .basic && mode == .clipboard {
+            mode = .keyboard
+        }
+
+        updateSettingsPanel()
+        updateKeyboardSizingIfNeeded()
+
+        if rebuildKeyboard || previousDisplayMode != displayMode {
+            rebuildKeyboardRows()
+        } else {
+            refreshModeUI()
+        }
+    }
+
+    private func updateSettingsPanel() {
+        let helperText: String?
+        let showsClipboardToggle = true
+        let isClipboardToggleEnabled = hasFullAccess
+
+        if hasFullAccess && desiredClipboardModeEnabled {
+            helperText = "Turn this off to use SweetKeyboard in typing-only mode. Clipboard data stays local on this device."
+        } else if hasFullAccess {
+            helperText = "Turn this on to show Copy, Paste, Clipboard, and Settings above the keyboard."
+        } else {
+            helperText = "Clipboard tools require Full Access. Enable Full Access in iPhone Settings, then reopen SweetKeyboard to turn this on."
+        }
+
+        settingsPanel.render(
+            isClipboardModeEnabled: desiredClipboardModeEnabled,
+            showsClipboardToggle: showsClipboardToggle,
+            isClipboardToggleEnabled: isClipboardToggleEnabled,
+            helperText: helperText
+        )
     }
 
     private func applyTheme() {
         view.backgroundColor = KeyboardTheme.keyboardBackground
         keyboardContainer.backgroundColor = .clear
-        settingsPanel.backgroundColor = KeyboardTheme.panelBackground
-        settingsPanel.textColor = KeyboardTheme.keyLabelColor
         feedbackLabel.backgroundColor = KeyboardTheme.feedbackBackground
         feedbackLabel.textColor = KeyboardTheme.keyLabelColor
     }
 
     private func toggleMode(_ targetMode: Mode) {
+        if targetMode == .clipboard && displayMode != .clipboard {
+            return
+        }
+
         clearAccentState(rebuild: mode == .keyboard)
         mode = (mode == targetMode) ? .keyboard : targetMode
     }
 
     private func refreshModeUI() {
+        let isClipboardVisible = displayMode == .clipboard && mode == .clipboard
+
         keyboardRows.isHidden = mode != .keyboard
-        clipboardPanel.isHidden = mode != .clipboard
+        clipboardPanel.isHidden = !isClipboardVisible
         settingsPanel.isHidden = mode != .settings
 
-        actionBar.setClipboardActive(mode == .clipboard)
-        actionBar.setSettingsActive(mode == .settings)
+        actionBar.setClipboardActive(isClipboardVisible)
+        actionBar.setSettingsActive(displayMode == .clipboard && mode == .settings)
 
-        if mode == .clipboard {
+        if isClipboardVisible {
             clipboardPanel.render(items: clipboardStore.allItems())
         }
     }
@@ -269,7 +343,7 @@ final class KeyboardViewController: UIInputViewController {
                 accentState: accentState
             )
         case .symbols:
-            rowSpecs = layoutEngine.symbolRows
+            rowSpecs = layoutEngine.symbolRows(showInlineSettingsKey: shouldShowInlineSettingsKey)
         }
 
         for rowSpec in rowSpecs {
@@ -334,7 +408,10 @@ final class KeyboardViewController: UIInputViewController {
     private func updateKeyboardSizingIfNeeded() {
         let bottomInset = KeyboardMetrics.keyboardBottomInset(for: view.safeAreaInsets)
         let containerHeight = KeyboardMetrics.keyboardContainerHeight(bottomInset: bottomInset)
-        let totalHeight = KeyboardMetrics.totalKeyboardHeight(bottomInset: bottomInset)
+        let totalHeight = KeyboardMetrics.totalKeyboardHeight(
+            bottomInset: bottomInset,
+            showsUtilityRow: displayMode == .clipboard
+        )
 
         if keyboardRowsBottomConstraint?.constant != -bottomInset {
             keyboardRowsBottomConstraint?.constant = -bottomInset
@@ -387,6 +464,8 @@ final class KeyboardViewController: UIInputViewController {
             return makePrimaryActionKey(action: #selector(actionKeyTapped))
         case .cursor(let offset, let symbolName):
             return makeCursorMovementKey(symbolName: symbolName, offset: offset)
+        case .inlineSettings:
+            return makeInlineSettingsKey()
         }
     }
 
@@ -445,9 +524,11 @@ final class KeyboardViewController: UIInputViewController {
             key.setImage(symbolImage?.withRenderingMode(.alwaysTemplate), for: .normal)
             key.setImage(symbolImage?.withRenderingMode(.alwaysTemplate), for: .highlighted)
         }
+
         if let action {
             key.addTarget(self, action: action, for: .touchUpInside)
         }
+
         return key
     }
 
@@ -557,6 +638,34 @@ final class KeyboardViewController: UIInputViewController {
         return key
     }
 
+    private func makeInlineSettingsKey() -> UIButton {
+        let key = makeActionSymbolKey(symbolName: "gearshape", action: #selector(inlineSettingsTapped))
+        applyFunctionKeyBorder(to: key)
+
+        let normalConfiguration = UIImage.SymbolConfiguration(
+            pointSize: KeyboardMetrics.actionSymbolPointSize,
+            weight: .medium
+        )
+        let highlightedConfiguration = UIImage.SymbolConfiguration(
+            pointSize: KeyboardMetrics.actionSymbolPointSize,
+            weight: .semibold
+        )
+
+        if let pressableKey = key as? KeyboardPressableButton {
+            pressableKey.setSymbolConfigurations(
+                normal: normalConfiguration,
+                highlighted: highlightedConfiguration
+            )
+        } else {
+            key.setPreferredSymbolConfiguration(normalConfiguration, forImageIn: .normal)
+            key.setPreferredSymbolConfiguration(highlightedConfiguration, forImageIn: .highlighted)
+        }
+
+        key.accessibilityLabel = "Settings"
+        key.accessibilityHint = "Shows SweetKeyboard settings."
+        return key
+    }
+
     private func makeBaseKey(title: String?, role: KeyboardButtonRole) -> UIButton {
         let button = KeyboardPressableButton(type: .custom)
         if let title {
@@ -655,6 +764,11 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func copySelectedText() {
+        guard displayMode == .clipboard else {
+            feedbackPresenter.show("Clipboard mode is off")
+            return
+        }
+
         guard let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty else {
             feedbackPresenter.show("No selection")
             return
@@ -666,6 +780,11 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func pasteFromSystemClipboard() {
+        guard displayMode == .clipboard else {
+            feedbackPresenter.show("Clipboard mode is off")
+            return
+        }
+
         guard let pasteText = UIPasteboard.general.string, !pasteText.isEmpty else {
             feedbackPresenter.show("Nothing to paste")
             return
@@ -673,6 +792,29 @@ final class KeyboardViewController: UIInputViewController {
 
         textDocumentProxy.insertText(pasteText)
         feedbackPresenter.show("Pasted")
+    }
+
+    private func handleClipboardModeChanged(_ isEnabled: Bool) {
+        sharedSettingsStore.setClipboardModeEnabled(isEnabled)
+        reloadFeatureState(rebuildKeyboard: true)
+
+        if isEnabled {
+            feedbackPresenter.show("Clipboard toolbar turned on")
+        } else {
+            feedbackPresenter.show(
+                "Clipboard toolbar turned off. To re-enable it later, open the SweetKeyboard app."
+            )
+        }
+    }
+
+    private func handleInlineSettingsTapped() {
+        clearAccentState(rebuild: mode == .keyboard)
+        mode = (mode == .settings) ? .keyboard : .settings
+    }
+
+    private func returnToLetterKeyboard() {
+        keyboardLayoutMode = .letters
+        mode = .keyboard
     }
 
     @objc private func characterKeyTapped(_ sender: UIButton) {
@@ -794,6 +936,10 @@ final class KeyboardViewController: UIInputViewController {
         clearAccentState(rebuild: false)
         keyboardLayoutMode = .letters
         rebuildKeyboardRows()
+    }
+
+    @objc private func inlineSettingsTapped() {
+        handleInlineSettingsTapped()
     }
 
     private func moveCursor(by offset: Int) {

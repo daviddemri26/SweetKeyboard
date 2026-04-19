@@ -59,6 +59,33 @@ final class SharedStoreTests: XCTestCase {
         XCTAssertEqual(snapshots.last?.visibleLabel, "Label-5")
     }
 
+    func testSharedKeyboardSettingsStoreDefaultsClipboardModeToOff() {
+        let defaults = makeDefaults()
+        let store = SharedKeyboardSettingsStore(defaults: defaults)
+
+        XCTAssertFalse(store.load().clipboardModeEnabled)
+    }
+
+    func testSharedKeyboardSettingsStorePersistsClipboardMode() {
+        let defaults = makeDefaults()
+        let store = SharedKeyboardSettingsStore(defaults: defaults)
+
+        store.setClipboardModeEnabled(true)
+
+        XCTAssertTrue(store.load().clipboardModeEnabled)
+    }
+
+    func testKeyboardCapabilityStatusStoreConfirmsFullAccess() {
+        let defaults = makeDefaults()
+        let store = KeyboardCapabilityStatusStore(defaults: defaults)
+
+        XCTAssertNil(store.load().lastConfirmedFullAccessAt)
+
+        store.confirmFullAccessNow()
+
+        XCTAssertNotNil(store.load().lastConfirmedFullAccessAt)
+    }
+
     private func makeDefaults() -> UserDefaults {
         let suiteName = "tests.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!

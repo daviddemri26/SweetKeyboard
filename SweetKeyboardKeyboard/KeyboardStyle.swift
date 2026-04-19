@@ -49,10 +49,10 @@ enum KeyboardMetrics {
         bottomInset
     }
 
-    static func totalKeyboardHeight(bottomInset: CGFloat) -> CGFloat {
-        outerTopPadding +
-        utilityRowHeight +
-        utilityRowSpacing +
+    static func totalKeyboardHeight(bottomInset: CGFloat, showsUtilityRow: Bool) -> CGFloat {
+        let utilityHeight = showsUtilityRow ? (utilityRowHeight + utilityRowSpacing) : 0
+        return outerTopPadding +
+        utilityHeight +
         keyboardContainerHeight(bottomInset: bottomInset) +
         outerBottomPadding
     }
@@ -96,6 +96,16 @@ enum KeyboardTheme {
         }
     }
 
+    static var secondaryLabelColor: UIColor {
+        UIColor { traits in
+            if traits.userInterfaceStyle == .dark {
+                return UIColor(hex: 0xC7C7CC)
+            }
+
+            return UIColor(hex: 0x5F6673)
+        }
+    }
+
     static var functionKeyBorderColor: UIColor {
         UIColor { traits in
             if traits.userInterfaceStyle == .dark {
@@ -122,6 +132,56 @@ enum KeyboardTheme {
 
     static var panelItemBackground: UIColor {
         keyBackground
+    }
+
+    static var settingsScreenBackground: UIColor {
+        UIColor { traits in
+            if traits.userInterfaceStyle == .dark {
+                return UIColor(hex: 0x111214)
+            }
+
+            return UIColor(hex: 0xF2F2F7)
+        }
+    }
+
+    static var settingsGroupBackground: UIColor {
+        UIColor { traits in
+            if traits.userInterfaceStyle == .dark {
+                return UIColor(hex: 0x1C1C1E)
+            }
+
+            return UIColor(hex: 0xFFFFFF)
+        }
+    }
+
+    static var settingsSeparatorColor: UIColor {
+        UIColor { traits in
+            if traits.userInterfaceStyle == .dark {
+                return UIColor(hex: 0x38383A)
+            }
+
+            return UIColor(hex: 0xD1D1D6)
+        }
+    }
+
+    static var settingsAccentColor: UIColor {
+        UIColor { traits in
+            if traits.userInterfaceStyle == .dark {
+                return UIColor(hex: 0x5EA0FF)
+            }
+
+            return UIColor(hex: 0x007AFF)
+        }
+    }
+
+    static var settingsDonePressedBackground: UIColor {
+        UIColor { traits in
+            if traits.userInterfaceStyle == .dark {
+                return UIColor(hex: 0x2C2C2E, alpha: 0.9)
+            }
+
+            return UIColor(hex: 0xDCE9FF, alpha: 0.95)
+        }
     }
 
     static var feedbackBackground: UIColor {
@@ -168,7 +228,21 @@ enum KeyboardTheme {
                 return UIColor(hex: 0xC5C4C9)
             }
         case .utility:
-            return background(for: role, isActive: isActive)
+            return UIColor { traits in
+                if isActive {
+                    if traits.userInterfaceStyle == .dark {
+                        return UIColor(hex: 0x6B6B6F)
+                    }
+
+                    return UIColor(hex: 0xB9BDC6)
+                }
+
+                if traits.userInterfaceStyle == .dark {
+                    return UIColor(hex: 0x7F7F81)
+                }
+
+                return UIColor(hex: 0xC5C4C9)
+            }
         }
     }
 

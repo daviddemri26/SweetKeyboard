@@ -1,6 +1,6 @@
 # SweetKeyboard
 
-SweetKeyboard is an iOS custom third-party keyboard with a privacy-first clipboard workflow.
+SweetKeyboard is an iOS custom third-party keyboard with optional local clipboard tools.
 
 ## App Overview
 
@@ -15,8 +15,8 @@ It brings together the essentials people use all the time, with a few smart tool
 - direct arrow keys for quick cursor movement
 - all main special characters and symbols in one dedicated view
 - direct `@` access in email fields
-- one-tap copy and paste actions
-- instant clipboard history inside the keyboard
+- one-tap copy and paste actions when clipboard mode is enabled
+- instant clipboard history inside the keyboard when clipboard mode is enabled
 - a contextual action key that adapts to the current field
 
 ### Why It Feels Different
@@ -29,7 +29,7 @@ Instead of overloading the interface, it focuses on speed, clarity, and useful s
 - move the cursor instantly with dedicated arrow keys
 - access symbols and special characters in one place
 - type email addresses faster with direct `@` access when relevant
-- copy, paste, and reopen recent clipboard items without leaving the keyboard
+- optionally turn on copy, paste, and clipboard history without leaving the keyboard
 - keep a layout that stays simple, familiar, and efficient
 
 ### Privacy-First Promise
@@ -41,7 +41,7 @@ SweetKeyboard is intentionally local-first and privacy-first.
 - no keystroke upload
 - no network-based clipboard service
 
-Your clipboard history stays on-device through the shared App Group container used by the app and keyboard extension.
+Clipboard history stays on-device through the shared App Group container used by the app and keyboard extension.
 
 ### Core Product Pitch
 
@@ -49,7 +49,7 @@ SweetKeyboard gives you:
 
 - a faster daily typing experience
 - a simpler way to access numbers, symbols, and cursor controls
-- practical clipboard tools built directly into the keyboard
+- practical clipboard tools you can opt into when you want them
 - a modern experience aligned with the look and feel of iOS 26
 - the confidence of a local-only privacy model
 
@@ -72,7 +72,11 @@ Implemented in the current codebase:
 - English QWERTY keyboard
 - Extra top number row: `1 2 3 4 5 6 7 8 9 0`
 - Direct `@` access in email fields
+- Clipboard mode that can be turned on or off
+- Compact typing-only keyboard when clipboard mode is off
+- Taller keyboard with a top action bar when clipboard mode is on
 - Top action bar with `Copy`, `Paste`, `Clipboard`, and `Settings`
+- Inline `Settings` key in symbols mode when the top toolbar is hidden
 - Globe key for keyboard switching
 - Shift, backspace, space, and a contextual bottom-right action key
 - Local clipboard history with:
@@ -144,8 +148,10 @@ SweetKeyboard is intentionally local-only.
 - No cloud sync
 - No keystroke upload
 - Clipboard history stored locally in an App Group shared container
+- Basic typing available without Full Access
+- Clipboard mode available only when Full Access is enabled
 
-The keyboard requests Full Access because the app needs:
+The keyboard requests Full Access only for optional clipboard features that need:
 
 - `UIPasteboard` integration
 - shared storage between the app and the keyboard extension
@@ -209,8 +215,8 @@ Custom keyboard extensions must be tested on a real iPhone for meaningful valida
 2. Open the app once.
 3. Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`.
 4. Add `SweetKeyboard`.
-5. Open the `SweetKeyboard` keyboard entry and enable `Allow Full Access`.
-6. Open any supported text field and switch to the keyboard using the Globe key.
+5. Open any supported text field and switch to the keyboard using the Globe key.
+6. If you want clipboard tools, open the `SweetKeyboard` keyboard entry and enable `Allow Full Access`.
 
 ## Simulator Build
 
@@ -233,6 +239,7 @@ xcodebuild -project SweetKeyboard.xcodeproj -scheme SweetKeyboard -configuration
 - Third-party keyboards are unavailable in secure text fields
 - Some apps or input contexts may block custom keyboards
 - Copy only works when selected text is exposed to the keyboard extension through `textDocumentProxy`
+- Clipboard mode requires Full Access; without it, SweetKeyboard stays in typing-only mode
 - System-wide passive clipboard capture is intentionally out of scope
 - Host apps may not expose enough text-input traits for exact action-key matching; SweetKeyboard falls back to the default return icon in those cases
 

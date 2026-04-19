@@ -19,6 +19,7 @@ enum KeyboardKeyKind: Equatable {
     case letterToggle
     case primaryAction
     case cursor(offset: Int, symbolName: String)
+    case inlineSettings
 }
 
 struct KeyboardKeyWidth: Equatable {
@@ -77,19 +78,33 @@ struct KeyboardLayoutEngine {
         ]
     }
 
-    var symbolRows: [KeyboardRowSpec] {
+    func symbolRows(showInlineSettingsKey: Bool) -> [KeyboardRowSpec] {
         var rows = symbolCharacterRows.map(makeCharacterRow(_:))
 
-        rows.append(
-            KeyboardRowSpec(
-                items: symbolPunctuationRow.map { KeyboardKeySpec(kind: .character($0), width: .normal) } +
-                [
-                    KeyboardKeySpec(kind: .cursor(offset: -1, symbolName: "arrowtriangle.left.fill"), width: .units(1.725)),
-                    KeyboardKeySpec(kind: .cursor(offset: 1, symbolName: "arrowtriangle.right.fill"), width: .units(1.725)),
-                    KeyboardKeySpec(kind: .backspace, width: .units(1.5))
-                ]
-            )
-        )
+        let punctuationItems: [KeyboardKeySpec]
+        if showInlineSettingsKey {
+            punctuationItems = [
+                KeyboardKeySpec(kind: .inlineSettings, width: .units(1.35)),
+                KeyboardKeySpec(kind: .character("."), width: .normal),
+                KeyboardKeySpec(kind: .character(","), width: .normal),
+                KeyboardKeySpec(kind: .character("?"), width: .normal),
+                KeyboardKeySpec(kind: .character("!"), width: .normal),
+                KeyboardKeySpec(kind: .character("'"), width: .normal),
+                KeyboardKeySpec(kind: .cursor(offset: -1, symbolName: "arrowtriangle.left.fill"), width: .units(1.725)),
+                KeyboardKeySpec(kind: .cursor(offset: 1, symbolName: "arrowtriangle.right.fill"), width: .units(1.725)),
+                KeyboardKeySpec(kind: .backspace, width: .units(1.5))
+            ]
+        } else {
+            punctuationItems = symbolPunctuationRow.map {
+                KeyboardKeySpec(kind: .character($0), width: .normal)
+            } + [
+                KeyboardKeySpec(kind: .cursor(offset: -1, symbolName: "arrowtriangle.left.fill"), width: .units(1.725)),
+                KeyboardKeySpec(kind: .cursor(offset: 1, symbolName: "arrowtriangle.right.fill"), width: .units(1.725)),
+                KeyboardKeySpec(kind: .backspace, width: .units(1.5))
+            ]
+        }
+
+        rows.append(KeyboardRowSpec(items: punctuationItems))
 
         rows.append(
             KeyboardRowSpec(
