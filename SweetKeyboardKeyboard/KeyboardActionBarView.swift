@@ -154,7 +154,7 @@ final class KeyboardActionBarView: UIView {
             normal: KeyboardTheme.keyLabelColor,
             highlighted: KeyboardTheme.keyLabelColor
         )
-        button.setImage(UIImage(systemName: symbolName), for: .normal)
+        button.setSymbolImage(UIImage(systemName: symbolName))
         button.widthAnchor.constraint(equalToConstant: KeyboardMetrics.iconButtonWidth).isActive = true
         button.heightAnchor.constraint(equalToConstant: KeyboardMetrics.utilityRowHeight).isActive = true
         return button

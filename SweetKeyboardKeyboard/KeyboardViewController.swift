@@ -121,7 +121,6 @@ final class KeyboardViewController: UIInputViewController {
 
     override func selectionDidChange(_ textInput: UITextInput?) {
         super.selectionDidChange(textInput)
-        refreshActionKey()
     }
 
     private func registerTraitObservers() {
