@@ -80,10 +80,11 @@ final class KeyboardSettingsPanelView: UIView {
         var doneConfiguration = UIButton.Configuration.plain()
         doneConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12)
         doneButton.configuration = doneConfiguration
+        let doneButtonFont = UIFont.systemFont(ofSize: 17, weight: .semibold)
         doneButton.setTitle("Done", for: .normal)
         doneButton.setTitleFonts(
-            normal: UIFont.systemFont(ofSize: 17, weight: .semibold),
-            highlighted: UIFont.systemFont(ofSize: 17, weight: .semibold)
+            normal: doneButtonFont,
+            highlighted: doneButtonFont
         )
         doneButton.setForegroundColors(
             normal: KeyboardTheme.settingsAccentColor,
