@@ -23,6 +23,7 @@ struct ContentView: View {
             List {
                 keyboardSetupSection
                 keyboardFeaturesSection
+                keyboardFeedbackSection
                 privacySection
                 clipboardDebugSection
                 actionKeyDebugSection
@@ -87,6 +88,24 @@ struct ContentView: View {
         Section("Privacy") {
             Text("Clipboard data stays on this device. No network, no analytics, no cloud sync.")
             Text("SweetKeyboard uses Full Access only for local clipboard and shared settings features.")
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var keyboardFeedbackSection: some View {
+        Section("Keyboard Feedback") {
+            Toggle(
+                "Key haptics",
+                isOn: Binding(
+                    get: { sharedSettings.keyHapticsEnabled },
+                    set: { newValue in
+                        sharedSettings.keyHapticsEnabled = newValue
+                        sharedSettingsStore.setKeyHapticsEnabled(newValue)
+                    }
+                )
+            )
+
+            Text("Adds a light haptic on letters, function keys, and clipboard actions when the device supports it.")
                 .foregroundStyle(.secondary)
         }
     }

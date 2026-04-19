@@ -2,6 +2,23 @@ import Foundation
 
 struct SharedKeyboardSettings: Codable, Equatable {
     var clipboardModeEnabled: Bool = false
+    var keyHapticsEnabled: Bool = false
+
+    private enum CodingKeys: String, CodingKey {
+        case clipboardModeEnabled
+        case keyHapticsEnabled
+    }
+
+    init(clipboardModeEnabled: Bool = false, keyHapticsEnabled: Bool = false) {
+        self.clipboardModeEnabled = clipboardModeEnabled
+        self.keyHapticsEnabled = keyHapticsEnabled
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        clipboardModeEnabled = try container.decodeIfPresent(Bool.self, forKey: .clipboardModeEnabled) ?? false
+        keyHapticsEnabled = try container.decodeIfPresent(Bool.self, forKey: .keyHapticsEnabled) ?? false
+    }
 }
 
 final class SharedKeyboardSettingsStore {
@@ -30,6 +47,12 @@ final class SharedKeyboardSettingsStore {
     func setClipboardModeEnabled(_ isEnabled: Bool) {
         var settings = load()
         settings.clipboardModeEnabled = isEnabled
+        save(settings)
+    }
+
+    func setKeyHapticsEnabled(_ isEnabled: Bool) {
+        var settings = load()
+        settings.keyHapticsEnabled = isEnabled
         save(settings)
     }
 

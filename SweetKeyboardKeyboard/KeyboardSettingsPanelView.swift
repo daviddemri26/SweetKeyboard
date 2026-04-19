@@ -2,6 +2,7 @@ import UIKit
 
 final class KeyboardSettingsPanelView: UIView {
     var onClipboardModeChanged: ((Bool) -> Void)?
+    var onHapticsEnabledChanged: ((Bool) -> Void)?
     var onDone: (() -> Void)?
 
     private let scrollView = UIScrollView()
@@ -22,6 +23,15 @@ final class KeyboardSettingsPanelView: UIView {
     private let helperLabel = UILabel()
     private var toggleSeparatorHeightConstraint: NSLayoutConstraint?
 
+    private let feedbackSectionLabel = UILabel()
+    private let feedbackCard = UIView()
+    private let feedbackCardStack = UIStackView()
+    private let hapticsToggleRow = UIStackView()
+    private let hapticsTitleLabel = UILabel()
+    private let hapticsSwitch = UISwitch()
+    private let hapticsHelperRow = UIView()
+    private let hapticsHelperLabel = UILabel()
+
     private let privacySectionLabel = UILabel()
     private let privacyCard = UIView()
     private let privacyLabel = UILabel()
@@ -39,11 +49,13 @@ final class KeyboardSettingsPanelView: UIView {
 
     func render(
         isClipboardModeEnabled: Bool,
+        isHapticsEnabled: Bool,
         showsClipboardToggle: Bool,
         isClipboardToggleEnabled: Bool,
         helperText: String?
     ) {
         clipboardSwitch.isOn = isClipboardModeEnabled
+        hapticsSwitch.isOn = isHapticsEnabled
         toggleRow.isHidden = !showsClipboardToggle
         toggleSeparator.isHidden = !showsClipboardToggle
         clipboardSwitch.isEnabled = isClipboardToggleEnabled
@@ -51,6 +63,7 @@ final class KeyboardSettingsPanelView: UIView {
         toggleTitleLabel.textColor = isClipboardToggleEnabled
             ? KeyboardTheme.keyLabelColor
             : KeyboardTheme.secondaryLabelColor
+        hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
 
         helperLabel.text = helperText
         helperRow.isHidden = helperText?.isEmpty ?? true
@@ -157,6 +170,56 @@ final class KeyboardSettingsPanelView: UIView {
             toggleSeparatorHeightConstraint!
         ])
 
+        feedbackSectionLabel.font = .preferredFont(forTextStyle: .caption1)
+        feedbackSectionLabel.text = "FEEDBACK"
+
+        hapticsTitleLabel.font = .preferredFont(forTextStyle: .body)
+        hapticsTitleLabel.numberOfLines = 0
+        hapticsTitleLabel.text = "Key haptics"
+
+        hapticsSwitch.addTarget(self, action: #selector(hapticsSwitchChanged), for: .valueChanged)
+
+        hapticsToggleRow.axis = .horizontal
+        hapticsToggleRow.alignment = .center
+        hapticsToggleRow.spacing = 12
+        hapticsToggleRow.isLayoutMarginsRelativeArrangement = true
+        hapticsToggleRow.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16)
+        hapticsToggleRow.addArrangedSubview(hapticsTitleLabel)
+        hapticsToggleRow.addArrangedSubview(UIView())
+        hapticsToggleRow.addArrangedSubview(hapticsSwitch)
+
+        hapticsHelperLabel.font = .preferredFont(forTextStyle: .footnote)
+        hapticsHelperLabel.numberOfLines = 0
+        hapticsHelperLabel.text = "Adds a light tap on letters, function keys, and clipboard actions when supported by the device."
+
+        hapticsHelperRow.addSubview(hapticsHelperLabel)
+        hapticsHelperLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            hapticsHelperLabel.topAnchor.constraint(equalTo: hapticsHelperRow.topAnchor, constant: 12),
+            hapticsHelperLabel.leadingAnchor.constraint(equalTo: hapticsHelperRow.leadingAnchor, constant: 16),
+            hapticsHelperLabel.trailingAnchor.constraint(equalTo: hapticsHelperRow.trailingAnchor, constant: -16),
+            hapticsHelperLabel.bottomAnchor.constraint(equalTo: hapticsHelperRow.bottomAnchor, constant: -12)
+        ])
+
+        feedbackCard.layer.cornerRadius = 14
+        feedbackCard.layer.cornerCurve = .continuous
+        feedbackCard.clipsToBounds = true
+
+        feedbackCardStack.axis = .vertical
+        feedbackCardStack.alignment = .fill
+        feedbackCardStack.spacing = 0
+        feedbackCardStack.addArrangedSubview(hapticsToggleRow)
+        feedbackCardStack.addArrangedSubview(hapticsHelperRow)
+
+        feedbackCard.addSubview(feedbackCardStack)
+        feedbackCardStack.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            feedbackCardStack.topAnchor.constraint(equalTo: feedbackCard.topAnchor),
+            feedbackCardStack.leadingAnchor.constraint(equalTo: feedbackCard.leadingAnchor),
+            feedbackCardStack.trailingAnchor.constraint(equalTo: feedbackCard.trailingAnchor),
+            feedbackCardStack.bottomAnchor.constraint(equalTo: feedbackCard.bottomAnchor)
+        ])
+
         privacySectionLabel.font = .preferredFont(forTextStyle: .caption1)
         privacySectionLabel.text = "PRIVACY"
 
@@ -178,6 +241,8 @@ final class KeyboardSettingsPanelView: UIView {
 
         contentStack.addArrangedSubview(featuresSectionLabel)
         contentStack.addArrangedSubview(featuresCard)
+        contentStack.addArrangedSubview(feedbackSectionLabel)
+        contentStack.addArrangedSubview(feedbackCard)
         contentStack.addArrangedSubview(privacySectionLabel)
         contentStack.addArrangedSubview(privacyCard)
 
@@ -215,13 +280,16 @@ final class KeyboardSettingsPanelView: UIView {
         titleLabel.textColor = KeyboardTheme.keyLabelColor
 
         featuresSectionLabel.textColor = KeyboardTheme.secondaryLabelColor
+        feedbackSectionLabel.textColor = KeyboardTheme.secondaryLabelColor
         privacySectionLabel.textColor = KeyboardTheme.secondaryLabelColor
 
         featuresCard.backgroundColor = KeyboardTheme.settingsGroupBackground
+        feedbackCard.backgroundColor = KeyboardTheme.settingsGroupBackground
         privacyCard.backgroundColor = KeyboardTheme.settingsGroupBackground
         toggleSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
 
         helperLabel.textColor = KeyboardTheme.secondaryLabelColor
+        hapticsHelperLabel.textColor = KeyboardTheme.secondaryLabelColor
         privacyLabel.textColor = KeyboardTheme.secondaryLabelColor
     }
 
@@ -232,6 +300,10 @@ final class KeyboardSettingsPanelView: UIView {
 
     @objc private func clipboardSwitchChanged() {
         onClipboardModeChanged?(clipboardSwitch.isOn)
+    }
+
+    @objc private func hapticsSwitchChanged() {
+        onHapticsEnabledChanged?(hapticsSwitch.isOn)
     }
 
     @objc private func doneTapped() {

@@ -40,6 +40,7 @@ final class KeyboardViewController: UIInputViewController {
     private var isEmailFieldActive = false
     private var accentState: AccentReplacementState?
     private var displayMode: DisplayMode = .basic
+    private var sharedSettings = SharedKeyboardSettings()
     private var mode: Mode = .keyboard {
         didSet {
             refreshModeUI()
@@ -54,6 +55,7 @@ final class KeyboardViewController: UIInputViewController {
     private let settingsPanel = KeyboardSettingsPanelView()
     private let feedbackLabel = UILabel()
     private lazy var feedbackPresenter = KeyboardFeedbackPresenter(label: feedbackLabel)
+    private let hapticFeedbackController = KeyboardHapticFeedbackController()
     private lazy var backspaceRepeatController = KeyboardKeyRepeatController(
         delay: keyRepeatDelay,
         repeatInterval: keyRepeatInterval
@@ -71,7 +73,7 @@ final class KeyboardViewController: UIInputViewController {
     private var keyboardRowsBottomConstraint: NSLayoutConstraint?
 
     private var desiredClipboardModeEnabled: Bool {
-        sharedSettingsStore.load().clipboardModeEnabled
+        sharedSettings.clipboardModeEnabled
     }
 
     private var effectiveDisplayMode: DisplayMode {
@@ -224,6 +226,7 @@ final class KeyboardViewController: UIInputViewController {
     private func bindActions() {
         actionBar.onAction = { [weak self] action in
             guard let self else { return }
+            self.triggerKeyPressHaptic()
 
             switch action {
             case .copy:
@@ -238,6 +241,7 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         clipboardPanel.onSelectText = { [weak self] text in
+            self?.triggerKeyPressHaptic()
             self?.textDocumentProxy.insertText(text)
             self?.feedbackPresenter.show("Inserted")
             self?.mode = .keyboard
@@ -247,12 +251,20 @@ final class KeyboardViewController: UIInputViewController {
             self?.handleClipboardModeChanged(isEnabled)
         }
 
+        settingsPanel.onHapticsEnabledChanged = { [weak self] isEnabled in
+            self?.handleKeyHapticsChanged(isEnabled)
+        }
+
         settingsPanel.onDone = { [weak self] in
+            self?.triggerKeyPressHaptic()
             self?.returnToLetterKeyboard()
         }
     }
 
     private func reloadFeatureState(rebuildKeyboard: Bool) {
+        sharedSettings = sharedSettingsStore.load()
+        hapticFeedbackController.setEnabled(sharedSettings.keyHapticsEnabled)
+
         if hasFullAccess {
             capabilityStatusStore.confirmFullAccessNow()
         }
@@ -290,6 +302,7 @@ final class KeyboardViewController: UIInputViewController {
 
         settingsPanel.render(
             isClipboardModeEnabled: desiredClipboardModeEnabled,
+            isHapticsEnabled: sharedSettings.keyHapticsEnabled,
             showsClipboardToggle: showsClipboardToggle,
             isClipboardToggleEnabled: isClipboardToggleEnabled,
             helperText: helperText
@@ -794,6 +807,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func handleClipboardModeChanged(_ isEnabled: Bool) {
+        sharedSettings.clipboardModeEnabled = isEnabled
         sharedSettingsStore.setClipboardModeEnabled(isEnabled)
         reloadFeatureState(rebuildKeyboard: true)
 
@@ -806,6 +820,18 @@ final class KeyboardViewController: UIInputViewController {
         }
     }
 
+    private func handleKeyHapticsChanged(_ isEnabled: Bool) {
+        sharedSettings.keyHapticsEnabled = isEnabled
+        sharedSettingsStore.setKeyHapticsEnabled(isEnabled)
+        hapticFeedbackController.setEnabled(isEnabled)
+
+        if isEnabled {
+            feedbackPresenter.show("Key haptics turned on")
+        } else {
+            feedbackPresenter.show("Key haptics turned off")
+        }
+    }
+
     private func handleInlineSettingsTapped() {
         clearAccentState(rebuild: mode == .keyboard)
         mode = (mode == .settings) ? .keyboard : .settings
@@ -814,6 +840,10 @@ final class KeyboardViewController: UIInputViewController {
     private func returnToLetterKeyboard() {
         keyboardLayoutMode = .letters
         mode = .keyboard
+    }
+
+    private func triggerKeyPressHaptic() {
+        hapticFeedbackController.triggerKeyPress()
     }
 
     @objc private func characterKeyTapped(_ sender: UIButton) {
@@ -855,6 +885,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     @objc private func shiftTapped() {
+        triggerKeyPressHaptic()
         clearAccentState(rebuild: false)
         let now = Date()
 
@@ -876,20 +907,24 @@ final class KeyboardViewController: UIInputViewController {
         rebuildKeyboardRows()
     }
 
-    @objc private func backspaceTapped() {
+    private func backspaceTapped(triggerHaptic: Bool) {
+        if triggerHaptic {
+            triggerKeyPressHaptic()
+        }
+
         clearAccentState(rebuild: true)
         textDocumentProxy.deleteBackward()
     }
 
     @objc private func backspaceTouchDown(_ sender: UIButton) {
         backspaceRepeatController.begin(on: sender) { [weak self] in
-            self?.backspaceTapped()
+            self?.backspaceTapped(triggerHaptic: true)
         }
     }
 
     @objc private func backspaceKeyTapped(_ sender: UIButton) {
         backspaceRepeatController.completeTap(on: sender) { [weak self] in
-            self?.backspaceTapped()
+            self?.backspaceTapped(triggerHaptic: true)
         }
     }
 
@@ -900,12 +935,14 @@ final class KeyboardViewController: UIInputViewController {
 
     @objc private func cursorMovementTouchDown(_ sender: UIButton) {
         cursorRepeatController.begin(on: sender, identifier: sender.tag) { [weak self, offset = sender.tag] in
+            self?.triggerKeyPressHaptic()
             self?.moveCursor(by: offset)
         }
     }
 
     @objc private func cursorMovementKeyTapped(_ sender: UIButton) {
         cursorRepeatController.completeTap(on: sender, identifier: sender.tag) { [weak self, offset = sender.tag] in
+            self?.triggerKeyPressHaptic()
             self?.moveCursor(by: offset)
         }
     }
@@ -916,28 +953,33 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     @objc private func spaceTapped() {
+        triggerKeyPressHaptic()
         clearAccentState(rebuild: true)
         textDocumentProxy.insertText(" ")
     }
 
     @objc private func actionKeyTapped() {
+        triggerKeyPressHaptic()
         clearAccentState(rebuild: true)
         textDocumentProxy.insertText("\n")
     }
 
     @objc private func symbolKeyboardTapped() {
+        triggerKeyPressHaptic()
         clearAccentState(rebuild: false)
         keyboardLayoutMode = .symbols
         rebuildKeyboardRows()
     }
 
     @objc private func letterKeyboardTapped() {
+        triggerKeyPressHaptic()
         clearAccentState(rebuild: false)
         keyboardLayoutMode = .letters
         rebuildKeyboardRows()
     }
 
     @objc private func inlineSettingsTapped() {
+        triggerKeyPressHaptic()
         handleInlineSettingsTapped()
     }
 
@@ -968,6 +1010,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func insertCharacter(_ title: String) {
+        triggerKeyPressHaptic()
         textDocumentProxy.insertText(title)
 
         let shouldDisableShift = shiftState == .enabled

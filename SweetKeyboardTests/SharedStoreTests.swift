@@ -64,6 +64,7 @@ final class SharedStoreTests: XCTestCase {
         let store = SharedKeyboardSettingsStore(defaults: defaults)
 
         XCTAssertFalse(store.load().clipboardModeEnabled)
+        XCTAssertFalse(store.load().keyHapticsEnabled)
     }
 
     func testSharedKeyboardSettingsStorePersistsClipboardMode() {
@@ -73,6 +74,30 @@ final class SharedStoreTests: XCTestCase {
         store.setClipboardModeEnabled(true)
 
         XCTAssertTrue(store.load().clipboardModeEnabled)
+    }
+
+    func testSharedKeyboardSettingsStorePersistsKeyHapticsMode() {
+        let defaults = makeDefaults()
+        let store = SharedKeyboardSettingsStore(defaults: defaults)
+
+        store.setKeyHapticsEnabled(true)
+
+        XCTAssertTrue(store.load().keyHapticsEnabled)
+    }
+
+    func testSharedKeyboardSettingsStoreLoadsLegacyPayloadWithoutKeyHaptics() throws {
+        let defaults = makeDefaults()
+        let legacySettings = """
+        {"clipboardModeEnabled":true}
+        """.data(using: .utf8)!
+        defaults.set(legacySettings, forKey: "keyboard.settings.v1")
+
+        let store = SharedKeyboardSettingsStore(defaults: defaults)
+
+        XCTAssertEqual(
+            store.load(),
+            SharedKeyboardSettings(clipboardModeEnabled: true, keyHapticsEnabled: false)
+        )
     }
 
     func testKeyboardCapabilityStatusStoreConfirmsFullAccess() {
