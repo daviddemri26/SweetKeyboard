@@ -144,7 +144,7 @@ final class KeyboardActionBarView: UIView {
         return button
     }
 
-    private static func makeIconButton(symbolName: String) -> UIButton {
+    private static func makeIconButton(symbolName: String) -> KeyboardPressableButton {
         let button = KeyboardPressableButton(type: .custom)
         button.setSymbolConfigurations(
             normal: UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.iconPointSize, weight: .medium),

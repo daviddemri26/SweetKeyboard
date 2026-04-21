@@ -6,6 +6,8 @@ Background du clavier plus comme le keyboard natif, avec la transparence
 
 touche emoji = nouvelle vue integree dans le clavier
 
-Ajouter un système de auto-capitalisation. 
-
 Ajouter un icône "cadenas ouvert" à droite. De la roue de réglage dans la vue des symboles. Si on veut continuer à écrire plusieurs symboles d'affilée, on clique dessus et l'icône devient un cadenas fermé. On garde en mémoire son état, même si on revient avec la touche ABC dans les lettres et qu'on revient plus tard dans Symbol. 
+
+Déplacez la touche point à droite de la barre d'espace et lui appliquez le comportement d'une lettre avec accent. Quand on reste appuyé dessus, ça affiche sur la rangée du dessus une liste de ponctuations. 
+'...' ! ? , : @ .
+Gardez le point à gauche de l'arrow base quand il est présent. 

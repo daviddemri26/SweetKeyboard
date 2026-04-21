@@ -5,28 +5,55 @@ import XCTest
 final class KeyboardPressSequenceCoordinatorTests: XCTestCase {
     func testSymbolsCharacterInsertionReturnsToLetterKeyboard() {
         XCTAssertTrue(
-            shouldReturnToLetterKeyboardAfterSymbolsAction(.characterInsertion)
+            shouldReturnToLetterKeyboardAfterSymbolsAction(
+                .characterInsertion,
+                isSymbolLockEnabled: false
+            )
+        )
+    }
+
+    func testSymbolsCharacterInsertionStaysOnSymbolsWhenLockEnabled() {
+        XCTAssertFalse(
+            shouldReturnToLetterKeyboardAfterSymbolsAction(
+                .characterInsertion,
+                isSymbolLockEnabled: true
+            )
         )
     }
 
     func testSymbolsSettingsReturnsToLetterKeyboard() {
         XCTAssertTrue(
-            shouldReturnToLetterKeyboardAfterSymbolsAction(.settings)
+            shouldReturnToLetterKeyboardAfterSymbolsAction(
+                .settings,
+                isSymbolLockEnabled: true
+            )
         )
     }
 
     func testSymbolsNonClosingActionsStayOnSymbolsKeyboard() {
         XCTAssertFalse(
-            shouldReturnToLetterKeyboardAfterSymbolsAction(.space)
+            shouldReturnToLetterKeyboardAfterSymbolsAction(
+                .space,
+                isSymbolLockEnabled: false
+            )
         )
         XCTAssertFalse(
-            shouldReturnToLetterKeyboardAfterSymbolsAction(.backspace)
+            shouldReturnToLetterKeyboardAfterSymbolsAction(
+                .backspace,
+                isSymbolLockEnabled: false
+            )
         )
         XCTAssertFalse(
-            shouldReturnToLetterKeyboardAfterSymbolsAction(.cursorMovement)
+            shouldReturnToLetterKeyboardAfterSymbolsAction(
+                .cursorMovement,
+                isSymbolLockEnabled: false
+            )
         )
         XCTAssertFalse(
-            shouldReturnToLetterKeyboardAfterSymbolsAction(.primaryAction)
+            shouldReturnToLetterKeyboardAfterSymbolsAction(
+                .primaryAction,
+                isSymbolLockEnabled: false
+            )
         )
     }
 

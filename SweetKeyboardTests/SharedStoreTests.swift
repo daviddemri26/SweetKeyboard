@@ -66,6 +66,7 @@ final class SharedStoreTests: XCTestCase {
         XCTAssertFalse(store.load().clipboardModeEnabled)
         XCTAssertFalse(store.load().keyHapticsEnabled)
         XCTAssertTrue(store.load().autoCapitalizationEnabled)
+        XCTAssertFalse(store.load().symbolLockEnabled)
     }
 
     func testSharedKeyboardSettingsStorePersistsClipboardMode() {
@@ -95,6 +96,15 @@ final class SharedStoreTests: XCTestCase {
         XCTAssertFalse(store.load().autoCapitalizationEnabled)
     }
 
+    func testSharedKeyboardSettingsStorePersistsSymbolLockMode() {
+        let defaults = makeDefaults()
+        let store = SharedKeyboardSettingsStore(defaults: defaults)
+
+        store.setSymbolLockEnabled(true)
+
+        XCTAssertTrue(store.load().symbolLockEnabled)
+    }
+
     func testSharedKeyboardSettingsStoreLoadsLegacyPayloadWithoutKeyHaptics() throws {
         let defaults = makeDefaults()
         let legacySettings = """
@@ -109,7 +119,28 @@ final class SharedStoreTests: XCTestCase {
             SharedKeyboardSettings(
                 clipboardModeEnabled: true,
                 keyHapticsEnabled: false,
-                autoCapitalizationEnabled: true
+                autoCapitalizationEnabled: true,
+                symbolLockEnabled: false
+            )
+        )
+    }
+
+    func testSharedKeyboardSettingsStoreLoadsPayloadWithoutSymbolLockField() throws {
+        let defaults = makeDefaults()
+        let payload = """
+        {"clipboardModeEnabled":true,"keyHapticsEnabled":true,"autoCapitalizationEnabled":false}
+        """.data(using: .utf8)!
+        defaults.set(payload, forKey: "keyboard.settings.v1")
+
+        let store = SharedKeyboardSettingsStore(defaults: defaults)
+
+        XCTAssertEqual(
+            store.load(),
+            SharedKeyboardSettings(
+                clipboardModeEnabled: true,
+                keyHapticsEnabled: true,
+                autoCapitalizationEnabled: false,
+                symbolLockEnabled: false
             )
         )
     }

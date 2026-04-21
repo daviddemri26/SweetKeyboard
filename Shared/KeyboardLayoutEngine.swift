@@ -20,6 +20,7 @@ enum KeyboardKeyKind: Equatable {
     case primaryAction
     case cursor(offset: Int, symbolName: String)
     case inlineSettings
+    case symbolLock(isEnabled: Bool)
 }
 
 struct KeyboardKeyWidth: Equatable {
@@ -78,29 +79,34 @@ struct KeyboardLayoutEngine {
         ]
     }
 
-    func symbolRows(showInlineSettingsKey: Bool) -> [KeyboardRowSpec] {
+    func symbolRows(showInlineSettingsKey: Bool, isSymbolLockEnabled: Bool) -> [KeyboardRowSpec] {
         var rows = symbolCharacterRows.map(makeCharacterRow(_:))
 
         let punctuationItems: [KeyboardKeySpec]
         if showInlineSettingsKey {
             punctuationItems = [
-                KeyboardKeySpec(kind: .inlineSettings, width: .units(1.35)),
-                KeyboardKeySpec(kind: .character("."), width: .normal),
-                KeyboardKeySpec(kind: .character(","), width: .normal),
-                KeyboardKeySpec(kind: .character("?"), width: .normal),
-                KeyboardKeySpec(kind: .character("!"), width: .normal),
-                KeyboardKeySpec(kind: .character("'"), width: .normal),
-                KeyboardKeySpec(kind: .cursor(offset: -1, symbolName: "arrowtriangle.left.fill"), width: .units(1.725)),
-                KeyboardKeySpec(kind: .cursor(offset: 1, symbolName: "arrowtriangle.right.fill"), width: .units(1.725)),
-                KeyboardKeySpec(kind: .backspace, width: .units(1.5))
+                KeyboardKeySpec(kind: .inlineSettings, width: .units(1.1)),
+                KeyboardKeySpec(kind: .symbolLock(isEnabled: isSymbolLockEnabled), width: .units(1.1)),
+                KeyboardKeySpec(kind: .character("."), width: .custom(share: 0.84, minimumUnits: 0.84)),
+                KeyboardKeySpec(kind: .character(","), width: .custom(share: 0.84, minimumUnits: 0.84)),
+                KeyboardKeySpec(kind: .character("?"), width: .custom(share: 0.84, minimumUnits: 0.84)),
+                KeyboardKeySpec(kind: .character("!"), width: .custom(share: 0.84, minimumUnits: 0.84)),
+                KeyboardKeySpec(kind: .character("'"), width: .custom(share: 0.84, minimumUnits: 0.84)),
+                KeyboardKeySpec(kind: .cursor(offset: -1, symbolName: "arrowtriangle.left.fill"), width: .units(1.45)),
+                KeyboardKeySpec(kind: .cursor(offset: 1, symbolName: "arrowtriangle.right.fill"), width: .units(1.45)),
+                KeyboardKeySpec(kind: .backspace, width: .units(1.3))
             ]
         } else {
-            punctuationItems = symbolPunctuationRow.map {
-                KeyboardKeySpec(kind: .character($0), width: .normal)
-            } + [
-                KeyboardKeySpec(kind: .cursor(offset: -1, symbolName: "arrowtriangle.left.fill"), width: .units(1.725)),
-                KeyboardKeySpec(kind: .cursor(offset: 1, symbolName: "arrowtriangle.right.fill"), width: .units(1.725)),
-                KeyboardKeySpec(kind: .backspace, width: .units(1.5))
+            punctuationItems = [
+                KeyboardKeySpec(kind: .symbolLock(isEnabled: isSymbolLockEnabled), width: .units(1.1)),
+                KeyboardKeySpec(kind: .character("."), width: .custom(share: 0.84, minimumUnits: 0.84)),
+                KeyboardKeySpec(kind: .character(","), width: .custom(share: 0.84, minimumUnits: 0.84)),
+                KeyboardKeySpec(kind: .character("?"), width: .custom(share: 0.84, minimumUnits: 0.84)),
+                KeyboardKeySpec(kind: .character("!"), width: .custom(share: 0.84, minimumUnits: 0.84)),
+                KeyboardKeySpec(kind: .character("'"), width: .custom(share: 0.84, minimumUnits: 0.84)),
+                KeyboardKeySpec(kind: .cursor(offset: -1, symbolName: "arrowtriangle.left.fill"), width: .units(1.45)),
+                KeyboardKeySpec(kind: .cursor(offset: 1, symbolName: "arrowtriangle.right.fill"), width: .units(1.45)),
+                KeyboardKeySpec(kind: .backspace, width: .units(1.3))
             ]
         }
 

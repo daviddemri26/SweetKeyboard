@@ -33,7 +33,11 @@ final class KeyboardViewController: UIInputViewController {
     private var shiftState: KeyboardShiftState = .off
     private var lastShiftTapAt: Date?
     private var suppressedAutoCapitalizationContext: AutoCapitalizationContext?
-    private var keyboardLayoutMode: KeyboardLayoutMode = .letters
+    private var keyboardLayoutMode: KeyboardLayoutMode = .letters {
+        didSet {
+            refreshModeUI()
+        }
+    }
     private var isEmailFieldActive = false
     private var accentState: AccentReplacementState?
     private var displayMode: DisplayMode = .basic
@@ -366,7 +370,10 @@ final class KeyboardViewController: UIInputViewController {
                 accentState: accentState
             )
         case .symbols:
-            rowSpecs = layoutEngine.symbolRows(showInlineSettingsKey: shouldShowInlineSettingsKey)
+            rowSpecs = layoutEngine.symbolRows(
+                showInlineSettingsKey: shouldShowInlineSettingsKey,
+                isSymbolLockEnabled: sharedSettings.symbolLockEnabled
+            )
         }
 
         for rowSpec in rowSpecs {
@@ -521,6 +528,8 @@ final class KeyboardViewController: UIInputViewController {
             return makeCursorMovementKey(symbolName: symbolName, offset: offset)
         case .inlineSettings:
             return makeInlineSettingsKey()
+        case .symbolLock(let isEnabled):
+            return makeSymbolLockKey(isEnabled: isEnabled)
         }
     }
 
@@ -729,6 +738,37 @@ final class KeyboardViewController: UIInputViewController {
 
         key.accessibilityLabel = "Settings"
         key.accessibilityHint = "Shows SweetKeyboard settings."
+        return key
+    }
+
+    private func makeSymbolLockKey(isEnabled: Bool) -> UIButton {
+        let key = makeActionSymbolKey(
+            symbolName: isEnabled ? "lock.fill" : "lock.open",
+            action: #selector(symbolLockTapped)
+        )
+        applyFunctionKeyBorder(to: key)
+
+        let normalConfiguration = UIImage.SymbolConfiguration(
+            pointSize: KeyboardMetrics.actionSymbolPointSize,
+            weight: .medium
+        )
+        let highlightedConfiguration = UIImage.SymbolConfiguration(
+            pointSize: KeyboardMetrics.actionSymbolPointSize,
+            weight: .semibold
+        )
+
+        if let pressableKey = key as? KeyboardPressableButton {
+            pressableKey.setSymbolConfigurations(
+                normal: normalConfiguration,
+                highlighted: highlightedConfiguration
+            )
+        } else {
+            key.setPreferredSymbolConfiguration(normalConfiguration, forImageIn: .normal)
+            key.setPreferredSymbolConfiguration(highlightedConfiguration, forImageIn: .highlighted)
+        }
+
+        key.accessibilityLabel = isEnabled ? "Keep symbols open is on" : "Keep symbols open"
+        key.accessibilityHint = "Keeps the symbols keyboard open so you can type multiple symbols."
         return key
     }
 
@@ -954,6 +994,13 @@ final class KeyboardViewController: UIInputViewController {
         }
     }
 
+    private func handleSymbolLockTapped() {
+        sharedSettings.symbolLockEnabled.toggle()
+        sharedSettingsStore.setSymbolLockEnabled(sharedSettings.symbolLockEnabled)
+        refreshModeUI()
+        requestKeyboardRebuild(allowsImmediateRebuild: true)
+    }
+
     private func handleInlineSettingsTapped() {
         cancelSequencedInteractions()
         clearAccentState(rebuild: mode == .keyboard)
@@ -975,7 +1022,10 @@ final class KeyboardViewController: UIInputViewController {
         _ = allowsImmediateRebuild
         guard
             keyboardLayoutMode == .symbols,
-            shouldReturnToLetterKeyboardAfterSymbolsAction(action)
+            shouldReturnToLetterKeyboardAfterSymbolsAction(
+                action,
+                isSymbolLockEnabled: sharedSettings.symbolLockEnabled
+            )
         else {
             return false
         }
@@ -1227,6 +1277,12 @@ final class KeyboardViewController: UIInputViewController {
         triggerKeyPressHaptic()
         handleSymbolsPostAction(.settings, allowsImmediateRebuild: true)
         handleInlineSettingsTapped()
+    }
+
+    @objc private func symbolLockTapped() {
+        cancelSequencedInteractions()
+        triggerKeyPressHaptic()
+        handleSymbolLockTapped()
     }
 
     private func moveCursor(by offset: Int) {

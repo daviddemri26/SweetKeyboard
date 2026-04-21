@@ -4,21 +4,25 @@ struct SharedKeyboardSettings: Codable, Equatable {
     var clipboardModeEnabled: Bool = false
     var keyHapticsEnabled: Bool = false
     var autoCapitalizationEnabled: Bool = true
+    var symbolLockEnabled: Bool = false
 
     private enum CodingKeys: String, CodingKey {
         case clipboardModeEnabled
         case keyHapticsEnabled
         case autoCapitalizationEnabled
+        case symbolLockEnabled
     }
 
     init(
         clipboardModeEnabled: Bool = false,
         keyHapticsEnabled: Bool = false,
-        autoCapitalizationEnabled: Bool = true
+        autoCapitalizationEnabled: Bool = true,
+        symbolLockEnabled: Bool = false
     ) {
         self.clipboardModeEnabled = clipboardModeEnabled
         self.keyHapticsEnabled = keyHapticsEnabled
         self.autoCapitalizationEnabled = autoCapitalizationEnabled
+        self.symbolLockEnabled = symbolLockEnabled
     }
 
     init(from decoder: Decoder) throws {
@@ -26,6 +30,7 @@ struct SharedKeyboardSettings: Codable, Equatable {
         clipboardModeEnabled = try container.decodeIfPresent(Bool.self, forKey: .clipboardModeEnabled) ?? false
         keyHapticsEnabled = try container.decodeIfPresent(Bool.self, forKey: .keyHapticsEnabled) ?? false
         autoCapitalizationEnabled = try container.decodeIfPresent(Bool.self, forKey: .autoCapitalizationEnabled) ?? true
+        symbolLockEnabled = try container.decodeIfPresent(Bool.self, forKey: .symbolLockEnabled) ?? false
     }
 }
 
@@ -67,6 +72,12 @@ final class SharedKeyboardSettingsStore {
     func setAutoCapitalizationEnabled(_ isEnabled: Bool) {
         var settings = load()
         settings.autoCapitalizationEnabled = isEnabled
+        save(settings)
+    }
+
+    func setSymbolLockEnabled(_ isEnabled: Bool) {
+        var settings = load()
+        settings.symbolLockEnabled = isEnabled
         save(settings)
     }
 

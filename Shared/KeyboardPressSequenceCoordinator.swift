@@ -28,9 +28,14 @@ enum SymbolKeyboardPostAction: Equatable {
     case primaryAction
 }
 
-func shouldReturnToLetterKeyboardAfterSymbolsAction(_ action: SymbolKeyboardPostAction) -> Bool {
+func shouldReturnToLetterKeyboardAfterSymbolsAction(
+    _ action: SymbolKeyboardPostAction,
+    isSymbolLockEnabled: Bool
+) -> Bool {
     switch action {
-    case .characterInsertion, .settings:
+    case .characterInsertion:
+        return !isSymbolLockEnabled
+    case .settings:
         return true
     case .space, .backspace, .cursorMovement, .primaryAction:
         return false
