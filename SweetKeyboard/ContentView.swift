@@ -14,7 +14,11 @@ final class AppScreenModel: ObservableObject {
     private let capabilityStatusStore = KeyboardCapabilityStatusStore()
 
     var canEnableClipboardMode: Bool {
-        capabilityStatus.lastConfirmedFullAccessAt != nil
+        capabilityStatus.isFullAccessEnabled
+    }
+
+    var displayedClipboardModeEnabled: Bool {
+        canEnableClipboardMode && sharedSettings.clipboardModeEnabled
     }
 
     var versionDescription: String? {
@@ -85,6 +89,7 @@ final class AppScreenModel: ObservableObject {
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = AppScreenModel()
+    private let refreshTimer = Timer.publish(every: 0.75, on: .main, in: .common).autoconnect()
 
     var body: some View {
         TabView {
@@ -119,6 +124,13 @@ struct ContentView: View {
         .tint(AppTheme.accent)
         .environmentObject(model)
         .task {
+            model.reload()
+        }
+        .onReceive(refreshTimer) { _ in
+            guard scenePhase == .active else {
+                return
+            }
+
             model.reload()
         }
         .onChange(of: scenePhase) { _, newPhase in
@@ -161,21 +173,23 @@ private struct HomeView: View {
                 title: "Turn on Full Access only if you want clipboard tools.",
                 message: "In Keyboards settings, tap on SweetKeyboard. Turn on Full Access and tap Allow.",
                 showsFilledNumber: false
-            )
+            ) {
+                CapabilityBadge(
+                    title: model.canEnableClipboardMode
+                        ? "Full Access is enabled"
+                        : "Full Access is not enabled",
+                    systemImage: model.canEnableClipboardMode
+                        ? "checkmark.circle.fill"
+                        : "exclamationmark.circle.fill",
+                    color: model.canEnableClipboardMode ? AppTheme.success : AppTheme.accent
+                )
+            }
 
             InstallStepCard(
                 number: "3",
                 title: "Open the keyboard",
                 message: "Tap the globe button in any text field, then switch to SweetKeyboard."
-            ) {
-                if !model.canEnableClipboardMode {
-                    CapabilityBadge(
-                        title: "Full Access Required for Clipboard",
-                        systemImage: "exclamationmark.circle.fill",
-                        color: AppTheme.accent
-                    )
-                }
-            }
+            )
 
             InstallStepCard(
                 number: "4",
@@ -202,13 +216,13 @@ private struct SettingsView: View {
                 title: "Clipboard toolbar",
                 message: "Shows Copy, Paste, Clipboard, and Settings above the keyboard.",
                 isOn: Binding(
-                    get: { model.sharedSettings.clipboardModeEnabled },
+                    get: { model.displayedClipboardModeEnabled },
                     set: model.setClipboardModeEnabled
                 ),
-                isDisabled: !model.canEnableClipboardMode && !model.sharedSettings.clipboardModeEnabled,
+                isDisabled: !model.canEnableClipboardMode,
                 footnote: model.canEnableClipboardMode
                     ? nil
-                    : "Tap Keyboard, SweetKeyboard, turn on Full Access, tap Allow, then reopen the keyboard."
+                    : "Turn on Full Access to use the clipboard toolbar."
             )
 
             SettingsToggleCard(

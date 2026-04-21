@@ -49,7 +49,7 @@ final class KeyboardSettingsPanelView: UIView {
         isHapticsEnabled: Bool,
         isClipboardToggleEnabled: Bool
     ) {
-        clipboardSwitch.isOn = isClipboardModeEnabled
+        clipboardSwitch.isOn = isClipboardToggleEnabled && isClipboardModeEnabled
         hapticsSwitch.isOn = isHapticsEnabled
         autoCapitalizationSwitch.isOn = isAutoCapitalizationEnabled
 
@@ -128,8 +128,8 @@ final class KeyboardSettingsPanelView: UIView {
         )
 
         clipboardInfoLabel.font = .preferredFont(forTextStyle: .footnote)
-        clipboardInfoLabel.numberOfLines = 3
-        clipboardInfoLabel.text = "Long-press the globe, tap Keyboard Settings, then tap Keyboard, SweetKeyboard, turn on Full Access, and tap Allow."
+        clipboardInfoLabel.numberOfLines = 2
+        clipboardInfoLabel.text = "Turn on Full Access to use the clipboard toolbar."
 
         clipboardInfoRow.addSubview(clipboardInfoLabel)
         clipboardInfoLabel.translatesAutoresizingMaskIntoConstraints = false

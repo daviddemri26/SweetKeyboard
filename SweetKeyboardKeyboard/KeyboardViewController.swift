@@ -291,9 +291,7 @@ final class KeyboardViewController: UIInputViewController {
         sharedSettings = sharedSettingsStore.load()
         hapticFeedbackController.setEnabled(sharedSettings.keyHapticsEnabled)
 
-        if hasFullAccess {
-            capabilityStatusStore.confirmFullAccessNow()
-        }
+        capabilityStatusStore.setFullAccessEnabled(hasFullAccess)
 
         let previousDisplayMode = displayMode
         displayMode = effectiveDisplayMode
