@@ -1322,14 +1322,15 @@ final class KeyboardViewController: UIInputViewController {
             .characterInsertion,
             allowsImmediateRebuild: allowsImmediateRebuild
         )
+        let didDisableManualShift = shiftState == .manualSingle
 
-        if shiftState == .manualSingle {
+        if didDisableManualShift {
             shiftState = .off
             lastShiftTapAt = nil
         }
 
         refreshInputContext(
-            forceKeyboardRebuild: didClearAccentState || didReturnToLetters,
+            forceKeyboardRebuild: didClearAccentState || didReturnToLetters || didDisableManualShift,
             allowsImmediateRebuild: allowsImmediateRebuild
         )
     }

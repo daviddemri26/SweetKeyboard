@@ -1,276 +1,281 @@
 # SweetKeyboard
 
-SweetKeyboard is an iOS custom third-party keyboard with optional local clipboard tools.
+SweetKeyboard is an iPhone custom keyboard focused on fast daily typing, practical utility actions, and a local-first privacy model.
 
-## App Overview
+It combines a familiar English QWERTY layout with a permanent number row, a symbols layer designed for quick access, contextual return-key behavior, optional clipboard tools, and several quality-of-life flows that reduce layout switching while typing.
 
-SweetKeyboard is a clean, fast, modern keyboard designed to make typing simpler, quicker, and more practical every day.
+For a full functional breakdown, see [docs/FEATURES.md](docs/FEATURES.md).
 
-Built in 2026, it is designed with modern iOS technologies and an interface language that feels at home on iOS 26.
+## Commercial README
 
-It brings together the essentials people use all the time, with a few smart tools that make a real difference:
+### Product Summary
 
-- familiar English QWERTY typing
-- a built-in top number row for faster input
-- direct arrow keys for quick cursor movement
-- all main special characters and symbols in one dedicated view
-- direct `@` access in email fields
-- one-tap copy and paste actions when clipboard mode is enabled
-- instant clipboard history inside the keyboard when clipboard mode is enabled
-- a contextual action key that adapts to the current field
+SweetKeyboard is built for people who want a keyboard that feels familiar immediately, but removes a lot of small frictions from everyday typing:
 
-### Why It Feels Different
+- numbers are always visible
+- common symbols are easy to reach
+- the keyboard reacts to the current field
+- clipboard tools are available when the user explicitly opts in
+- everything stays local on device
 
-SweetKeyboard is built around simple actions that save time immediately.
+The product direction is simple: keep the keyboard compact, fast, and trustworthy, while adding a few smart behaviors that save time right away.
 
-Instead of overloading the interface, it focuses on speed, clarity, and useful shortcuts:
+### Core Value Proposition
 
-- type numbers faster without switching views
-- move the cursor instantly with dedicated arrow keys
-- access symbols and special characters in one place
-- type email addresses faster with direct `@` access when relevant
-- optionally turn on copy, paste, and clipboard history without leaving the keyboard
-- keep a layout that stays simple, familiar, and efficient
+SweetKeyboard helps users type faster without forcing them to learn a new layout.
 
-### Privacy-First Promise
+- Permanent top number row for passwords, addresses, dates, and codes
+- Fast symbols access with a dedicated symbols layer
+- Contextual `@` shortcut in email fields
+- Contextual action key that adapts to host app return-key traits
+- Optional clipboard toolbar with copy, paste, and local history
+- Local-only privacy model with no analytics, no sync, and no remote text processing
 
-SweetKeyboard is intentionally local-first and privacy-first.
+### What Feels Different
 
-- no analytics
-- no cloud sync
-- no keystroke upload
-- no network-based clipboard service
+SweetKeyboard is intentionally optimized around practical typing flows rather than novelty.
 
-Clipboard history stays on-device through the shared App Group container used by the app and keyboard extension.
+- It reduces view switching by keeping numbers available at all times.
+- It supports quick one-shot symbol entry by returning to letters automatically after a symbol when symbol lock is off.
+- It can stay on symbols when symbol lock is enabled for repeated symbol entry.
+- It exposes accent and punctuation variants through long press on supported keys.
+- It follows host auto-capitalization intent in compatible fields instead of forcing a static Shift behavior.
 
-### Core Product Pitch
+### Main User-Facing Features
 
-SweetKeyboard gives you:
+- English QWERTY typing layout
+- Top number row: `1 2 3 4 5 6 7 8 9 0`
+- Bottom-row period key always available in letters mode
+- Direct `@` key in email fields
+- Dedicated symbols keyboard
+- Symbol lock toggle to keep the symbols layer open
+- Automatic return from symbols to letters after one symbol when symbol lock is off
+- Left and right cursor movement keys in symbols mode
+- Long-press accent variants for `a`, `c`, `e`, `i`, `n`, `o`, `u`, and `y`
+- Long-press period variants: `…`, `:`, `•`, `@`, `!`, `?`, `,`
+- Contextual action key for `return`, `search`, `go`, `next`, `send`, `done`, and related host return-key types
+- Optional clipboard toolbar with `Copy`, `Paste`, `Clipboard`, and `Settings`
+- Local clipboard history grid inside the keyboard
+- In-keyboard settings panel for clipboard mode, auto-capitalization, and key haptics
+- Optional key haptics
 
-- a faster daily typing experience
-- a simpler way to access numbers, symbols, and cursor controls
-- practical clipboard tools you can opt into when you want them
-- a modern experience aligned with the look and feel of iOS 26
-- the confidence of a local-only privacy model
+### Privacy Promise
 
-It is meant to feel simple, fast, useful, and trustworthy from the first launch.
+SweetKeyboard is intentionally local-first.
 
----
-
-## Technical Overview
-
-The project contains:
-
-- A containing iOS app used for onboarding, privacy explanation, and local clipboard debug tools
-- A custom keyboard extension built with `UIInputViewController`
-- A shared local clipboard history stored through an App Group
-
-## Current Feature Set
-
-Implemented in the current codebase:
-
-- English QWERTY keyboard
-- Extra top number row: `1 2 3 4 5 6 7 8 9 0`
-- Direct `@` access in email fields
-- Clipboard mode that can be turned on or off
-- Compact typing-only keyboard when clipboard mode is off
-- Taller keyboard with a top action bar when clipboard mode is on
-- Top action bar with `Copy`, `Paste`, `Clipboard`, and `Settings`
-- Inline `Settings` key in symbols mode when the top toolbar is hidden
-- Globe key for keyboard switching
-- Shift, backspace, space, and a contextual bottom-right action key
-- Local clipboard history with:
-  - newest first
-  - max 50 items
-  - max 500 characters per item
-  - consecutive duplicate prevention
-- Clipboard panel inside the keyboard UI
-- Containing app onboarding and local debug screen
-- Light and dark mode native system styling
-- Action-key trait logging through the shared App Group for host-app testing
-
-## Contextual Action Key
-
-The bottom-right key resolves from the active input object's traits exposed through `textDocumentProxy`.
-
-### Mapping Table
-
-| `UIReturnKeyType` | UI treatment | Notes |
-| --- | --- | --- |
-| `default` | icon | Uses SF Symbol `return.left` with `arrow.turn.down.left` fallback |
-| `search` | icon | Uses `magnifyingglass`; falls back to `Search` text if the symbol is unavailable |
-| `go` | text | `Go` |
-| `google` | text | `Google` |
-| `join` | text | `Join` |
-| `next` | text | `Next` |
-| `route` | text | `Route` |
-| `send` | text | `Send` |
-| `yahoo` | text | `Yahoo` |
-| `done` | text | `Done` |
-| `emergencyCall` | text | `Emergency` visible label, `Emergency Call` accessibility label |
-| `continue` | text | `Continue` |
-| unknown / unavailable | default icon | Conservative fallback |
-
-### Reliable Cases
-
-- Fields that surface `returnKeyType` through the keyboard extension proxy
-- Search bars and search fields that expose `returnKeyType.search`
-- Form flows that expose `returnKeyType.next`
-- Chat, compose, or submit flows that expose `send`, `done`, or `go`
-- Disablement when the host sets `enablesReturnKeyAutomatically` and the field is empty
-
-### Approximate Cases
-
-- Matching the exact native visual treatment of every host app: third-party keyboards can mirror the intent, not the private system artwork
-- Determining whether a generic `.default` field is truly multiline versus a single-line field with no special return key trait
-- Search inference when a host app exposes incomplete traits: SweetKeyboard intentionally falls back to the default return icon instead of guessing
-- Host-specific next/send/search behavior: the keyboard inserts `"\n"` through the proxy and relies on the host text control to interpret it as its configured return action
-
-### Not Possible From a Third-Party Keyboard Extension
-
-- Calling private host-app submit handlers directly
-- Reliably identifying the host app or field name from the extension
-- Accessing secure text fields, phone pad fields, or apps that reject custom keyboards
-- Reproducing private system-only keycap artwork or inline system controls exactly
-
-### Debugging
-
-- The containing app shows recent action-key snapshots recorded by the extension
-- Snapshots include resolved action type, display mode, `returnKeyType`, `keyboardType`, `textContentType`, and empty/non-empty state
-- Snapshots intentionally exclude typed text for privacy
-
-## Privacy Model
-
-SweetKeyboard is intentionally local-only.
-
-- No network calls
 - No analytics
 - No cloud sync
+- No network-based clipboard service
 - No keystroke upload
-- Clipboard history stored locally in an App Group shared container
-- Basic typing available without Full Access
-- Clipboard mode available only when Full Access is enabled
+- No remote inference or text processing
 
-The keyboard requests Full Access only for optional clipboard features that need:
+Clipboard history is stored locally in the shared App Group container used by the app and keyboard extension.
 
-- `UIPasteboard` integration
-- shared storage between the app and the keyboard extension
+### Full Access Positioning
 
-Open access is enabled for platform capability reasons only, not for remote data usage.
+Basic typing works without Full Access.
 
-## Project Structure
+Full Access is requested only for optional features that require system capability beyond basic text entry:
+
+- `UIPasteboard` integration for copy and paste helpers
+- shared settings and clipboard state between the containing app and the keyboard extension
+
+If Full Access is disabled, SweetKeyboard automatically falls back to typing-only mode.
+
+## Technical README
+
+### Architecture
+
+The project contains two Apple targets plus shared logic:
+
+- `SweetKeyboard`: containing iOS app for setup, feature toggles, privacy explanation, clipboard debug tools, and action-key diagnostics
+- `SweetKeyboardKeyboard`: custom keyboard extension built on `UIInputViewController`
+- `Shared/`: shared models, persistence, layout rules, and typing-state logic used by both targets
+
+### Current Technical Feature Set
+
+- Shared settings persisted through `UserDefaults(suiteName:)`
+- Shared clipboard history persisted in the App Group
+- Shared capability status flag to confirm Full Access availability
+- Keyboard layout generation through `KeyboardLayoutEngine`
+- Contextual action-key resolution through host `UITextInputTraits`
+- Auto-capitalization decision engine with explicit shift-state transitions
+- Overlapping-touch coordination through `KeyboardPressSequenceCoordinator`
+- Deferred keyboard rebuilds to avoid visual churn during fast interactions
+- Long-press accent replacement logic through `AccentCatalog`
+- Repeating backspace and repeating cursor controls
+- Optional haptic feedback controller
+- Action-key debug snapshot logging in the containing app
+
+### Recent Additions Reflected In This Documentation
+
+The main behaviors added in the latest implementation pass are:
+
+- contextual auto-capitalization with automatic, manual, and locked Shift states
+- sequenced key handling so overlapping touches commit in press order
+- automatic return from symbols to letters after symbol insertion
+- symbol lock persistence
+- long-press period variants on the bottom row
+
+These flows are covered by the current shared test suite and are documented in detail in [docs/FEATURES.md](docs/FEATURES.md).
+
+### Typing Behavior Notes
+
+#### Shift and Auto-Capitalization
+
+SweetKeyboard maintains explicit shift states:
+
+- `off`
+- `autoSingle`
+- `autoPersistent`
+- `manualSingle`
+- `manualLocked`
+
+Behavior highlights:
+
+- Empty sentence-style fields start with automatic Shift enabled
+- Sentence terminators followed by a space re-enable one-shot Shift
+- New lines re-enable one-shot Shift
+- `.words` capitalization enables one-shot Shift after whitespace boundaries
+- `.allCharacters` capitalization becomes persistent
+- Email, URL, and username contexts suppress auto-capitalization
+- Double-tapping Shift enables manual caps lock
+- Tapping Shift while auto-capitalization is active suppresses the current automatic state until the text context changes
+
+#### Symbols Flow
+
+- The symbols keyboard contains three symbol rows plus a punctuation/action row
+- The punctuation row includes symbol lock, cursor left, cursor right, and backspace
+- In compact mode, a gear key appears inline on the symbols row so settings stay reachable without the top toolbar
+- With symbol lock off, inserting a symbol returns to the letters keyboard
+- With symbol lock on, symbol insertion keeps the symbols keyboard open
+- Space, backspace, cursor movement, and the primary action key do not force a return to letters
+- Opening settings from symbols returns to the letters keyboard first
+
+#### Long Press Variants
+
+- Supported letters replace the row above them with accent variants after a hold
+- Uppercase variants are shown when Shift is active
+- Holding the bottom-row period key exposes quick punctuation shortcuts
+- Clearing the accent state restores the default letter layout
+
+### Clipboard Model
+
+- Clipboard mode is user-controlled through shared settings
+- The top action bar appears only when Full Access is available and clipboard mode is enabled
+- `Copy` uses `selectedText` when the host exposes it
+- `Paste` reads from `UIPasteboard.general`
+- Clipboard history is local only
+- History is stored newest first
+- History keeps a maximum of 50 items
+- History trims each item to 500 characters
+- Consecutive duplicate items are ignored
+- Tapping a history item inserts its text and returns to keyboard mode
+
+### Action Key
+
+The bottom-right action key resolves from `UIReturnKeyType` exposed through `textDocumentProxy`.
+
+Implemented mappings include:
+
+- icon-style `Return`
+- icon-style `Search`
+- icon-style `Go`
+- text labels for `Google`, `Join`, `Next`, `Route`, `Send`, `Yahoo`, `Done`, `Emergency`, and `Continue`
+
+The extension intentionally mirrors the host field intent conservatively and falls back to the default return action when traits are incomplete or unavailable.
+
+### Settings Surface
+
+Settings are available in two places:
+
+- in the containing app
+- inside the keyboard extension
+
+The current settings are:
+
+- Auto-capitalization
+- Clipboard toolbar
+- Key haptics
+
+Symbol lock is persisted as shared state and controlled directly from the symbols keyboard.
+
+### Privacy And Permissions
+
+- Basic typing does not require Full Access
+- Clipboard tools require Full Access
+- Shared settings between app and extension rely on the App Group
+- The current codebase is local-only and performs no network requests
+
+### Project Structure
 
 ```text
 SweetKeyboard/
-├── Shared/                         # Shared models + persistence for both targets
-├── SweetKeyboard/                  # Containing app
-│   ├── ContentView.swift           # Onboarding + clipboard debug UI
+├── Shared/
+│   ├── AccentCatalog.swift
+│   ├── AutoCapitalizationResolver.swift
+│   ├── ClipboardStore.swift
+│   ├── KeyboardCapabilityStatusStore.swift
+│   ├── KeyboardLayoutEngine.swift
+│   ├── KeyboardPressSequenceCoordinator.swift
+│   ├── KeyboardShiftStateMachine.swift
+│   └── SharedKeyboardSettingsStore.swift
+├── SweetKeyboard/
+│   ├── ContentView.swift
 │   ├── SweetKeyboardApp.swift
 │   └── SweetKeyboard.entitlements
-├── SweetKeyboardKeyboard/          # Keyboard extension
-│   ├── KeyboardViewController.swift
-│   ├── KeyboardLayoutEngine.swift
-│   ├── KeyboardActionBarView.swift
+├── SweetKeyboardKeyboard/
+│   ├── ActionKeyResolver.swift
 │   ├── ClipboardPanelView.swift
-│   ├── Info.plist
+│   ├── KeyboardActionBarView.swift
+│   ├── KeyboardActionKeyRenderer.swift
+│   ├── KeyboardFeedbackPresenter.swift
+│   ├── KeyboardHapticFeedbackController.swift
+│   ├── KeyboardKeyRepeatController.swift
+│   ├── KeyboardLongPressController.swift
+│   ├── KeyboardSettingsPanelView.swift
+│   ├── KeyboardStyle.swift
+│   ├── KeyboardViewController.swift
 │   └── SweetKeyboardKeyboard.entitlements
-├── SweetKeyboardTests/             # XCTest coverage for shared persistence rules
-└── SweetKeyboard.xcodeproj
+├── SweetKeyboardTests/
+└── docs/
 ```
 
-## Technical Notes
-
-- Language: `Swift`
-- Keyboard UI framework: `UIKit`
-- Containing app UI: `SwiftUI`
-- Extension base class: `UIInputViewController`
-- Shared storage: `UserDefaults(suiteName:)` with App Group
-- App Group identifier: `group.com.daviddemri.SweetKeyboard`
-- Bundle identifiers:
-  - App: `com.daviddemri.SweetKeyboard`
-  - Extension: `com.daviddemri.SweetKeyboard.keyboard`
-
-## Requirements
+### Requirements
 
 - Xcode 16+
-- iOS deployment target currently set by the project
-- An Apple Developer account configured for signing on a real device
-- The App Group capability enabled for both targets
+- A real iPhone for meaningful keyboard validation
+- Apple signing configured for both targets
+- Matching App Group capability on the app and extension
 
-## Setup
+### Setup
 
 1. Open `SweetKeyboard.xcodeproj` in Xcode.
-2. Confirm signing for both targets:
-   - `SweetKeyboard`
-   - `SweetKeyboardKeyboard`
-3. In `Signing & Capabilities`, ensure both targets use the same App Group:
-   - `group.com.daviddemri.SweetKeyboard`
-4. Build the `SweetKeyboard` scheme.
+2. Confirm signing for `SweetKeyboard` and `SweetKeyboardKeyboard`.
+3. Ensure both targets use the same App Group:
+   `group.com.daviddemri.SweetKeyboard`
+4. Build and run the `SweetKeyboard` app on a device.
+5. Add the keyboard from `Settings > General > Keyboard > Keyboards > Add New Keyboard`.
+6. Enable `Allow Full Access` only if you want clipboard tools.
 
-## Run On iPhone
+### Build And Test
 
-Custom keyboard extensions must be tested on a real iPhone for meaningful validation.
-
-1. Install the app on the device.
-2. Open the app once.
-3. Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`.
-4. Add `SweetKeyboard`.
-5. Open any supported text field and switch to the keyboard using the Globe key.
-6. If you want clipboard tools, open the `SweetKeyboard` keyboard entry and enable `Allow Full Access`.
-
-## Simulator Build
-
-The project currently builds from the command line with:
+Build for simulator:
 
 ```bash
 xcodebuild -project SweetKeyboard.xcodeproj -scheme SweetKeyboard -sdk iphonesimulator -configuration Debug build
 ```
 
-Simulator builds are useful for compile validation, but custom keyboard behavior should be validated on device.
-
-Shared persistence tests can be run from the command line with:
+Run the shared test target:
 
 ```bash
-xcodebuild -project SweetKeyboard.xcodeproj -scheme SweetKeyboard -configuration Debug test -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:SweetKeyboardTests/SharedStoreTests
+xcodebuild -project SweetKeyboard.xcodeproj -scheme SweetKeyboard -configuration Debug test -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:SweetKeyboardTests
 ```
 
-## Known Platform Limitations
+### Known Platform Limitations
 
 - Third-party keyboards are unavailable in secure text fields
-- Some apps or input contexts may block custom keyboards
-- Copy only works when selected text is exposed to the keyboard extension through `textDocumentProxy`
-- Clipboard mode requires Full Access; without it, SweetKeyboard stays in typing-only mode
-- System-wide passive clipboard capture is intentionally out of scope
-- Host apps may not expose enough text-input traits for exact action-key matching; SweetKeyboard falls back to the default return icon in those cases
-
-## Git Conventions
-
-This repository includes:
-
-- `.gitignore` for Xcode build artifacts and local user settings
-- `.gitattributes` for text normalization and binary asset handling
-- `.editorconfig` for consistent whitespace and line endings
-
-Recommended workflow:
-
-```bash
-git checkout -b feature/<short-name>
-git status
-git add .
-git commit -m "Add <focused change>"
-```
-
-Keep commits focused. Avoid committing:
-
-- `xcuserdata`
-- Derived data
-- local build outputs
-- machine-specific secrets or signing artifacts
-
-## Next Steps
-
-- Improve keyboard sizing and responsiveness across device classes
-- Add stronger empty/error feedback states
-- Polish clipboard panel UI
-- Add explicit onboarding copy for privacy and Full Access rationale
-- Validate the contextual action-key matrix on a real iPhone across Mail, Messages, Safari, Notes, and common form flows
+- Some apps or input contexts can reject custom keyboards entirely
+- `Copy` works only when the host exposes selected text through the document proxy
+- Return-key behavior ultimately depends on the host app consuming `"\n"` according to its configured traits
+- Trait exposure from host apps is incomplete in some contexts, so SweetKeyboard intentionally falls back instead of guessing
