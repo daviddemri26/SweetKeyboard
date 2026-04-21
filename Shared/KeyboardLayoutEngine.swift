@@ -158,16 +158,12 @@ struct KeyboardLayoutEngine {
     private func bottomLetterRow(isEmailField: Bool) -> KeyboardRowSpec {
         var items = [
             KeyboardKeySpec(kind: .symbolToggle, width: .units(1.25)),
-            KeyboardKeySpec(kind: .character(","), width: .units(0.56)),
-            KeyboardKeySpec(kind: .character("."), width: .units(0.56)),
-            KeyboardKeySpec(kind: .character("?"), width: .units(0.56))
+            KeyboardKeySpec(kind: .space, width: .units(isEmailField ? 2.5 : 3.2)),
+            KeyboardKeySpec(kind: .character("."), width: .units(0.56))
         ]
 
         if isEmailField {
-            items.append(KeyboardKeySpec(kind: .space, width: .units(2.5)))
             items.append(KeyboardKeySpec(kind: .character("@"), width: .units(0.7)))
-        } else {
-            items.append(KeyboardKeySpec(kind: .space, width: .units(3.2)))
         }
 
         items.append(KeyboardKeySpec(kind: .primaryAction, width: .units(1.6)))

@@ -27,6 +27,7 @@ enum AccentCatalog {
         "u": ["ù", "û", "ü", "ú", "ū"],
         "y": ["ÿ", "ý"]
     ]
+    private static let periodVariants = ["…", ":", "•", "@", "!", "?", ","]
 
     private static let topRowLetters = Set("qwertyuiop".map(String.init))
     private static let middleRowLetters = Set("asdfghjkl".map(String.init))
@@ -34,6 +35,16 @@ enum AccentCatalog {
 
     static func replacementState(for displayedLetter: String, isUppercase: Bool) -> AccentReplacementState? {
         let normalizedLetter = displayedLetter.lowercased()
+
+        if normalizedLetter == "." {
+            return AccentReplacementState(
+                baseLetter: ".",
+                sourceRow: .action,
+                replacedRow: .bottom,
+                variants: periodVariants,
+                isUppercase: false
+            )
+        }
 
         guard
             let variants = variantsByLetter[normalizedLetter],
