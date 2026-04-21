@@ -281,7 +281,7 @@ final class KeyboardViewController: UIInputViewController {
             self?.handleKeyHapticsChanged(isEnabled)
         }
 
-        settingsPanel.onDone = { [weak self] in
+        settingsPanel.onClose = { [weak self] in
             self?.triggerKeyPressHaptic()
             self?.returnToLetterKeyboard()
         }
@@ -310,25 +310,13 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func updateSettingsPanel() {
-        let helperText: String?
-        let showsClipboardToggle = true
         let isClipboardToggleEnabled = hasFullAccess
-
-        if hasFullAccess && desiredClipboardModeEnabled {
-            helperText = "Turn this off to use SweetKeyboard in typing-only mode. Clipboard data stays local on this device."
-        } else if hasFullAccess {
-            helperText = "Turn this on to show Copy, Paste, Clipboard, and Settings above the keyboard."
-        } else {
-            helperText = "Clipboard tools require Full Access. Enable Full Access in iPhone Settings, then reopen SweetKeyboard to turn this on."
-        }
 
         settingsPanel.render(
             isClipboardModeEnabled: desiredClipboardModeEnabled,
             isAutoCapitalizationEnabled: sharedSettings.autoCapitalizationEnabled,
             isHapticsEnabled: sharedSettings.keyHapticsEnabled,
-            showsClipboardToggle: showsClipboardToggle,
-            isClipboardToggleEnabled: isClipboardToggleEnabled,
-            helperText: helperText
+            isClipboardToggleEnabled: isClipboardToggleEnabled
         )
     }
 

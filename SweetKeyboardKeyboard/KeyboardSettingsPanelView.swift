@@ -4,45 +4,33 @@ final class KeyboardSettingsPanelView: UIView {
     var onClipboardModeChanged: ((Bool) -> Void)?
     var onAutoCapitalizationEnabledChanged: ((Bool) -> Void)?
     var onHapticsEnabledChanged: ((Bool) -> Void)?
-    var onDone: (() -> Void)?
+    var onClose: (() -> Void)?
 
-    private let scrollView = UIScrollView()
     private let contentStack = UIStackView()
+    private let chromeStack = UIStackView()
+    private let closeButton = KeyboardPressableButton(type: .custom)
 
-    private let headerStack = UIStackView()
-    private let titleLabel = UILabel()
-    private let doneButton = KeyboardPressableButton(type: .custom)
+    private let togglesCard = UIView()
+    private let togglesCardStack = UIStackView()
 
-    private let featuresSectionLabel = UILabel()
-    private let featuresCard = UIView()
-    private let featuresCardStack = UIStackView()
-    private let autoCapitalizationToggleRow = UIStackView()
-    private let autoCapitalizationTitleLabel = UILabel()
-    private let autoCapitalizationSwitch = UISwitch()
-    private let autoCapitalizationSeparator = UIView()
-    private let autoCapitalizationHelperRow = UIView()
-    private let autoCapitalizationHelperLabel = UILabel()
-    private let toggleRow = UIStackView()
-    private let toggleTitleLabel = UILabel()
+    private let clipboardRow = UIStackView()
+    private let clipboardTitleLabel = UILabel()
     private let clipboardSwitch = UISwitch()
-    private let toggleSeparator = UIView()
-    private let helperRow = UIView()
-    private let helperLabel = UILabel()
-    private var autoCapitalizationSeparatorHeightConstraint: NSLayoutConstraint?
-    private var toggleSeparatorHeightConstraint: NSLayoutConstraint?
+    private let clipboardInfoRow = UIView()
+    private let clipboardInfoLabel = UILabel()
+    private let clipboardSeparator = UIView()
 
-    private let feedbackSectionLabel = UILabel()
-    private let feedbackCard = UIView()
-    private let feedbackCardStack = UIStackView()
-    private let hapticsToggleRow = UIStackView()
+    private let hapticsRow = UIStackView()
     private let hapticsTitleLabel = UILabel()
     private let hapticsSwitch = UISwitch()
-    private let hapticsHelperRow = UIView()
-    private let hapticsHelperLabel = UILabel()
+    private let hapticsSeparator = UIView()
 
-    private let privacySectionLabel = UILabel()
-    private let privacyCard = UIView()
-    private let privacyLabel = UILabel()
+    private let autoCapitalizationRow = UIStackView()
+    private let autoCapitalizationTitleLabel = UILabel()
+    private let autoCapitalizationSwitch = UISwitch()
+
+    private var clipboardSeparatorHeightConstraint: NSLayoutConstraint?
+    private var hapticsSeparatorHeightConstraint: NSLayoutConstraint?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -59,25 +47,20 @@ final class KeyboardSettingsPanelView: UIView {
         isClipboardModeEnabled: Bool,
         isAutoCapitalizationEnabled: Bool,
         isHapticsEnabled: Bool,
-        showsClipboardToggle: Bool,
-        isClipboardToggleEnabled: Bool,
-        helperText: String?
+        isClipboardToggleEnabled: Bool
     ) {
-        autoCapitalizationSwitch.isOn = isAutoCapitalizationEnabled
         clipboardSwitch.isOn = isClipboardModeEnabled
         hapticsSwitch.isOn = isHapticsEnabled
-        toggleRow.isHidden = !showsClipboardToggle
-        toggleSeparator.isHidden = !showsClipboardToggle
-        clipboardSwitch.isEnabled = isClipboardToggleEnabled
+        autoCapitalizationSwitch.isOn = isAutoCapitalizationEnabled
 
-        autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
-        toggleTitleLabel.textColor = isClipboardToggleEnabled
+        clipboardSwitch.isEnabled = isClipboardToggleEnabled
+        clipboardInfoRow.isHidden = isClipboardToggleEnabled
+
+        clipboardTitleLabel.textColor = isClipboardToggleEnabled
             ? KeyboardTheme.keyLabelColor
             : KeyboardTheme.secondaryLabelColor
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
-
-        helperLabel.text = helperText
-        helperRow.isHidden = helperText?.isEmpty ?? true
+        autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
     }
 
     private func setup() {
@@ -85,228 +68,140 @@ final class KeyboardSettingsPanelView: UIView {
         layer.cornerCurve = .continuous
         clipsToBounds = true
 
-        addSubview(headerStack)
-        headerStack.translatesAutoresizingMaskIntoConstraints = false
-
-        scrollView.alwaysBounceVertical = true
-        addSubview(scrollView)
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-
+        addSubview(contentStack)
+        contentStack.translatesAutoresizingMaskIntoConstraints = false
         contentStack.axis = .vertical
         contentStack.alignment = .fill
-        contentStack.spacing = 18
-        scrollView.addSubview(contentStack)
-        contentStack.translatesAutoresizingMaskIntoConstraints = false
+        contentStack.spacing = 12
+        contentStack.isLayoutMarginsRelativeArrangement = true
+        contentStack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 10, leading: 12, bottom: 12, trailing: 12)
 
-        titleLabel.font = .preferredFont(forTextStyle: .title3)
-        titleLabel.text = "Settings"
-
-        var doneConfiguration = UIButton.Configuration.plain()
-        doneConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 12, bottom: 6, trailing: 12)
-        doneButton.configuration = doneConfiguration
-        let doneButtonFont = UIFont.systemFont(ofSize: 17, weight: .semibold)
-        doneButton.setTitle("Done", for: .normal)
-        doneButton.setTitleFonts(
-            normal: doneButtonFont,
-            highlighted: doneButtonFont
+        var closeConfiguration = UIButton.Configuration.plain()
+        closeConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 6, bottom: 6, trailing: 6)
+        closeButton.configuration = closeConfiguration
+        closeButton.setSymbolConfigurations(
+            normal: UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.iconPointSize, weight: .semibold),
+            highlighted: UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.iconPointSize, weight: .bold)
         )
-        doneButton.setForegroundColors(
-            normal: KeyboardTheme.settingsAccentColor,
-            highlighted: KeyboardTheme.settingsAccentColor
+        closeButton.setSymbolImage(UIImage(systemName: "xmark"))
+        closeButton.setForegroundColors(
+            normal: KeyboardTheme.keyLabelColor,
+            highlighted: KeyboardTheme.keyLabelColor
         )
-        doneButton.setBackgroundColors(
+        closeButton.setBackgroundColors(
             normal: .clear,
             highlighted: KeyboardTheme.settingsDonePressedBackground
         )
-        doneButton.layer.cornerRadius = 10
-        doneButton.layer.cornerCurve = .continuous
-        doneButton.addTarget(self, action: #selector(doneTapped), for: .touchUpInside)
+        closeButton.layer.cornerRadius = 10
+        closeButton.layer.cornerCurve = .continuous
+        closeButton.accessibilityLabel = "Close settings"
+        closeButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
 
-        headerStack.axis = .horizontal
-        headerStack.alignment = .center
-        headerStack.spacing = 8
-        headerStack.addArrangedSubview(titleLabel)
-        headerStack.addArrangedSubview(UIView())
-        headerStack.addArrangedSubview(doneButton)
+        chromeStack.axis = .horizontal
+        chromeStack.alignment = .center
+        chromeStack.spacing = 8
+        chromeStack.addArrangedSubview(UIView())
+        chromeStack.addArrangedSubview(closeButton)
 
-        featuresSectionLabel.font = .preferredFont(forTextStyle: .caption1)
-        featuresSectionLabel.text = "KEYBOARD FEATURES"
+        contentStack.addArrangedSubview(chromeStack)
 
-        autoCapitalizationTitleLabel.font = .preferredFont(forTextStyle: .body)
-        autoCapitalizationTitleLabel.numberOfLines = 0
-        autoCapitalizationTitleLabel.text = "Auto-capitalization"
+        configureRow(
+            clipboardRow,
+            titleLabel: clipboardTitleLabel,
+            title: "Clipboard toolbar",
+            toggle: clipboardSwitch,
+            action: #selector(clipboardSwitchChanged)
+        )
+        configureRow(
+            hapticsRow,
+            titleLabel: hapticsTitleLabel,
+            title: "Key haptics",
+            toggle: hapticsSwitch,
+            action: #selector(hapticsSwitchChanged)
+        )
+        configureRow(
+            autoCapitalizationRow,
+            titleLabel: autoCapitalizationTitleLabel,
+            title: "Auto-capitalization",
+            toggle: autoCapitalizationSwitch,
+            action: #selector(autoCapitalizationSwitchChanged)
+        )
 
-        autoCapitalizationSwitch.addTarget(self, action: #selector(autoCapitalizationSwitchChanged), for: .valueChanged)
+        clipboardInfoLabel.font = .preferredFont(forTextStyle: .footnote)
+        clipboardInfoLabel.numberOfLines = 3
+        clipboardInfoLabel.text = "Long-press the globe, tap Keyboard Settings, then tap Keyboard, SweetKeyboard, turn on Full Access, and tap Allow."
 
-        autoCapitalizationToggleRow.axis = .horizontal
-        autoCapitalizationToggleRow.alignment = .center
-        autoCapitalizationToggleRow.spacing = 12
-        autoCapitalizationToggleRow.isLayoutMarginsRelativeArrangement = true
-        autoCapitalizationToggleRow.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16)
-        autoCapitalizationToggleRow.addArrangedSubview(autoCapitalizationTitleLabel)
-        autoCapitalizationToggleRow.addArrangedSubview(UIView())
-        autoCapitalizationToggleRow.addArrangedSubview(autoCapitalizationSwitch)
-
-        autoCapitalizationHelperLabel.font = .preferredFont(forTextStyle: .footnote)
-        autoCapitalizationHelperLabel.numberOfLines = 0
-        autoCapitalizationHelperLabel.text = "Starts with Shift active when the field suggests a capital letter, like at the beginning of a sentence."
-
-        autoCapitalizationHelperRow.addSubview(autoCapitalizationHelperLabel)
-        autoCapitalizationHelperLabel.translatesAutoresizingMaskIntoConstraints = false
+        clipboardInfoRow.addSubview(clipboardInfoLabel)
+        clipboardInfoLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            autoCapitalizationHelperLabel.topAnchor.constraint(equalTo: autoCapitalizationHelperRow.topAnchor, constant: 12),
-            autoCapitalizationHelperLabel.leadingAnchor.constraint(equalTo: autoCapitalizationHelperRow.leadingAnchor, constant: 16),
-            autoCapitalizationHelperLabel.trailingAnchor.constraint(equalTo: autoCapitalizationHelperRow.trailingAnchor, constant: -16),
-            autoCapitalizationHelperLabel.bottomAnchor.constraint(equalTo: autoCapitalizationHelperRow.bottomAnchor, constant: -12)
+            clipboardInfoLabel.topAnchor.constraint(equalTo: clipboardInfoRow.topAnchor),
+            clipboardInfoLabel.leadingAnchor.constraint(equalTo: clipboardInfoRow.leadingAnchor, constant: 16),
+            clipboardInfoLabel.trailingAnchor.constraint(equalTo: clipboardInfoRow.trailingAnchor, constant: -16),
+            clipboardInfoLabel.bottomAnchor.constraint(equalTo: clipboardInfoRow.bottomAnchor, constant: -12)
         ])
 
-        toggleTitleLabel.font = .preferredFont(forTextStyle: .body)
-        toggleTitleLabel.numberOfLines = 0
-        toggleTitleLabel.text = "Clipboard toolbar"
+        togglesCard.layer.cornerRadius = 16
+        togglesCard.layer.cornerCurve = .continuous
+        togglesCard.clipsToBounds = true
 
-        clipboardSwitch.addTarget(self, action: #selector(clipboardSwitchChanged), for: .valueChanged)
+        togglesCardStack.axis = .vertical
+        togglesCardStack.alignment = .fill
+        togglesCardStack.spacing = 0
+        togglesCardStack.addArrangedSubview(clipboardRow)
+        togglesCardStack.addArrangedSubview(clipboardInfoRow)
+        togglesCardStack.addArrangedSubview(clipboardSeparator)
+        togglesCardStack.addArrangedSubview(hapticsRow)
+        togglesCardStack.addArrangedSubview(hapticsSeparator)
+        togglesCardStack.addArrangedSubview(autoCapitalizationRow)
 
-        toggleRow.axis = .horizontal
-        toggleRow.alignment = .center
-        toggleRow.spacing = 12
-        toggleRow.isLayoutMarginsRelativeArrangement = true
-        toggleRow.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16)
-        toggleRow.addArrangedSubview(toggleTitleLabel)
-        toggleRow.addArrangedSubview(UIView())
-        toggleRow.addArrangedSubview(clipboardSwitch)
+        togglesCard.addSubview(togglesCardStack)
+        togglesCardStack.translatesAutoresizingMaskIntoConstraints = false
 
-        helperLabel.font = .preferredFont(forTextStyle: .footnote)
-        helperLabel.numberOfLines = 0
-
-        helperRow.addSubview(helperLabel)
-        helperLabel.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            helperLabel.topAnchor.constraint(equalTo: helperRow.topAnchor, constant: 12),
-            helperLabel.leadingAnchor.constraint(equalTo: helperRow.leadingAnchor, constant: 16),
-            helperLabel.trailingAnchor.constraint(equalTo: helperRow.trailingAnchor, constant: -16),
-            helperLabel.bottomAnchor.constraint(equalTo: helperRow.bottomAnchor, constant: -12)
-        ])
-
-        featuresCard.layer.cornerRadius = 14
-        featuresCard.layer.cornerCurve = .continuous
-        featuresCard.clipsToBounds = true
-
-        featuresCardStack.axis = .vertical
-        featuresCardStack.alignment = .fill
-        featuresCardStack.spacing = 0
-        featuresCardStack.addArrangedSubview(autoCapitalizationToggleRow)
-        featuresCardStack.addArrangedSubview(autoCapitalizationSeparator)
-        featuresCardStack.addArrangedSubview(autoCapitalizationHelperRow)
-        featuresCardStack.addArrangedSubview(toggleRow)
-        featuresCardStack.addArrangedSubview(toggleSeparator)
-        featuresCardStack.addArrangedSubview(helperRow)
-
-        featuresCard.addSubview(featuresCardStack)
-        featuresCardStack.translatesAutoresizingMaskIntoConstraints = false
-        autoCapitalizationSeparatorHeightConstraint = autoCapitalizationSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
-        toggleSeparatorHeightConstraint = toggleSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
-        NSLayoutConstraint.activate([
-            featuresCardStack.topAnchor.constraint(equalTo: featuresCard.topAnchor),
-            featuresCardStack.leadingAnchor.constraint(equalTo: featuresCard.leadingAnchor),
-            featuresCardStack.trailingAnchor.constraint(equalTo: featuresCard.trailingAnchor),
-            featuresCardStack.bottomAnchor.constraint(equalTo: featuresCard.bottomAnchor),
-            autoCapitalizationSeparatorHeightConstraint!,
-            toggleSeparatorHeightConstraint!
-        ])
-
-        feedbackSectionLabel.font = .preferredFont(forTextStyle: .caption1)
-        feedbackSectionLabel.text = "FEEDBACK"
-
-        hapticsTitleLabel.font = .preferredFont(forTextStyle: .body)
-        hapticsTitleLabel.numberOfLines = 0
-        hapticsTitleLabel.text = "Key haptics"
-
-        hapticsSwitch.addTarget(self, action: #selector(hapticsSwitchChanged), for: .valueChanged)
-
-        hapticsToggleRow.axis = .horizontal
-        hapticsToggleRow.alignment = .center
-        hapticsToggleRow.spacing = 12
-        hapticsToggleRow.isLayoutMarginsRelativeArrangement = true
-        hapticsToggleRow.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16)
-        hapticsToggleRow.addArrangedSubview(hapticsTitleLabel)
-        hapticsToggleRow.addArrangedSubview(UIView())
-        hapticsToggleRow.addArrangedSubview(hapticsSwitch)
-
-        hapticsHelperLabel.font = .preferredFont(forTextStyle: .footnote)
-        hapticsHelperLabel.numberOfLines = 0
-        hapticsHelperLabel.text = "Adds a light tap on letters, function keys, and clipboard actions when supported by the device."
-
-        hapticsHelperRow.addSubview(hapticsHelperLabel)
-        hapticsHelperLabel.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            hapticsHelperLabel.topAnchor.constraint(equalTo: hapticsHelperRow.topAnchor, constant: 12),
-            hapticsHelperLabel.leadingAnchor.constraint(equalTo: hapticsHelperRow.leadingAnchor, constant: 16),
-            hapticsHelperLabel.trailingAnchor.constraint(equalTo: hapticsHelperRow.trailingAnchor, constant: -16),
-            hapticsHelperLabel.bottomAnchor.constraint(equalTo: hapticsHelperRow.bottomAnchor, constant: -12)
-        ])
-
-        feedbackCard.layer.cornerRadius = 14
-        feedbackCard.layer.cornerCurve = .continuous
-        feedbackCard.clipsToBounds = true
-
-        feedbackCardStack.axis = .vertical
-        feedbackCardStack.alignment = .fill
-        feedbackCardStack.spacing = 0
-        feedbackCardStack.addArrangedSubview(hapticsToggleRow)
-        feedbackCardStack.addArrangedSubview(hapticsHelperRow)
-
-        feedbackCard.addSubview(feedbackCardStack)
-        feedbackCardStack.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            feedbackCardStack.topAnchor.constraint(equalTo: feedbackCard.topAnchor),
-            feedbackCardStack.leadingAnchor.constraint(equalTo: feedbackCard.leadingAnchor),
-            feedbackCardStack.trailingAnchor.constraint(equalTo: feedbackCard.trailingAnchor),
-            feedbackCardStack.bottomAnchor.constraint(equalTo: feedbackCard.bottomAnchor)
-        ])
-
-        privacySectionLabel.font = .preferredFont(forTextStyle: .caption1)
-        privacySectionLabel.text = "PRIVACY"
-
-        privacyLabel.font = .preferredFont(forTextStyle: .footnote)
-        privacyLabel.numberOfLines = 0
-        privacyLabel.text = "Clipboard data stays on this device. No network, no analytics, no cloud sync."
-
-        privacyCard.layer.cornerRadius = 14
-        privacyCard.layer.cornerCurve = .continuous
-        privacyCard.clipsToBounds = true
-        privacyCard.addSubview(privacyLabel)
-        privacyLabel.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            privacyLabel.topAnchor.constraint(equalTo: privacyCard.topAnchor, constant: 12),
-            privacyLabel.leadingAnchor.constraint(equalTo: privacyCard.leadingAnchor, constant: 16),
-            privacyLabel.trailingAnchor.constraint(equalTo: privacyCard.trailingAnchor, constant: -16),
-            privacyLabel.bottomAnchor.constraint(equalTo: privacyCard.bottomAnchor, constant: -12)
-        ])
-
-        contentStack.addArrangedSubview(featuresSectionLabel)
-        contentStack.addArrangedSubview(featuresCard)
-        contentStack.addArrangedSubview(feedbackSectionLabel)
-        contentStack.addArrangedSubview(feedbackCard)
-        contentStack.addArrangedSubview(privacySectionLabel)
-        contentStack.addArrangedSubview(privacyCard)
+        clipboardSeparatorHeightConstraint = clipboardSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
+        hapticsSeparatorHeightConstraint = hapticsSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
 
         NSLayoutConstraint.activate([
-            headerStack.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-            headerStack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 16),
-            headerStack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -16),
-            doneButton.heightAnchor.constraint(equalToConstant: 32),
-
-            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            scrollView.topAnchor.constraint(equalTo: headerStack.bottomAnchor, constant: 8),
-            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
-
-            contentStack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: 8),
-            contentStack.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor, constant: 16),
-            contentStack.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor, constant: -16),
-            contentStack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -16),
-            contentStack.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -32)
+            togglesCardStack.topAnchor.constraint(equalTo: togglesCard.topAnchor),
+            togglesCardStack.leadingAnchor.constraint(equalTo: togglesCard.leadingAnchor),
+            togglesCardStack.trailingAnchor.constraint(equalTo: togglesCard.trailingAnchor),
+            togglesCardStack.bottomAnchor.constraint(equalTo: togglesCard.bottomAnchor),
+            clipboardSeparatorHeightConstraint!,
+            hapticsSeparatorHeightConstraint!
         ])
+
+        contentStack.addArrangedSubview(togglesCard)
+
+        NSLayoutConstraint.activate([
+            contentStack.topAnchor.constraint(equalTo: topAnchor),
+            contentStack.leadingAnchor.constraint(equalTo: leadingAnchor),
+            contentStack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            contentStack.bottomAnchor.constraint(equalTo: bottomAnchor),
+            closeButton.widthAnchor.constraint(equalToConstant: 32),
+            closeButton.heightAnchor.constraint(equalToConstant: 32)
+        ])
+    }
+
+    private func configureRow(
+        _ row: UIStackView,
+        titleLabel: UILabel,
+        title: String,
+        toggle: UISwitch,
+        action: Selector
+    ) {
+        titleLabel.font = .preferredFont(forTextStyle: .body)
+        titleLabel.numberOfLines = 1
+        titleLabel.text = title
+
+        toggle.addTarget(self, action: action, for: .valueChanged)
+
+        row.axis = .horizontal
+        row.alignment = .center
+        row.spacing = 12
+        row.isLayoutMarginsRelativeArrangement = true
+        row.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 15, leading: 16, bottom: 15, trailing: 16)
+        row.addArrangedSubview(titleLabel)
+        row.addArrangedSubview(UIView())
+        row.addArrangedSubview(toggle)
     }
 
     private func observeTraitChanges() {
@@ -319,24 +214,16 @@ final class KeyboardSettingsPanelView: UIView {
 
     private func applyTheme() {
         backgroundColor = KeyboardTheme.settingsScreenBackground
-        scrollView.backgroundColor = .clear
+        togglesCard.backgroundColor = KeyboardTheme.settingsGroupBackground
+        clipboardSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
+        hapticsSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
 
-        titleLabel.textColor = KeyboardTheme.keyLabelColor
-
-        featuresSectionLabel.textColor = KeyboardTheme.secondaryLabelColor
-        feedbackSectionLabel.textColor = KeyboardTheme.secondaryLabelColor
-        privacySectionLabel.textColor = KeyboardTheme.secondaryLabelColor
-
-        featuresCard.backgroundColor = KeyboardTheme.settingsGroupBackground
-        feedbackCard.backgroundColor = KeyboardTheme.settingsGroupBackground
-        privacyCard.backgroundColor = KeyboardTheme.settingsGroupBackground
-        autoCapitalizationSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
-        toggleSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
-
-        autoCapitalizationHelperLabel.textColor = KeyboardTheme.secondaryLabelColor
-        helperLabel.textColor = KeyboardTheme.secondaryLabelColor
-        hapticsHelperLabel.textColor = KeyboardTheme.secondaryLabelColor
-        privacyLabel.textColor = KeyboardTheme.secondaryLabelColor
+        clipboardTitleLabel.textColor = clipboardSwitch.isEnabled
+            ? KeyboardTheme.keyLabelColor
+            : KeyboardTheme.secondaryLabelColor
+        clipboardInfoLabel.textColor = KeyboardTheme.secondaryLabelColor
+        hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
+        autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
     }
 
     override func didMoveToWindow() {
@@ -348,16 +235,16 @@ final class KeyboardSettingsPanelView: UIView {
         onClipboardModeChanged?(clipboardSwitch.isOn)
     }
 
-    @objc private func autoCapitalizationSwitchChanged() {
-        onAutoCapitalizationEnabledChanged?(autoCapitalizationSwitch.isOn)
-    }
-
     @objc private func hapticsSwitchChanged() {
         onHapticsEnabledChanged?(hapticsSwitch.isOn)
     }
 
-    @objc private func doneTapped() {
-        onDone?()
+    @objc private func autoCapitalizationSwitchChanged() {
+        onAutoCapitalizationEnabledChanged?(autoCapitalizationSwitch.isOn)
+    }
+
+    @objc private func closeTapped() {
+        onClose?()
     }
 
     private var separatorThickness: CGFloat {
@@ -365,7 +252,7 @@ final class KeyboardSettingsPanelView: UIView {
     }
 
     private func updateSeparatorThickness() {
-        autoCapitalizationSeparatorHeightConstraint?.constant = separatorThickness
-        toggleSeparatorHeightConstraint?.constant = separatorThickness
+        clipboardSeparatorHeightConstraint?.constant = separatorThickness
+        hapticsSeparatorHeightConstraint?.constant = separatorThickness
     }
 }
