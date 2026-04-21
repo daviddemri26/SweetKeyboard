@@ -3,7 +3,7 @@ import UIKit
 final class KeyboardHapticFeedbackController {
     private let impactGenerator: UIImpactFeedbackGenerator = {
         if #available(iOS 13.0, *) {
-            return UIImpactFeedbackGenerator(style: .rigid)
+            return UIImpactFeedbackGenerator(style: .medium)
         } else {
             return UIImpactFeedbackGenerator(style: .light)
         }
@@ -28,7 +28,7 @@ final class KeyboardHapticFeedbackController {
         }
 
         if #available(iOS 13.0, *) {
-            impactGenerator.impactOccurred(intensity: 0.92)
+            impactGenerator.impactOccurred(intensity: 0.50)
         } else {
             impactGenerator.impactOccurred()
         }

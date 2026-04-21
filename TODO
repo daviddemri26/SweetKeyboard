@@ -4,4 +4,8 @@ Améliorer la fonction et le visuel des boutons de la barre d'action tout en hau
 
 Background du clavier plus comme le keyboard natif, avec la transparence 
 
-touche emoji
+touche emoji = nouvelle vue integree dans le clavier
+
+Bien gérer quand on appuie sur deux touches en même temps, quand on écrit rapidement, d'avoir le même comportement que sur le natif. 
+
+Revenir directement au clavier des lettres quand on insère un caractère spécial. 
