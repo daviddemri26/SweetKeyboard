@@ -109,6 +109,56 @@ final class AccentFeatureTests: XCTestCase {
         XCTAssertEqual(resetRows, normalRows)
     }
 
+    func testKeyboardLayoutEngineAddsEmojiToggleToSymbolsBottomRow() {
+        let engine = KeyboardLayoutEngine()
+
+        let rows = engine.symbolRows(showInlineSettingsKey: false, isSymbolLockEnabled: false)
+
+        XCTAssertEqual(
+            rows[4].items.map(\.kind),
+            [
+                .letterToggle,
+                .nonLetterLayoutToggle(style: .emoji, target: .emoji),
+                .space,
+                .primaryAction
+            ]
+        )
+    }
+
+    func testKeyboardLayoutEngineBuildsEmojiRowsWithSharedControls() {
+        let engine = KeyboardLayoutEngine()
+
+        let rows = engine.emojiRows(showInlineSettingsKey: true, isSymbolLockEnabled: true)
+
+        XCTAssertEqual(characterTitles(in: rows[0]), ["😀", "😃", "😄", "🙂", "😉", "😎", "🤔", "😅", "😂", "🤣"])
+        XCTAssertEqual(characterTitles(in: rows[1]), ["😭", "😍", "😘", "🙏", "👍", "👎", "👏", "🙌", "✅", "💯"])
+        XCTAssertEqual(characterTitles(in: rows[2]), ["🔥", "⚠️", "⚡", "🎉", "🚀", "❤️", "🩷", "💛", "💚", "💙"])
+        XCTAssertEqual(
+            rows[3].items.map(\.kind),
+            [
+                .inlineSettings,
+                .symbolLock(isEnabled: true),
+                .character("."),
+                .character(","),
+                .character("?"),
+                .character("!"),
+                .character("'"),
+                .cursor(offset: -1, symbolName: "arrowtriangle.left.fill"),
+                .cursor(offset: 1, symbolName: "arrowtriangle.right.fill"),
+                .backspace
+            ]
+        )
+        XCTAssertEqual(
+            rows[4].items.map(\.kind),
+            [
+                .letterToggle,
+                .nonLetterLayoutToggle(style: .symbols, target: .symbols),
+                .space,
+                .primaryAction
+            ]
+        )
+    }
+
     private func characterTitles(in row: KeyboardRowSpec) -> [String] {
         row.items.compactMap { item in
             guard case .character(let title) = item.kind else {

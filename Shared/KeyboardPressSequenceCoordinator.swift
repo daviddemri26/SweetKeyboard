@@ -3,6 +3,7 @@ import Foundation
 enum SequencedKeyboardLayoutTarget: Equatable {
     case letters
     case symbols
+    case emoji
 }
 
 enum SequencedKeyKind: Equatable {
@@ -19,7 +20,7 @@ enum SequencedKeyEffect: Equatable {
     case insertPrimaryAction
 }
 
-enum SymbolKeyboardPostAction: Equatable {
+enum NonLetterKeyboardPostAction: Equatable {
     case characterInsertion
     case settings
     case space
@@ -28,10 +29,15 @@ enum SymbolKeyboardPostAction: Equatable {
     case primaryAction
 }
 
-func shouldReturnToLetterKeyboardAfterSymbolsAction(
-    _ action: SymbolKeyboardPostAction,
+func shouldReturnToLetterKeyboardAfterNonLetterAction(
+    _ action: NonLetterKeyboardPostAction,
+    currentLayout: SequencedKeyboardLayoutTarget,
     isSymbolLockEnabled: Bool
 ) -> Bool {
+    guard currentLayout != .letters else {
+        return false
+    }
+
     switch action {
     case .characterInsertion:
         return !isSymbolLockEnabled

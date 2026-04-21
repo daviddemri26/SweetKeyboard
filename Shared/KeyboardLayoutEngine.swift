@@ -21,6 +21,12 @@ enum KeyboardKeyKind: Equatable {
     case cursor(offset: Int, symbolName: String)
     case inlineSettings
     case symbolLock(isEnabled: Bool)
+    case nonLetterLayoutToggle(style: NonLetterLayoutToggleStyle, target: SequencedKeyboardLayoutTarget)
+}
+
+enum NonLetterLayoutToggleStyle: Equatable {
+    case emoji
+    case symbols
 }
 
 struct KeyboardKeyWidth: Equatable {
@@ -44,6 +50,11 @@ struct KeyboardLayoutEngine {
         ["[", "]", "{", "}", "#", "%", "^", "*", "+", "="],
         ["-", "/", ":", ";", "(", ")", "$", "&", "@", "\""],
         ["_", "\\", "|", "~", "<", ">", "€", "£", "¥", "•"]
+    ]
+    private let emojiCharacterRows = [
+        ["😀", "😃", "😄", "🙂", "😉", "😎", "🤔", "😅", "😂", "🤣"],
+        ["😭", "😍", "😘", "🙏", "👍", "👎", "👏", "🙌", "✅", "💯"],
+        ["🔥", "⚠️", "⚡", "🎉", "🚀", "❤️", "🩷", "💛", "💚", "💙"]
     ]
     private let symbolPunctuationRow = [".", ",", "?", "!", "'"]
 
@@ -81,7 +92,22 @@ struct KeyboardLayoutEngine {
 
     func symbolRows(showInlineSettingsKey: Bool, isSymbolLockEnabled: Bool) -> [KeyboardRowSpec] {
         var rows = symbolCharacterRows.map(makeCharacterRow(_:))
+        rows.append(nonLetterPunctuationRow(showInlineSettingsKey: showInlineSettingsKey, isSymbolLockEnabled: isSymbolLockEnabled))
+        rows.append(nonLetterBottomRow(toggleStyle: .emoji, target: .emoji))
+        return rows
+    }
 
+    func emojiRows(showInlineSettingsKey: Bool, isSymbolLockEnabled: Bool) -> [KeyboardRowSpec] {
+        var rows = emojiCharacterRows.map(makeCharacterRow(_:))
+        rows.append(nonLetterPunctuationRow(showInlineSettingsKey: showInlineSettingsKey, isSymbolLockEnabled: isSymbolLockEnabled))
+        rows.append(nonLetterBottomRow(toggleStyle: .symbols, target: .symbols))
+        return rows
+    }
+
+    private func nonLetterPunctuationRow(
+        showInlineSettingsKey: Bool,
+        isSymbolLockEnabled: Bool
+    ) -> KeyboardRowSpec {
         let punctuationItems: [KeyboardKeySpec]
         if showInlineSettingsKey {
             punctuationItems = [
@@ -110,19 +136,21 @@ struct KeyboardLayoutEngine {
             ]
         }
 
-        rows.append(KeyboardRowSpec(items: punctuationItems))
+        return KeyboardRowSpec(items: punctuationItems)
+    }
 
-        rows.append(
-            KeyboardRowSpec(
-                items: [
-                    KeyboardKeySpec(kind: .letterToggle, width: .units(1.35)),
-                    KeyboardKeySpec(kind: .space, width: .units(4.8)),
-                    KeyboardKeySpec(kind: .primaryAction, width: .units(1.6))
-                ]
-            )
+    private func nonLetterBottomRow(
+        toggleStyle: NonLetterLayoutToggleStyle,
+        target: SequencedKeyboardLayoutTarget
+    ) -> KeyboardRowSpec {
+        KeyboardRowSpec(
+            items: [
+                KeyboardKeySpec(kind: .letterToggle, width: .units(1.35)),
+                KeyboardKeySpec(kind: .nonLetterLayoutToggle(style: toggleStyle, target: target), width: .units(1.25)),
+                KeyboardKeySpec(kind: .space, width: .units(3.55)),
+                KeyboardKeySpec(kind: .primaryAction, width: .units(1.6))
+            ]
         )
-
-        return rows
     }
 
     private func resolvedLetterRows(isShiftEnabled: Bool) -> [[String]] {

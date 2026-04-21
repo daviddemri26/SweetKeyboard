@@ -5,8 +5,9 @@ import XCTest
 final class KeyboardPressSequenceCoordinatorTests: XCTestCase {
     func testSymbolsCharacterInsertionReturnsToLetterKeyboard() {
         XCTAssertTrue(
-            shouldReturnToLetterKeyboardAfterSymbolsAction(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
                 .characterInsertion,
+                currentLayout: .symbols,
                 isSymbolLockEnabled: false
             )
         )
@@ -14,8 +15,9 @@ final class KeyboardPressSequenceCoordinatorTests: XCTestCase {
 
     func testSymbolsCharacterInsertionStaysOnSymbolsWhenLockEnabled() {
         XCTAssertFalse(
-            shouldReturnToLetterKeyboardAfterSymbolsAction(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
                 .characterInsertion,
+                currentLayout: .symbols,
                 isSymbolLockEnabled: true
             )
         )
@@ -23,8 +25,19 @@ final class KeyboardPressSequenceCoordinatorTests: XCTestCase {
 
     func testSymbolsSettingsReturnsToLetterKeyboard() {
         XCTAssertTrue(
-            shouldReturnToLetterKeyboardAfterSymbolsAction(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
                 .settings,
+                currentLayout: .symbols,
+                isSymbolLockEnabled: true
+            )
+        )
+    }
+
+    func testEmojiSettingsReturnsToLetterKeyboard() {
+        XCTAssertTrue(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
+                .settings,
+                currentLayout: .emoji,
                 isSymbolLockEnabled: true
             )
         )
@@ -32,26 +45,78 @@ final class KeyboardPressSequenceCoordinatorTests: XCTestCase {
 
     func testSymbolsNonClosingActionsStayOnSymbolsKeyboard() {
         XCTAssertFalse(
-            shouldReturnToLetterKeyboardAfterSymbolsAction(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
                 .space,
+                currentLayout: .symbols,
                 isSymbolLockEnabled: false
             )
         )
         XCTAssertFalse(
-            shouldReturnToLetterKeyboardAfterSymbolsAction(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
                 .backspace,
+                currentLayout: .symbols,
                 isSymbolLockEnabled: false
             )
         )
         XCTAssertFalse(
-            shouldReturnToLetterKeyboardAfterSymbolsAction(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
                 .cursorMovement,
+                currentLayout: .symbols,
                 isSymbolLockEnabled: false
             )
         )
         XCTAssertFalse(
-            shouldReturnToLetterKeyboardAfterSymbolsAction(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
                 .primaryAction,
+                currentLayout: .symbols,
+                isSymbolLockEnabled: false
+            )
+        )
+    }
+
+    func testEmojiCharacterInsertionMatchesSymbolsLockBehavior() {
+        XCTAssertTrue(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
+                .characterInsertion,
+                currentLayout: .emoji,
+                isSymbolLockEnabled: false
+            )
+        )
+        XCTAssertFalse(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
+                .characterInsertion,
+                currentLayout: .emoji,
+                isSymbolLockEnabled: true
+            )
+        )
+    }
+
+    func testEmojiNonClosingActionsStayOnEmojiKeyboard() {
+        XCTAssertFalse(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
+                .space,
+                currentLayout: .emoji,
+                isSymbolLockEnabled: false
+            )
+        )
+        XCTAssertFalse(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
+                .backspace,
+                currentLayout: .emoji,
+                isSymbolLockEnabled: false
+            )
+        )
+        XCTAssertFalse(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
+                .cursorMovement,
+                currentLayout: .emoji,
+                isSymbolLockEnabled: false
+            )
+        )
+        XCTAssertFalse(
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
+                .primaryAction,
+                currentLayout: .emoji,
                 isSymbolLockEnabled: false
             )
         )
@@ -146,6 +211,25 @@ final class KeyboardPressSequenceCoordinatorTests: XCTestCase {
         )
     }
 
+    func testPendingEmojiLayoutSwitchCommitsOnRelease() {
+        var coordinator = KeyboardPressSequenceCoordinator()
+        let textKey = NSObject()
+        let layoutKey = NSObject()
+
+        XCTAssertEqual(
+            coordinator.handleTouchDown(id: keyID(for: textKey), kind: .text("a")),
+            []
+        )
+        XCTAssertEqual(
+            coordinator.handleTouchDown(id: keyID(for: layoutKey), kind: .layoutSwitch(.emoji)),
+            [.insertText("a")]
+        )
+        XCTAssertEqual(
+            coordinator.handleTouchUpInside(id: keyID(for: layoutKey)),
+            [.setKeyboardLayout(.emoji)]
+        )
+    }
+
     func testPendingPrimaryActionCommitsOnRelease() {
         var coordinator = KeyboardPressSequenceCoordinator()
         let textKey = NSObject()
@@ -188,6 +272,23 @@ final class KeyboardPressSequenceCoordinatorTests: XCTestCase {
 
         XCTAssertEqual(
             coordinator.handleTouchDown(id: keyID(for: layoutKey), kind: .layoutSwitch(.symbols)),
+            []
+        )
+
+        coordinator.handleTouchCancelled(id: keyID(for: layoutKey))
+
+        XCTAssertEqual(
+            coordinator.handleTouchUpInside(id: keyID(for: layoutKey)),
+            []
+        )
+    }
+
+    func testCancellingPendingEmojiLayoutSwitchProducesNoEffect() {
+        var coordinator = KeyboardPressSequenceCoordinator()
+        let layoutKey = NSObject()
+
+        XCTAssertEqual(
+            coordinator.handleTouchDown(id: keyID(for: layoutKey), kind: .layoutSwitch(.emoji)),
             []
         )
 

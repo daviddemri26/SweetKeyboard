@@ -26,6 +26,7 @@ SweetKeyboard helps users type faster without forcing them to learn a new layout
 
 - Permanent top number row for passwords, addresses, dates, and codes
 - Fast symbols access with a dedicated symbols layer
+- Emoji access from the symbols layer without adding a separate primary keyboard
 - Contextual `@` shortcut in email fields
 - Contextual action key that adapts to host app return-key traits
 - Optional clipboard toolbar with copy, paste, and local history
@@ -37,7 +38,8 @@ SweetKeyboard is intentionally optimized around practical typing flows rather th
 
 - It reduces view switching by keeping numbers available at all times.
 - It supports quick one-shot symbol entry by returning to letters automatically after a symbol when symbol lock is off.
-- It can stay on symbols when symbol lock is enabled for repeated symbol entry.
+- It can stay on symbols or emoji when symbol lock is enabled for repeated non-letter entry.
+- It keeps emoji behind the symbols layer so the main keyboard stays compact and familiar.
 - It exposes accent and punctuation variants through long press on supported keys.
 - It follows host auto-capitalization intent in compatible fields instead of forcing a static Shift behavior.
 
@@ -48,8 +50,10 @@ SweetKeyboard is intentionally optimized around practical typing flows rather th
 - Bottom-row period key always available in letters mode
 - Direct `@` key in email fields
 - Dedicated symbols keyboard
-- Symbol lock toggle to keep the symbols layer open
+- Emoji sub-view available only from symbols mode
+- Symbol lock toggle shared by symbols and emoji
 - Automatic return from symbols to letters after one symbol when symbol lock is off
+- Automatic return from emoji to letters after one emoji when symbol lock is off
 - Left and right cursor movement keys in symbols mode
 - Long-press accent variants for `a`, `c`, `e`, `i`, `n`, `o`, `u`, and `y`
 - Long-press period variants: `…`, `:`, `•`, `@`, `!`, `?`, `,`
@@ -113,7 +117,8 @@ The main behaviors added in the latest implementation pass are:
 
 - contextual auto-capitalization with automatic, manual, and locked Shift states
 - sequenced key handling so overlapping touches commit in press order
-- automatic return from symbols to letters after symbol insertion
+- emoji sub-view inside the symbols keyboard
+- automatic return from non-letter layouts to letters after symbol or emoji insertion
 - symbol lock persistence
 - long-press period variants on the bottom row
 
@@ -145,12 +150,16 @@ Behavior highlights:
 #### Symbols Flow
 
 - The symbols keyboard contains three symbol rows plus a punctuation/action row
+- The symbols keyboard bottom row includes `ABC`, an Emoji toggle, space, and the action key
+- The emoji keyboard reuses the same bottom two rows and swaps the bottom-row toggle to `#+=`
+- The emoji keyboard contains three fixed emoji rows for the current v1 implementation
 - The punctuation row includes symbol lock, cursor left, cursor right, and backspace
-- In compact mode, a gear key appears inline on the symbols row so settings stay reachable without the top toolbar
+- In compact mode, a gear key appears inline on the symbols and emoji punctuation row so settings stay reachable without the top toolbar
 - With symbol lock off, inserting a symbol returns to the letters keyboard
-- With symbol lock on, symbol insertion keeps the symbols keyboard open
+- With symbol lock off, inserting an emoji also returns to the letters keyboard
+- With symbol lock on, symbol or emoji insertion keeps the current non-letter keyboard open
 - Space, backspace, cursor movement, and the primary action key do not force a return to letters
-- Opening settings from symbols returns to the letters keyboard first
+- Opening settings from symbols or emoji returns to the letters keyboard first
 
 #### Long Press Variants
 
@@ -198,7 +207,7 @@ The current settings are:
 - Clipboard toolbar
 - Key haptics
 
-Symbol lock is persisted as shared state and controlled directly from the symbols keyboard.
+Symbol lock is persisted as shared state and controlled directly from the symbols and emoji keyboard row.
 
 ### Privacy And Permissions
 
@@ -206,6 +215,14 @@ Symbol lock is persisted as shared state and controlled directly from the symbol
 - Clipboard tools require Full Access
 - Shared settings between app and extension rely on the App Group
 - The current codebase is local-only and performs no network requests
+
+### Platform Constraints
+
+- Secure text fields do not allow third-party keyboards
+- Some apps block custom keyboards entirely
+- Host apps do not always expose enough `UITextInputTraits` information for perfect action-key matching
+- Copy depends on the host exposing `selectedText` to the keyboard extension
+- Real-world keyboard behavior should be validated on device, not only in Simulator
 
 ### Project Structure
 
@@ -258,24 +275,42 @@ SweetKeyboard/
 5. Add the keyboard from `Settings > General > Keyboard > Keyboards > Add New Keyboard`.
 6. Enable `Allow Full Access` only if you want clipboard tools.
 
-### Build And Test
+### Development Notes
 
-Build for simulator:
+- Core keyboard state and layout decisions live in `Shared/` so behavior can be tested without driving the full extension UI.
+- `KeyboardLayoutEngine` owns row composition for letters, symbols, and emoji.
+- `KeyboardPressSequenceCoordinator` owns overlapping-touch sequencing and layout-switch commit timing.
+- `KeyboardViewController` is the main integration layer for rendering keys, applying themes, and dispatching typing actions.
+
+### Testing
+
+The shared behavior is covered by `SweetKeyboardTests`, including:
+
+- layout generation
+- symbol and emoji return rules
+- overlapping-touch sequencing
+- auto-capitalization decisions
+- shared settings persistence
+- clipboard normalization rules
+
+Useful local commands:
 
 ```bash
-xcodebuild -project SweetKeyboard.xcodeproj -scheme SweetKeyboard -sdk iphonesimulator -configuration Debug build
+xcodebuild build-for-testing \
+  -project SweetKeyboard.xcodeproj \
+  -scheme SweetKeyboard \
+  -destination 'generic/platform=iOS Simulator' \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGNING_REQUIRED=NO
 ```
-
-Run the shared test target:
 
 ```bash
-xcodebuild -project SweetKeyboard.xcodeproj -scheme SweetKeyboard -configuration Debug test -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:SweetKeyboardTests
+xcodebuild test \
+  -project SweetKeyboard.xcodeproj \
+  -scheme SweetKeyboard \
+  -destination 'id=<SIMULATOR-UDID>' \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGNING_REQUIRED=NO
 ```
 
-### Known Platform Limitations
-
-- Third-party keyboards are unavailable in secure text fields
-- Some apps or input contexts can reject custom keyboards entirely
-- `Copy` works only when the host exposes selected text through the document proxy
-- Return-key behavior ultimately depends on the host app consuming `"\n"` according to its configured traits
-- Trait exposure from host apps is incomplete in some contexts, so SweetKeyboard intentionally falls back instead of guessing
+Replace `<SIMULATOR-UDID>` with an available iOS Simulator device from `xcrun simctl list devices available`.

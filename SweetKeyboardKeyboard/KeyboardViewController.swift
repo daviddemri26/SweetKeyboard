@@ -10,6 +10,7 @@ final class KeyboardViewController: UIInputViewController {
     private enum KeyboardLayoutMode {
         case letters
         case symbols
+        case emoji
     }
 
     private enum DisplayMode {
@@ -85,7 +86,18 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private var shouldShowInlineSettingsKey: Bool {
-        displayMode == .basic && keyboardLayoutMode == .symbols
+        displayMode == .basic && keyboardLayoutMode != .letters
+    }
+
+    private var currentKeyboardLayoutTarget: SequencedKeyboardLayoutTarget {
+        switch keyboardLayoutMode {
+        case .letters:
+            return .letters
+        case .symbols:
+            return .symbols
+        case .emoji:
+            return .emoji
+        }
     }
 
     override func viewDidLoad() {
@@ -242,7 +254,7 @@ final class KeyboardViewController: UIInputViewController {
             case .clipboard:
                 toggleMode(.clipboard)
             case .settings:
-                self.handleSymbolsPostAction(.settings, allowsImmediateRebuild: true)
+                self.handleNonLetterPostAction(.settings, allowsImmediateRebuild: true)
                 toggleMode(.settings)
             }
         }
@@ -371,6 +383,11 @@ final class KeyboardViewController: UIInputViewController {
             )
         case .symbols:
             rowSpecs = layoutEngine.symbolRows(
+                showInlineSettingsKey: shouldShowInlineSettingsKey,
+                isSymbolLockEnabled: sharedSettings.symbolLockEnabled
+            )
+        case .emoji:
+            rowSpecs = layoutEngine.emojiRows(
                 showInlineSettingsKey: shouldShowInlineSettingsKey,
                 isSymbolLockEnabled: sharedSettings.symbolLockEnabled
             )
@@ -530,6 +547,8 @@ final class KeyboardViewController: UIInputViewController {
             return makeInlineSettingsKey()
         case .symbolLock(let isEnabled):
             return makeSymbolLockKey(isEnabled: isEnabled)
+        case .nonLetterLayoutToggle(let style, let target):
+            return makeNonLetterLayoutToggleKey(style: style, target: target)
         }
     }
 
@@ -593,6 +612,25 @@ final class KeyboardViewController: UIInputViewController {
             key.addTarget(self, action: action, for: .touchUpInside)
         }
 
+        return key
+    }
+
+    private func makeActionImageKey(_ image: UIImage?, accessibilityLabel: String) -> UIButton {
+        let key = makeBaseKey(title: nil, role: .system)
+        if let pressableKey = key as? KeyboardPressableButton {
+            pressableKey.setForegroundColors(
+                normal: KeyboardTheme.keyLabelColor,
+                highlighted: KeyboardTheme.keyLabelColor
+            )
+            pressableKey.setSymbolImage(image)
+        } else {
+            let templatedImage = image?.withRenderingMode(.alwaysTemplate)
+            key.setImage(templatedImage, for: .normal)
+            key.setImage(templatedImage, for: .highlighted)
+            key.tintColor = KeyboardTheme.keyLabelColor
+        }
+
+        key.accessibilityLabel = accessibilityLabel
         return key
     }
 
@@ -767,9 +805,60 @@ final class KeyboardViewController: UIInputViewController {
             key.setPreferredSymbolConfiguration(highlightedConfiguration, forImageIn: .highlighted)
         }
 
-        key.accessibilityLabel = isEnabled ? "Keep symbols open is on" : "Keep symbols open"
-        key.accessibilityHint = "Keeps the symbols keyboard open so you can type multiple symbols."
+        key.accessibilityLabel = isEnabled ? "Keep symbols and emoji open is on" : "Keep symbols and emoji open"
+        key.accessibilityHint = "Keeps the symbols and emoji keyboard open so you can type multiple entries."
         return key
+    }
+
+    private func makeNonLetterLayoutToggleKey(
+        style: NonLetterLayoutToggleStyle,
+        target: SequencedKeyboardLayoutTarget
+    ) -> UIButton {
+        let key: UIButton
+
+        switch style {
+        case .emoji:
+            key = makeActionImageKey(makeEmojiToggleImage(), accessibilityLabel: "Emoji")
+            key.accessibilityHint = "Shows the emoji keyboard."
+        case .symbols:
+            key = makeActionKey(title: "#+=")
+            key.accessibilityLabel = "Symbols"
+            key.accessibilityHint = "Returns to the symbols keyboard."
+        }
+
+        applyFunctionKeyBorder(to: key)
+        configureSequencedKey(key, kind: .layoutSwitch(target))
+        return key
+    }
+
+    private func makeEmojiToggleImage() -> UIImage? {
+        let size = CGSize(width: 28, height: 28)
+        let renderer = UIGraphicsImageRenderer(size: size)
+
+        return renderer.image { context in
+            let cgContext = context.cgContext
+            cgContext.setStrokeColor(UIColor.black.cgColor)
+            cgContext.setFillColor(UIColor.black.cgColor)
+            cgContext.setLineWidth(1.75)
+            cgContext.setLineCap(.round)
+
+            let faceRect = CGRect(x: 4.5, y: 4.5, width: 19, height: 19)
+            cgContext.strokeEllipse(in: faceRect)
+
+            let eyeDiameter: CGFloat = 2.3
+            let leftEyeRect = CGRect(x: 9.1, y: 10.0, width: eyeDiameter, height: eyeDiameter)
+            let rightEyeRect = CGRect(x: 16.6, y: 10.0, width: eyeDiameter, height: eyeDiameter)
+            cgContext.fillEllipse(in: leftEyeRect)
+            cgContext.fillEllipse(in: rightEyeRect)
+
+            let smilePath = UIBezierPath()
+            smilePath.move(to: CGPoint(x: 9.0, y: 16.0))
+            smilePath.addQuadCurve(to: CGPoint(x: 19.0, y: 16.0), controlPoint: CGPoint(x: 14.0, y: 20.2))
+            smilePath.lineWidth = 1.75
+            smilePath.lineCapStyle = .round
+            UIColor.black.setStroke()
+            smilePath.stroke()
+        }.withRenderingMode(.alwaysTemplate)
     }
 
     private func makeBaseKey(title: String?, role: KeyboardButtonRole) -> UIButton {
@@ -1015,15 +1104,16 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     @discardableResult
-    private func handleSymbolsPostAction(
-        _ action: SymbolKeyboardPostAction,
+    private func handleNonLetterPostAction(
+        _ action: NonLetterKeyboardPostAction,
         allowsImmediateRebuild: Bool
     ) -> Bool {
         _ = allowsImmediateRebuild
         guard
-            keyboardLayoutMode == .symbols,
-            shouldReturnToLetterKeyboardAfterSymbolsAction(
+            keyboardLayoutMode != .letters,
+            shouldReturnToLetterKeyboardAfterNonLetterAction(
                 action,
+                currentLayout: currentKeyboardLayoutTarget,
                 isSymbolLockEnabled: sharedSettings.symbolLockEnabled
             )
         else {
@@ -1188,7 +1278,7 @@ final class KeyboardViewController: UIInputViewController {
 
         let didClearAccentState = clearAccentState(rebuild: false)
         textDocumentProxy.deleteBackward()
-        let didReturnToLetters = handleSymbolsPostAction(.backspace, allowsImmediateRebuild: true)
+        let didReturnToLetters = handleNonLetterPostAction(.backspace, allowsImmediateRebuild: true)
         refreshInputContext(
             forceKeyboardRebuild: didClearAccentState || didReturnToLetters,
             allowsImmediateRebuild: true
@@ -1237,7 +1327,7 @@ final class KeyboardViewController: UIInputViewController {
         triggerKeyPressHaptic()
         let didClearAccentState = clearAccentState(rebuild: false)
         textDocumentProxy.insertText(" ")
-        let didReturnToLetters = handleSymbolsPostAction(.space, allowsImmediateRebuild: allowsImmediateRebuild)
+        let didReturnToLetters = handleNonLetterPostAction(.space, allowsImmediateRebuild: allowsImmediateRebuild)
         refreshInputContext(
             forceKeyboardRebuild: didClearAccentState || didReturnToLetters,
             allowsImmediateRebuild: allowsImmediateRebuild
@@ -1248,7 +1338,7 @@ final class KeyboardViewController: UIInputViewController {
         triggerKeyPressHaptic()
         let didClearAccentState = clearAccentState(rebuild: false)
         textDocumentProxy.insertText("\n")
-        let didReturnToLetters = handleSymbolsPostAction(.primaryAction, allowsImmediateRebuild: allowsImmediateRebuild)
+        let didReturnToLetters = handleNonLetterPostAction(.primaryAction, allowsImmediateRebuild: allowsImmediateRebuild)
         refreshInputContext(
             forceKeyboardRebuild: didClearAccentState || didReturnToLetters,
             allowsImmediateRebuild: allowsImmediateRebuild
@@ -1269,13 +1359,16 @@ final class KeyboardViewController: UIInputViewController {
         case .symbols:
             keyboardLayoutMode = .symbols
             requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
+        case .emoji:
+            keyboardLayoutMode = .emoji
+            requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
         }
     }
 
     @objc private func inlineSettingsTapped() {
         cancelSequencedInteractions()
         triggerKeyPressHaptic()
-        handleSymbolsPostAction(.settings, allowsImmediateRebuild: true)
+        handleNonLetterPostAction(.settings, allowsImmediateRebuild: true)
         handleInlineSettingsTapped()
     }
 
@@ -1287,7 +1380,7 @@ final class KeyboardViewController: UIInputViewController {
 
     private func moveCursor(by offset: Int) {
         textDocumentProxy.adjustTextPosition(byCharacterOffset: offset)
-        let didReturnToLetters = handleSymbolsPostAction(.cursorMovement, allowsImmediateRebuild: true)
+        let didReturnToLetters = handleNonLetterPostAction(.cursorMovement, allowsImmediateRebuild: true)
         refreshInputContext(forceKeyboardRebuild: didReturnToLetters, allowsImmediateRebuild: true)
     }
 
@@ -1318,7 +1411,7 @@ final class KeyboardViewController: UIInputViewController {
         triggerKeyPressHaptic()
         let didClearAccentState = clearAccentState(rebuild: false)
         textDocumentProxy.insertText(title)
-        let didReturnToLetters = handleSymbolsPostAction(
+        let didReturnToLetters = handleNonLetterPostAction(
             .characterInsertion,
             allowsImmediateRebuild: allowsImmediateRebuild
         )

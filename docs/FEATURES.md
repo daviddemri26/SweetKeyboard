@@ -15,10 +15,13 @@ This document is the detailed functional reference for the current codebase. It 
 ### Symbols Keyboard
 
 - Three dedicated symbol rows
+- Emoji sub-view available only from symbols mode
 - Punctuation row with `.`, `,`, `?`, `!`, and `'`
 - Cursor left and cursor right keys
 - Backspace in symbols mode
 - `ABC` key to return to letters
+- Emoji toggle key between `ABC` and space in symbols mode
+- `#+=` key to return from emoji to symbols
 - Symbol lock toggle
 - Inline settings key in compact mode
 
@@ -100,19 +103,20 @@ Result:
 - Fewer accidental lost presses when moving quickly across the keyboard
 - Less UI churn when switching layout or shift state mid-gesture
 
-### Automatic Return From Symbols
+### Automatic Return From Non-Letter Layouts
 
-Implemented through `shouldReturnToLetterKeyboardAfterSymbolsAction`.
+Implemented through `shouldReturnToLetterKeyboardAfterNonLetterAction`.
 
 Current behavior:
 
 - Entering one symbol returns to letters when symbol lock is off
-- Entering one symbol stays on symbols when symbol lock is on
+- Entering one symbol or emoji stays on the current non-letter layout when symbol lock is on
+- Entering one emoji returns to letters when symbol lock is off
 - Space does not force a return to letters
 - Backspace does not force a return to letters
 - Cursor movement does not force a return to letters
 - Primary action does not force a return to letters
-- Opening settings from symbols returns to letters first
+- Opening settings from symbols or emoji returns to letters first
 
 Design intent:
 
@@ -126,7 +130,8 @@ Current behavior:
 
 - Symbol lock state persists through shared settings
 - The symbols lock icon changes between open and closed lock states
-- When enabled, repeated symbol entry does not bounce back to letters
+- The same lock state is shared by symbols and emoji
+- When enabled, repeated symbol and emoji entry does not bounce back to letters
 
 ### Long-Press Accent And Period Variants
 
@@ -234,7 +239,7 @@ Default values:
 ### Without Full Access
 
 - Basic typing works
-- Symbols work
+- Symbols and emoji work
 - Action key works
 - Auto-capitalization works
 - Accent variants work
