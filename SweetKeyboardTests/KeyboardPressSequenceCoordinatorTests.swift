@@ -3,6 +3,33 @@ import XCTest
 
 @MainActor
 final class KeyboardPressSequenceCoordinatorTests: XCTestCase {
+    func testSymbolsCharacterInsertionReturnsToLetterKeyboard() {
+        XCTAssertTrue(
+            shouldReturnToLetterKeyboardAfterSymbolsAction(.characterInsertion)
+        )
+    }
+
+    func testSymbolsSettingsReturnsToLetterKeyboard() {
+        XCTAssertTrue(
+            shouldReturnToLetterKeyboardAfterSymbolsAction(.settings)
+        )
+    }
+
+    func testSymbolsNonClosingActionsStayOnSymbolsKeyboard() {
+        XCTAssertFalse(
+            shouldReturnToLetterKeyboardAfterSymbolsAction(.space)
+        )
+        XCTAssertFalse(
+            shouldReturnToLetterKeyboardAfterSymbolsAction(.backspace)
+        )
+        XCTAssertFalse(
+            shouldReturnToLetterKeyboardAfterSymbolsAction(.cursorMovement)
+        )
+        XCTAssertFalse(
+            shouldReturnToLetterKeyboardAfterSymbolsAction(.primaryAction)
+        )
+    }
+
     func testOverlappingTextTouchesCommitInPressOrder() {
         var coordinator = KeyboardPressSequenceCoordinator()
         let firstKey = NSObject()

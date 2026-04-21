@@ -241,6 +241,7 @@ final class KeyboardViewController: UIInputViewController {
             case .clipboard:
                 toggleMode(.clipboard)
             case .settings:
+                self.handleSymbolsPostAction(.settings, allowsImmediateRebuild: true)
                 toggleMode(.settings)
             }
         }
@@ -902,6 +903,23 @@ final class KeyboardViewController: UIInputViewController {
         mode = .keyboard
     }
 
+    @discardableResult
+    private func handleSymbolsPostAction(
+        _ action: SymbolKeyboardPostAction,
+        allowsImmediateRebuild: Bool
+    ) -> Bool {
+        guard
+            keyboardLayoutMode == .symbols,
+            shouldReturnToLetterKeyboardAfterSymbolsAction(action)
+        else {
+            return false
+        }
+
+        keyboardLayoutMode = .letters
+        requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
+        return true
+    }
+
     private func triggerKeyPressHaptic() {
         hapticFeedbackController.triggerKeyPress()
     }
@@ -1055,6 +1073,7 @@ final class KeyboardViewController: UIInputViewController {
 
         clearAccentState(rebuild: true)
         textDocumentProxy.deleteBackward()
+        handleSymbolsPostAction(.backspace, allowsImmediateRebuild: true)
     }
 
     @objc private func backspaceTouchDown(_ sender: UIButton) {
@@ -1099,8 +1118,9 @@ final class KeyboardViewController: UIInputViewController {
         triggerKeyPressHaptic()
         let didClearAccentState = clearAccentState(rebuild: false)
         textDocumentProxy.insertText(" ")
+        let didReturnToLetters = handleSymbolsPostAction(.space, allowsImmediateRebuild: allowsImmediateRebuild)
 
-        if didClearAccentState {
+        if didClearAccentState && !didReturnToLetters {
             requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
         }
     }
@@ -1109,8 +1129,9 @@ final class KeyboardViewController: UIInputViewController {
         triggerKeyPressHaptic()
         let didClearAccentState = clearAccentState(rebuild: false)
         textDocumentProxy.insertText("\n")
+        let didReturnToLetters = handleSymbolsPostAction(.primaryAction, allowsImmediateRebuild: allowsImmediateRebuild)
 
-        if didClearAccentState {
+        if didClearAccentState && !didReturnToLetters {
             requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
         }
     }
@@ -1132,11 +1153,13 @@ final class KeyboardViewController: UIInputViewController {
     @objc private func inlineSettingsTapped() {
         cancelSequencedInteractions()
         triggerKeyPressHaptic()
+        handleSymbolsPostAction(.settings, allowsImmediateRebuild: true)
         handleInlineSettingsTapped()
     }
 
     private func moveCursor(by offset: Int) {
         textDocumentProxy.adjustTextPosition(byCharacterOffset: offset)
+        handleSymbolsPostAction(.cursorMovement, allowsImmediateRebuild: true)
     }
 
     private func stopKeyRepeats() {
@@ -1168,6 +1191,10 @@ final class KeyboardViewController: UIInputViewController {
 
         let shouldDisableShift = shiftState == .enabled
         let shouldResetAccentState = accentState != nil
+        let didReturnToLetters = handleSymbolsPostAction(
+            .characterInsertion,
+            allowsImmediateRebuild: allowsImmediateRebuild
+        )
 
         if shouldDisableShift {
             shiftState = .off
@@ -1178,7 +1205,7 @@ final class KeyboardViewController: UIInputViewController {
             accentState = nil
         }
 
-        if shouldDisableShift || shouldResetAccentState {
+        if (shouldDisableShift || shouldResetAccentState) && !didReturnToLetters {
             requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
         }
     }

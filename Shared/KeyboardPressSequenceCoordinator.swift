@@ -19,6 +19,24 @@ enum SequencedKeyEffect: Equatable {
     case insertPrimaryAction
 }
 
+enum SymbolKeyboardPostAction: Equatable {
+    case characterInsertion
+    case settings
+    case space
+    case backspace
+    case cursorMovement
+    case primaryAction
+}
+
+func shouldReturnToLetterKeyboardAfterSymbolsAction(_ action: SymbolKeyboardPostAction) -> Bool {
+    switch action {
+    case .characterInsertion, .settings:
+        return true
+    case .space, .backspace, .cursorMovement, .primaryAction:
+        return false
+    }
+}
+
 struct KeyboardPressSequenceCoordinator {
     private struct PendingInteraction: Equatable {
         let id: ObjectIdentifier
