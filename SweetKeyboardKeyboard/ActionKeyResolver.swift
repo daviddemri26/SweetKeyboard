@@ -35,12 +35,15 @@ struct ActionKeyModel: Equatable {
 struct ActionKeyInputContext {
     let returnKeyType: UIReturnKeyType?
     let keyboardType: UIKeyboardType?
+    let autocapitalizationType: UITextAutocapitalizationType?
     let textContentType: String?
     let enablesReturnKeyAutomatically: Bool?
     let hasText: Bool
     let hasDocumentText: Bool
     let hasSelection: Bool
     let documentContextContainsLineBreaks: Bool
+    let documentContextBeforeInput: String
+    let documentContextAfterInput: String
 
     init(proxy: any UITextDocumentProxy) {
         let traits: any UITextInputTraits = proxy
@@ -50,8 +53,11 @@ struct ActionKeyInputContext {
 
         returnKeyType = traits.returnKeyType
         keyboardType = traits.keyboardType
+        autocapitalizationType = traits.autocapitalizationType
         textContentType = resolvedTextContentType.map { String(describing: $0) }
         enablesReturnKeyAutomatically = traits.enablesReturnKeyAutomatically
+        documentContextBeforeInput = beforeInput
+        documentContextAfterInput = afterInput
         let hasSelection = !(proxy.selectedText?.isEmpty ?? true)
         let hasDocumentText = !beforeInput.isEmpty || !afterInput.isEmpty
         self.hasSelection = hasSelection
@@ -66,6 +72,18 @@ struct ActionKeyInputContext {
         }
 
         return textContentType == String(describing: UITextContentType.emailAddress)
+    }
+
+    func autoCapitalizationContext(isEnabled: Bool) -> AutoCapitalizationContext {
+        AutoCapitalizationContext(
+            isEnabled: isEnabled,
+            autocapitalizationType: autocapitalizationType,
+            keyboardType: keyboardType,
+            textContentType: textContentType,
+            documentContextBeforeInput: documentContextBeforeInput,
+            documentContextAfterInput: documentContextAfterInput,
+            hasSelection: hasSelection
+        )
     }
 }
 

@@ -12,12 +12,6 @@ final class KeyboardViewController: UIInputViewController {
         case symbols
     }
 
-    private enum ShiftState {
-        case off
-        case enabled
-        case locked
-    }
-
     private enum DisplayMode {
         case basic
         case clipboard
@@ -26,16 +20,19 @@ final class KeyboardViewController: UIInputViewController {
     private let layoutEngine = KeyboardLayoutEngine()
     private let clipboardStore = ClipboardStore()
     private let actionKeyResolver = ActionKeyResolver()
+    private let autoCapitalizationResolver = AutoCapitalizationResolver()
     private let actionKeyDebugStore = ActionKeyDebugStore()
     private let sharedSettingsStore = SharedKeyboardSettingsStore()
     private let capabilityStatusStore = KeyboardCapabilityStatusStore()
+    private let shiftStateMachine = KeyboardShiftStateMachine()
 
     private let shiftDoubleTapInterval: TimeInterval = 0.35
     private let accentHoldDelay: TimeInterval = 0.5
     private let keyRepeatDelay: TimeInterval = 0.8
     private let keyRepeatInterval: TimeInterval = 0.1
-    private var shiftState: ShiftState = .off
+    private var shiftState: KeyboardShiftState = .off
     private var lastShiftTapAt: Date?
+    private var suppressedAutoCapitalizationContext: AutoCapitalizationContext?
     private var keyboardLayoutMode: KeyboardLayoutMode = .letters
     private var isEmailFieldActive = false
     private var accentState: AccentReplacementState?
@@ -93,7 +90,6 @@ final class KeyboardViewController: UIInputViewController {
         registerTraitObservers()
         bindActions()
         reloadFeatureState(rebuildKeyboard: true)
-        refreshActionKey()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -122,11 +118,12 @@ final class KeyboardViewController: UIInputViewController {
 
     override func textDidChange(_ textInput: UITextInput?) {
         super.textDidChange(textInput)
-        refreshActionKey()
+        refreshInputContext()
     }
 
     override func selectionDidChange(_ textInput: UITextInput?) {
         super.selectionDidChange(textInput)
+        refreshInputContext()
     }
 
     private func registerTraitObservers() {
@@ -247,15 +244,21 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         clipboardPanel.onSelectText = { [weak self] text in
-            self?.cancelSequencedInteractions()
-            self?.triggerKeyPressHaptic()
-            self?.textDocumentProxy.insertText(text)
-            self?.feedbackPresenter.show("Inserted")
-            self?.mode = .keyboard
+            guard let self else { return }
+            self.cancelSequencedInteractions()
+            self.triggerKeyPressHaptic()
+            self.textDocumentProxy.insertText(text)
+            self.feedbackPresenter.show("Inserted")
+            self.mode = .keyboard
+            self.refreshInputContext(forceKeyboardRebuild: self.keyboardLayoutMode == .letters)
         }
 
         settingsPanel.onClipboardModeChanged = { [weak self] isEnabled in
             self?.handleClipboardModeChanged(isEnabled)
+        }
+
+        settingsPanel.onAutoCapitalizationEnabledChanged = { [weak self] isEnabled in
+            self?.handleAutoCapitalizationChanged(isEnabled)
         }
 
         settingsPanel.onHapticsEnabledChanged = { [weak self] isEnabled in
@@ -286,12 +289,8 @@ final class KeyboardViewController: UIInputViewController {
 
         updateSettingsPanel()
         updateKeyboardSizingIfNeeded()
-
-        if rebuildKeyboard || previousDisplayMode != displayMode {
-            rebuildKeyboardRows()
-        } else {
-            refreshModeUI()
-        }
+        refreshModeUI()
+        refreshInputContext(forceKeyboardRebuild: rebuildKeyboard || previousDisplayMode != displayMode)
     }
 
     private func updateSettingsPanel() {
@@ -309,6 +308,7 @@ final class KeyboardViewController: UIInputViewController {
 
         settingsPanel.render(
             isClipboardModeEnabled: desiredClipboardModeEnabled,
+            isAutoCapitalizationEnabled: sharedSettings.autoCapitalizationEnabled,
             isHapticsEnabled: sharedSettings.keyHapticsEnabled,
             showsClipboardToggle: showsClipboardToggle,
             isClipboardToggleEnabled: isClipboardToggleEnabled,
@@ -597,10 +597,16 @@ final class KeyboardViewController: UIInputViewController {
         case .off:
             symbolName = "shift"
             accessibilityLabel = "Enable Shift"
-        case .enabled:
+        case .autoSingle:
+            symbolName = "shift.fill"
+            accessibilityLabel = "Disable Auto-Capitalization"
+        case .manualSingle:
             symbolName = "shift.fill"
             accessibilityLabel = "Disable Shift"
-        case .locked:
+        case .autoPersistent:
+            symbolName = "capslock.fill"
+            accessibilityLabel = "Disable Auto-Capitalization"
+        case .manualLocked:
             symbolName = "capslock.fill"
             accessibilityLabel = "Disable Caps Lock"
         }
@@ -783,31 +789,74 @@ final class KeyboardViewController: UIInputViewController {
         }
     }
 
-    private func refreshActionKey() {
+    private func refreshInputContext(
+        forceKeyboardRebuild: Bool = false,
+        allowsImmediateRebuild: Bool = true
+    ) {
         let context = ActionKeyInputContext(proxy: textDocumentProxy)
-        let isEmailField = context.isEmailField
+        var shouldRebuildKeyboard = forceKeyboardRebuild
 
-        if isEmailFieldActive != isEmailField {
-            isEmailFieldActive = isEmailField
-
-            if keyboardLayoutMode == .letters {
-                rebuildKeyboardRows()
-                return
-            }
+        if isEmailFieldActive != context.isEmailField {
+            isEmailFieldActive = context.isEmailField
+            shouldRebuildKeyboard = true
         }
 
+        if syncAutoCapitalization(using: context) {
+            shouldRebuildKeyboard = true
+        }
+
+        updateActionKey(using: context)
+
+        if shouldRebuildKeyboard, mode == .keyboard, keyboardLayoutMode == .letters {
+            requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
+        }
+    }
+
+    private func refreshActionKey() {
+        updateActionKey(using: ActionKeyInputContext(proxy: textDocumentProxy))
+    }
+
+    private func updateActionKey(using context: ActionKeyInputContext) {
         let model = actionKeyResolver.resolve(for: context)
-        guard let actionKeyButton else {
-            return
+
+        if let actionKeyButton {
+            KeyboardActionKeyRenderer.apply(
+                model: model,
+                isEnabled: actionKeyResolver.isEnabled(for: model, context: context),
+                to: actionKeyButton,
+                widthConstraint: actionKeyWidthConstraint
+            )
         }
 
-        KeyboardActionKeyRenderer.apply(
-            model: model,
-            isEnabled: actionKeyResolver.isEnabled(for: model, context: context),
-            to: actionKeyButton,
-            widthConstraint: actionKeyWidthConstraint
-        )
         logActionKeyState(model: model, context: context)
+    }
+
+    private func syncAutoCapitalization(using context: ActionKeyInputContext) -> Bool {
+        let autoCapitalizationContext = context.autoCapitalizationContext(
+            isEnabled: sharedSettings.autoCapitalizationEnabled
+        )
+
+        if suppressedAutoCapitalizationContext != autoCapitalizationContext {
+            suppressedAutoCapitalizationContext = nil
+        }
+
+        guard keyboardLayoutMode == .letters else {
+            return false
+        }
+
+        let newShiftState = shiftStateMachine.applyingAutoCapitalizationDecision(
+            autoCapitalizationResolver.resolve(for: autoCapitalizationContext),
+            to: shiftState,
+            isSuppressed: suppressedAutoCapitalizationContext == autoCapitalizationContext
+        )
+
+        guard newShiftState != shiftState else {
+            return false
+        }
+
+        shiftState = newShiftState
+        lastShiftTapAt = nil
+        return true
     }
 
     private func logActionKeyState(model: ActionKeyModel, context: ActionKeyInputContext) {
@@ -861,6 +910,7 @@ final class KeyboardViewController: UIInputViewController {
 
         textDocumentProxy.insertText(pasteText)
         feedbackPresenter.show("Pasted")
+        refreshInputContext(forceKeyboardRebuild: keyboardLayoutMode == .letters)
     }
 
     private func handleClipboardModeChanged(_ isEnabled: Bool) {
@@ -891,6 +941,19 @@ final class KeyboardViewController: UIInputViewController {
         }
     }
 
+    private func handleAutoCapitalizationChanged(_ isEnabled: Bool) {
+        cancelSequencedInteractions()
+        sharedSettings.autoCapitalizationEnabled = isEnabled
+        sharedSettingsStore.setAutoCapitalizationEnabled(isEnabled)
+        refreshInputContext(forceKeyboardRebuild: true)
+
+        if isEnabled {
+            feedbackPresenter.show("Auto-capitalization turned on")
+        } else {
+            feedbackPresenter.show("Auto-capitalization turned off")
+        }
+    }
+
     private func handleInlineSettingsTapped() {
         cancelSequencedInteractions()
         clearAccentState(rebuild: mode == .keyboard)
@@ -901,6 +964,7 @@ final class KeyboardViewController: UIInputViewController {
         cancelSequencedInteractions()
         keyboardLayoutMode = .letters
         mode = .keyboard
+        refreshInputContext(forceKeyboardRebuild: true)
     }
 
     @discardableResult
@@ -908,6 +972,7 @@ final class KeyboardViewController: UIInputViewController {
         _ action: SymbolKeyboardPostAction,
         allowsImmediateRebuild: Bool
     ) -> Bool {
+        _ = allowsImmediateRebuild
         guard
             keyboardLayoutMode == .symbols,
             shouldReturnToLetterKeyboardAfterSymbolsAction(action)
@@ -916,7 +981,6 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         keyboardLayoutMode = .letters
-        requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
         return true
     }
 
@@ -1045,25 +1109,26 @@ final class KeyboardViewController: UIInputViewController {
 
     private func toggleShift(allowsImmediateRebuild: Bool) {
         triggerKeyPressHaptic()
-        _ = clearAccentState(rebuild: false)
+        let didClearAccentState = clearAccentState(rebuild: false)
         let now = Date()
+        let autoCapitalizationContext = ActionKeyInputContext(proxy: textDocumentProxy)
+            .autoCapitalizationContext(isEnabled: sharedSettings.autoCapitalizationEnabled)
+        let result = shiftStateMachine.toggledState(
+            from: shiftState,
+            lastShiftTapAt: lastShiftTapAt,
+            now: now,
+            doubleTapInterval: shiftDoubleTapInterval,
+            autoCapitalizationContext: autoCapitalizationContext
+        )
 
-        if let lastShiftTapAt, now.timeIntervalSince(lastShiftTapAt) <= shiftDoubleTapInterval {
-            shiftState = (shiftState == .locked) ? .off : .locked
-            self.lastShiftTapAt = nil
+        let didShiftStateChange = result.state != shiftState
+        shiftState = result.state
+        lastShiftTapAt = result.lastShiftTapAt
+        suppressedAutoCapitalizationContext = result.suppressedAutoCapitalizationContext
+
+        if didClearAccentState || didShiftStateChange {
             requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
-            return
         }
-
-        switch shiftState {
-        case .off:
-            shiftState = .enabled
-        case .enabled, .locked:
-            shiftState = .off
-        }
-
-        lastShiftTapAt = now
-        requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
     }
 
     private func backspaceTapped(triggerHaptic: Bool) {
@@ -1071,9 +1136,13 @@ final class KeyboardViewController: UIInputViewController {
             triggerKeyPressHaptic()
         }
 
-        clearAccentState(rebuild: true)
+        let didClearAccentState = clearAccentState(rebuild: false)
         textDocumentProxy.deleteBackward()
-        handleSymbolsPostAction(.backspace, allowsImmediateRebuild: true)
+        let didReturnToLetters = handleSymbolsPostAction(.backspace, allowsImmediateRebuild: true)
+        refreshInputContext(
+            forceKeyboardRebuild: didClearAccentState || didReturnToLetters,
+            allowsImmediateRebuild: true
+        )
     }
 
     @objc private func backspaceTouchDown(_ sender: UIButton) {
@@ -1119,10 +1188,10 @@ final class KeyboardViewController: UIInputViewController {
         let didClearAccentState = clearAccentState(rebuild: false)
         textDocumentProxy.insertText(" ")
         let didReturnToLetters = handleSymbolsPostAction(.space, allowsImmediateRebuild: allowsImmediateRebuild)
-
-        if didClearAccentState && !didReturnToLetters {
-            requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
-        }
+        refreshInputContext(
+            forceKeyboardRebuild: didClearAccentState || didReturnToLetters,
+            allowsImmediateRebuild: allowsImmediateRebuild
+        )
     }
 
     private func insertPrimaryAction(allowsImmediateRebuild: Bool) {
@@ -1130,10 +1199,10 @@ final class KeyboardViewController: UIInputViewController {
         let didClearAccentState = clearAccentState(rebuild: false)
         textDocumentProxy.insertText("\n")
         let didReturnToLetters = handleSymbolsPostAction(.primaryAction, allowsImmediateRebuild: allowsImmediateRebuild)
-
-        if didClearAccentState && !didReturnToLetters {
-            requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
-        }
+        refreshInputContext(
+            forceKeyboardRebuild: didClearAccentState || didReturnToLetters,
+            allowsImmediateRebuild: allowsImmediateRebuild
+        )
     }
 
     private func setKeyboardLayout(_ target: SequencedKeyboardLayoutTarget, allowsImmediateRebuild: Bool) {
@@ -1143,11 +1212,14 @@ final class KeyboardViewController: UIInputViewController {
         switch target {
         case .letters:
             keyboardLayoutMode = .letters
+            refreshInputContext(
+                forceKeyboardRebuild: true,
+                allowsImmediateRebuild: allowsImmediateRebuild
+            )
         case .symbols:
             keyboardLayoutMode = .symbols
+            requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
         }
-
-        requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
     }
 
     @objc private func inlineSettingsTapped() {
@@ -1159,7 +1231,8 @@ final class KeyboardViewController: UIInputViewController {
 
     private func moveCursor(by offset: Int) {
         textDocumentProxy.adjustTextPosition(byCharacterOffset: offset)
-        handleSymbolsPostAction(.cursorMovement, allowsImmediateRebuild: true)
+        let didReturnToLetters = handleSymbolsPostAction(.cursorMovement, allowsImmediateRebuild: true)
+        refreshInputContext(forceKeyboardRebuild: didReturnToLetters, allowsImmediateRebuild: true)
     }
 
     private func stopKeyRepeats() {
@@ -1169,7 +1242,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private var isShiftActive: Bool {
-        shiftState != .off
+        shiftState.isActive
     }
 
     private func revealAccentVariants(for displayedLetter: String) {
@@ -1187,27 +1260,22 @@ final class KeyboardViewController: UIInputViewController {
 
     private func insertCharacter(_ title: String, allowsImmediateRebuild: Bool) {
         triggerKeyPressHaptic()
+        let didClearAccentState = clearAccentState(rebuild: false)
         textDocumentProxy.insertText(title)
-
-        let shouldDisableShift = shiftState == .enabled
-        let shouldResetAccentState = accentState != nil
         let didReturnToLetters = handleSymbolsPostAction(
             .characterInsertion,
             allowsImmediateRebuild: allowsImmediateRebuild
         )
 
-        if shouldDisableShift {
+        if shiftState == .manualSingle {
             shiftState = .off
             lastShiftTapAt = nil
         }
 
-        if shouldResetAccentState {
-            accentState = nil
-        }
-
-        if (shouldDisableShift || shouldResetAccentState) && !didReturnToLetters {
-            requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
-        }
+        refreshInputContext(
+            forceKeyboardRebuild: didClearAccentState || didReturnToLetters,
+            allowsImmediateRebuild: allowsImmediateRebuild
+        )
     }
 
     @discardableResult

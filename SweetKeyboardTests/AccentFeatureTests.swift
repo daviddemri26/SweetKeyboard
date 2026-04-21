@@ -27,7 +27,7 @@ final class AccentFeatureTests: XCTestCase {
 
         XCTAssertEqual(characterTitles(in: rows[0]), ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"])
         XCTAssertEqual(characterTitles(in: rows[1]), Array("qwertyuiop").map(String.init))
-        XCTAssertEqual(characterTitles(in: rows[2]), Array("asdfghjkl").map(String.init))
+        XCTAssertEqual(characterTitles(in: rows[2]), Array("asdfghjkl'").map(String.init))
         XCTAssertEqual(characterTitles(in: rows[3]), Array("zxcvbnm").map(String.init))
     }
 

@@ -2,6 +2,7 @@ import UIKit
 
 final class KeyboardSettingsPanelView: UIView {
     var onClipboardModeChanged: ((Bool) -> Void)?
+    var onAutoCapitalizationEnabledChanged: ((Bool) -> Void)?
     var onHapticsEnabledChanged: ((Bool) -> Void)?
     var onDone: (() -> Void)?
 
@@ -15,12 +16,19 @@ final class KeyboardSettingsPanelView: UIView {
     private let featuresSectionLabel = UILabel()
     private let featuresCard = UIView()
     private let featuresCardStack = UIStackView()
+    private let autoCapitalizationToggleRow = UIStackView()
+    private let autoCapitalizationTitleLabel = UILabel()
+    private let autoCapitalizationSwitch = UISwitch()
+    private let autoCapitalizationSeparator = UIView()
+    private let autoCapitalizationHelperRow = UIView()
+    private let autoCapitalizationHelperLabel = UILabel()
     private let toggleRow = UIStackView()
     private let toggleTitleLabel = UILabel()
     private let clipboardSwitch = UISwitch()
     private let toggleSeparator = UIView()
     private let helperRow = UIView()
     private let helperLabel = UILabel()
+    private var autoCapitalizationSeparatorHeightConstraint: NSLayoutConstraint?
     private var toggleSeparatorHeightConstraint: NSLayoutConstraint?
 
     private let feedbackSectionLabel = UILabel()
@@ -49,17 +57,20 @@ final class KeyboardSettingsPanelView: UIView {
 
     func render(
         isClipboardModeEnabled: Bool,
+        isAutoCapitalizationEnabled: Bool,
         isHapticsEnabled: Bool,
         showsClipboardToggle: Bool,
         isClipboardToggleEnabled: Bool,
         helperText: String?
     ) {
+        autoCapitalizationSwitch.isOn = isAutoCapitalizationEnabled
         clipboardSwitch.isOn = isClipboardModeEnabled
         hapticsSwitch.isOn = isHapticsEnabled
         toggleRow.isHidden = !showsClipboardToggle
         toggleSeparator.isHidden = !showsClipboardToggle
         clipboardSwitch.isEnabled = isClipboardToggleEnabled
 
+        autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
         toggleTitleLabel.textColor = isClipboardToggleEnabled
             ? KeyboardTheme.keyLabelColor
             : KeyboardTheme.secondaryLabelColor
@@ -121,6 +132,34 @@ final class KeyboardSettingsPanelView: UIView {
         featuresSectionLabel.font = .preferredFont(forTextStyle: .caption1)
         featuresSectionLabel.text = "KEYBOARD FEATURES"
 
+        autoCapitalizationTitleLabel.font = .preferredFont(forTextStyle: .body)
+        autoCapitalizationTitleLabel.numberOfLines = 0
+        autoCapitalizationTitleLabel.text = "Auto-capitalization"
+
+        autoCapitalizationSwitch.addTarget(self, action: #selector(autoCapitalizationSwitchChanged), for: .valueChanged)
+
+        autoCapitalizationToggleRow.axis = .horizontal
+        autoCapitalizationToggleRow.alignment = .center
+        autoCapitalizationToggleRow.spacing = 12
+        autoCapitalizationToggleRow.isLayoutMarginsRelativeArrangement = true
+        autoCapitalizationToggleRow.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 14, leading: 16, bottom: 14, trailing: 16)
+        autoCapitalizationToggleRow.addArrangedSubview(autoCapitalizationTitleLabel)
+        autoCapitalizationToggleRow.addArrangedSubview(UIView())
+        autoCapitalizationToggleRow.addArrangedSubview(autoCapitalizationSwitch)
+
+        autoCapitalizationHelperLabel.font = .preferredFont(forTextStyle: .footnote)
+        autoCapitalizationHelperLabel.numberOfLines = 0
+        autoCapitalizationHelperLabel.text = "Starts with Shift active when the field suggests a capital letter, like at the beginning of a sentence."
+
+        autoCapitalizationHelperRow.addSubview(autoCapitalizationHelperLabel)
+        autoCapitalizationHelperLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            autoCapitalizationHelperLabel.topAnchor.constraint(equalTo: autoCapitalizationHelperRow.topAnchor, constant: 12),
+            autoCapitalizationHelperLabel.leadingAnchor.constraint(equalTo: autoCapitalizationHelperRow.leadingAnchor, constant: 16),
+            autoCapitalizationHelperLabel.trailingAnchor.constraint(equalTo: autoCapitalizationHelperRow.trailingAnchor, constant: -16),
+            autoCapitalizationHelperLabel.bottomAnchor.constraint(equalTo: autoCapitalizationHelperRow.bottomAnchor, constant: -12)
+        ])
+
         toggleTitleLabel.font = .preferredFont(forTextStyle: .body)
         toggleTitleLabel.numberOfLines = 0
         toggleTitleLabel.text = "Clipboard toolbar"
@@ -155,18 +194,23 @@ final class KeyboardSettingsPanelView: UIView {
         featuresCardStack.axis = .vertical
         featuresCardStack.alignment = .fill
         featuresCardStack.spacing = 0
+        featuresCardStack.addArrangedSubview(autoCapitalizationToggleRow)
+        featuresCardStack.addArrangedSubview(autoCapitalizationSeparator)
+        featuresCardStack.addArrangedSubview(autoCapitalizationHelperRow)
         featuresCardStack.addArrangedSubview(toggleRow)
         featuresCardStack.addArrangedSubview(toggleSeparator)
         featuresCardStack.addArrangedSubview(helperRow)
 
         featuresCard.addSubview(featuresCardStack)
         featuresCardStack.translatesAutoresizingMaskIntoConstraints = false
+        autoCapitalizationSeparatorHeightConstraint = autoCapitalizationSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
         toggleSeparatorHeightConstraint = toggleSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
         NSLayoutConstraint.activate([
             featuresCardStack.topAnchor.constraint(equalTo: featuresCard.topAnchor),
             featuresCardStack.leadingAnchor.constraint(equalTo: featuresCard.leadingAnchor),
             featuresCardStack.trailingAnchor.constraint(equalTo: featuresCard.trailingAnchor),
             featuresCardStack.bottomAnchor.constraint(equalTo: featuresCard.bottomAnchor),
+            autoCapitalizationSeparatorHeightConstraint!,
             toggleSeparatorHeightConstraint!
         ])
 
@@ -286,8 +330,10 @@ final class KeyboardSettingsPanelView: UIView {
         featuresCard.backgroundColor = KeyboardTheme.settingsGroupBackground
         feedbackCard.backgroundColor = KeyboardTheme.settingsGroupBackground
         privacyCard.backgroundColor = KeyboardTheme.settingsGroupBackground
+        autoCapitalizationSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
         toggleSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
 
+        autoCapitalizationHelperLabel.textColor = KeyboardTheme.secondaryLabelColor
         helperLabel.textColor = KeyboardTheme.secondaryLabelColor
         hapticsHelperLabel.textColor = KeyboardTheme.secondaryLabelColor
         privacyLabel.textColor = KeyboardTheme.secondaryLabelColor
@@ -300,6 +346,10 @@ final class KeyboardSettingsPanelView: UIView {
 
     @objc private func clipboardSwitchChanged() {
         onClipboardModeChanged?(clipboardSwitch.isOn)
+    }
+
+    @objc private func autoCapitalizationSwitchChanged() {
+        onAutoCapitalizationEnabledChanged?(autoCapitalizationSwitch.isOn)
     }
 
     @objc private func hapticsSwitchChanged() {
@@ -315,6 +365,7 @@ final class KeyboardSettingsPanelView: UIView {
     }
 
     private func updateSeparatorThickness() {
+        autoCapitalizationSeparatorHeightConstraint?.constant = separatorThickness
         toggleSeparatorHeightConstraint?.constant = separatorThickness
     }
 }

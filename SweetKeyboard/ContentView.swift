@@ -56,6 +56,20 @@ struct ContentView: View {
                 .foregroundStyle(.secondary)
 
             Toggle(
+                "Auto-capitalization",
+                isOn: Binding(
+                    get: { sharedSettings.autoCapitalizationEnabled },
+                    set: { newValue in
+                        sharedSettings.autoCapitalizationEnabled = newValue
+                        sharedSettingsStore.setAutoCapitalizationEnabled(newValue)
+                    }
+                )
+            )
+
+            Text("When on, SweetKeyboard enables Shift automatically at the start of sentences and in compatible fields.")
+                .foregroundStyle(.secondary)
+
+            Toggle(
                 "Clipboard toolbar",
                 isOn: Binding(
                     get: { sharedSettings.clipboardModeEnabled },

@@ -47,7 +47,7 @@ struct KeyboardLayoutEngine {
     private let symbolPunctuationRow = [".", ",", "?", "!", "'"]
 
     private let rowOne = Array("qwertyuiop").map(String.init)
-    private let rowTwo = Array("asdfghjkl").map(String.init)
+    private let rowTwo = Array("asdfghjkl'").map(String.init)
     private let rowThree = Array("zxcvbnm").map(String.init)
 
     func letterRows(
