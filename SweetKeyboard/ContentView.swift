@@ -88,7 +88,7 @@ struct ContentView: View {
 
     var body: some View {
         TabView {
-            tabContainer(title: "SweetKeyboard") {
+            tabContainer {
                 HomeView()
             }
             .tabItem {
@@ -131,13 +131,12 @@ struct ContentView: View {
     }
 
     private func tabContainer<Content: View>(
-        title: String,
+        title: String? = nil,
         @ViewBuilder content: () -> Content
     ) -> some View {
         NavigationStack {
             AppScreen(content: content)
-                .navigationTitle(title)
-                .navigationBarTitleDisplayMode(.inline)
+                .modifier(NavigationChromeModifier(title: title))
         }
     }
 }
@@ -148,9 +147,7 @@ private struct HomeView: View {
     var body: some View {
         VStack(spacing: 18) {
             AppHeroCard(
-                eyebrow: "SweetKeyboard",
-                title: "Install the keyboard in a few steps",
-                message: "The keyboard works right away for typing. Turn on Full Access only if you want clipboard tools."
+                title: "Install the keyboard in a few steps"
             )
 
             InstallStepCard(
@@ -161,14 +158,15 @@ private struct HomeView: View {
 
             InstallStepCard(
                 number: "2",
-                title: "Open the keyboard",
-                message: "Tap the globe button in any text field, then switch to SweetKeyboard."
+                title: "Turn on Full Access only if you want clipboard tools.",
+                message: "In Keyboards settings, tap on SweetKeyboard. Turn on Full Access and tap Allow.",
+                showsFilledNumber: false
             )
 
             InstallStepCard(
                 number: "3",
-                title: "Enable Full Access if needed",
-                message: "Only if needed: open the globe menu, tap Keyboard Settings, then go to Keyboard > SweetKeyboard. Turn on Full Access and tap Allow."
+                title: "Open the keyboard",
+                message: "Tap the globe button in any text field, then switch to SweetKeyboard."
             ) {
                 if !model.canEnableClipboardMode {
                     CapabilityBadge(
@@ -182,7 +180,8 @@ private struct HomeView: View {
             InstallStepCard(
                 number: "4",
                 title: "Come back to review settings",
-                message: "Your keyboard options are then available here and inside the keyboard itself."
+                message: "Your keyboard options are then available here and inside the keyboard itself.",
+                showsFilledNumber: false
             )
         }
     }
@@ -200,15 +199,6 @@ private struct SettingsView: View {
             )
 
             SettingsToggleCard(
-                title: "Auto-capitalization",
-                message: "Automatically enables Shift at the start of sentences and in compatible fields.",
-                isOn: Binding(
-                    get: { model.sharedSettings.autoCapitalizationEnabled },
-                    set: model.setAutoCapitalizationEnabled
-                )
-            )
-
-            SettingsToggleCard(
                 title: "Clipboard toolbar",
                 message: "Shows Copy, Paste, Clipboard, and Settings above the keyboard.",
                 isOn: Binding(
@@ -219,6 +209,15 @@ private struct SettingsView: View {
                 footnote: model.canEnableClipboardMode
                     ? nil
                     : "Tap Keyboard, SweetKeyboard, turn on Full Access, tap Allow, then reopen the keyboard."
+            )
+
+            SettingsToggleCard(
+                title: "Auto-capitalization",
+                message: "Automatically enables Shift at the start of sentences and in compatible fields.",
+                isOn: Binding(
+                    get: { model.sharedSettings.autoCapitalizationEnabled },
+                    set: model.setAutoCapitalizationEnabled
+                )
             )
 
             SettingsToggleCard(
@@ -395,6 +394,21 @@ private struct DebugView: View {
     }
 }
 
+private struct NavigationChromeModifier: ViewModifier {
+    let title: String?
+
+    func body(content: Content) -> some View {
+        if let title {
+            content
+                .navigationTitle(title)
+                .navigationBarTitleDisplayMode(.inline)
+        } else {
+            content
+                .toolbar(.hidden, for: .navigationBar)
+        }
+    }
+}
+
 private struct AppScreen<Content: View>: View {
     @ViewBuilder let content: Content
 
@@ -413,15 +427,15 @@ private struct AppScreen<Content: View>: View {
 }
 
 private struct AppHeroCard<Accessory: View>: View {
-    let eyebrow: String
+    let eyebrow: String?
     let title: String
-    let message: String
+    let message: String?
     @ViewBuilder var accessory: Accessory
 
     init(
-        eyebrow: String,
+        eyebrow: String? = nil,
         title: String,
-        message: String,
+        message: String? = nil,
         @ViewBuilder accessory: () -> Accessory = { EmptyView() }
     ) {
         self.eyebrow = eyebrow
@@ -433,19 +447,23 @@ private struct AppHeroCard<Accessory: View>: View {
     var body: some View {
         AppCard {
             VStack(alignment: .leading, spacing: 14) {
-                Text(eyebrow.uppercased())
-                    .font(.system(.caption, design: .rounded).weight(.bold))
-                    .tracking(1.4)
-                    .foregroundStyle(AppTheme.accent)
+                if let eyebrow {
+                    Text(eyebrow.uppercased())
+                        .font(.system(.caption, design: .rounded).weight(.bold))
+                        .tracking(1.4)
+                        .foregroundStyle(AppTheme.accent)
+                }
 
                 Text(title)
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundStyle(AppTheme.primaryText)
 
-                Text(message)
-                    .font(.system(.body, design: .rounded))
-                    .foregroundStyle(AppTheme.secondaryText)
-                    .fixedSize(horizontal: false, vertical: true)
+                if let message {
+                    Text(message)
+                        .font(.system(.body, design: .rounded))
+                        .foregroundStyle(AppTheme.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
 
                 accessory
             }
@@ -457,28 +475,27 @@ private struct InstallStepCard<Accessory: View>: View {
     let number: String
     let title: String
     let message: String
+    let showsFilledNumber: Bool
     @ViewBuilder var accessory: Accessory
 
     init(
         number: String,
         title: String,
         message: String,
+        showsFilledNumber: Bool = true,
         @ViewBuilder accessory: () -> Accessory = { EmptyView() }
     ) {
         self.number = number
         self.title = title
         self.message = message
+        self.showsFilledNumber = showsFilledNumber
         self.accessory = accessory()
     }
 
     var body: some View {
         AppCard {
             HStack(alignment: .top, spacing: 14) {
-                Text(number)
-                    .font(.system(.headline, design: .rounded).weight(.bold))
-                    .foregroundStyle(.white)
-                    .frame(width: 34, height: 34)
-                    .background(AppTheme.accent, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                stepNumber
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text(title)
@@ -496,6 +513,19 @@ private struct InstallStepCard<Accessory: View>: View {
                 Spacer(minLength: 0)
             }
         }
+    }
+
+    private var stepNumber: some View {
+        Text(number)
+            .font(.system(.headline, design: .rounded).weight(.bold))
+            .foregroundStyle(showsFilledNumber ? .white : AppTheme.accent)
+            .frame(width: 34, height: 34)
+            .background {
+                if showsFilledNumber {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .fill(AppTheme.accent)
+                }
+            }
     }
 }
 
