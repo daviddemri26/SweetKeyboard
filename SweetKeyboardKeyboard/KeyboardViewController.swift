@@ -65,6 +65,9 @@ final class KeyboardViewController: UIInputViewController {
         delay: keyRepeatDelay,
         repeatInterval: keyRepeatInterval
     )
+    private var pressSequenceCoordinator = KeyboardPressSequenceCoordinator()
+    private var sequencedKeyKindsByButtonID: [ObjectIdentifier: SequencedKeyKind] = [:]
+    private var keyboardRebuildIsDeferred = false
 
     private weak var actionKeyButton: UIButton?
     private var actionKeyWidthConstraint: NSLayoutConstraint?
@@ -114,6 +117,7 @@ final class KeyboardViewController: UIInputViewController {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         stopKeyRepeats()
+        cancelSequencedInteractions(performDeferredRebuild: false)
     }
 
     override func textDidChange(_ textInput: UITextInput?) {
@@ -226,6 +230,7 @@ final class KeyboardViewController: UIInputViewController {
     private func bindActions() {
         actionBar.onAction = { [weak self] action in
             guard let self else { return }
+            self.cancelSequencedInteractions()
             self.triggerKeyPressHaptic()
 
             switch action {
@@ -241,6 +246,7 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         clipboardPanel.onSelectText = { [weak self] text in
+            self?.cancelSequencedInteractions()
             self?.triggerKeyPressHaptic()
             self?.textDocumentProxy.insertText(text)
             self?.feedbackPresenter.show("Inserted")
@@ -321,6 +327,7 @@ final class KeyboardViewController: UIInputViewController {
             return
         }
 
+        cancelSequencedInteractions()
         clearAccentState(rebuild: mode == .keyboard)
         mode = (mode == targetMode) ? .keyboard : targetMode
     }
@@ -342,6 +349,9 @@ final class KeyboardViewController: UIInputViewController {
 
     private func rebuildKeyboardRows() {
         stopKeyRepeats()
+        pressSequenceCoordinator.cancelAll()
+        sequencedKeyKindsByButtonID.removeAll()
+        keyboardRebuildIsDeferred = false
         actionKeyButton = nil
         actionKeyWidthConstraint = nil
         keyboardRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
@@ -417,6 +427,36 @@ final class KeyboardViewController: UIInputViewController {
         return row
     }
 
+    private func requestKeyboardRebuild(allowsImmediateRebuild: Bool) {
+        if allowsImmediateRebuild {
+            keyboardRebuildIsDeferred = false
+            rebuildKeyboardRows()
+            return
+        }
+
+        keyboardRebuildIsDeferred = true
+    }
+
+    private func performDeferredKeyboardRebuildIfNeeded() {
+        guard keyboardRebuildIsDeferred else {
+            return
+        }
+
+        keyboardRebuildIsDeferred = false
+        rebuildKeyboardRows()
+    }
+
+    private func cancelSequencedInteractions(performDeferredRebuild: Bool = true) {
+        pressSequenceCoordinator.cancelAll()
+        characterHoldController.stop()
+
+        if performDeferredRebuild {
+            performDeferredKeyboardRebuildIfNeeded()
+        } else {
+            keyboardRebuildIsDeferred = false
+        }
+    }
+
     private func updateKeyboardSizingIfNeeded() {
         let bottomInset = KeyboardMetrics.keyboardBottomInset(for: view.safeAreaInsets)
         let containerHeight = KeyboardMetrics.keyboardContainerHeight(bottomInset: bottomInset)
@@ -447,7 +487,7 @@ final class KeyboardViewController: UIInputViewController {
     private func makeCharacterKey(_ title: String) -> UIButton {
         let key = makeBaseKey(title: title, role: .character)
         key.addTarget(self, action: #selector(characterKeyTouchDown(_:)), for: .touchDown)
-        key.addTarget(self, action: #selector(characterKeyTapped(_:)), for: .touchUpInside)
+        key.addTarget(self, action: #selector(characterKeyTouchUpInside(_:)), for: .touchUpInside)
         key.addTarget(self, action: #selector(characterKeyTouchEnded(_:)), for: .touchUpOutside)
         key.addTarget(self, action: #selector(characterKeyTouchEnded(_:)), for: .touchCancel)
         key.addTarget(self, action: #selector(characterKeyTouchEnded(_:)), for: .touchDragExit)
@@ -463,17 +503,19 @@ final class KeyboardViewController: UIInputViewController {
         case .backspace:
             return makeActionKey(title: "⌫")
         case .space:
-            return makeCharacterActionKey(title: "", action: #selector(spaceTapped))
+            return makeSpaceKey()
         case .symbolToggle:
-            let key = makeActionSymbolKey(symbolName: "command", action: #selector(symbolKeyboardTapped))
+            let key = makeActionSymbolKey(symbolName: "command")
             applyFunctionKeyBorder(to: key)
+            configureSequencedKey(key, kind: .layoutSwitch(.symbols))
             return key
         case .letterToggle:
-            let key = makeActionKey(title: "ABC", action: #selector(letterKeyboardTapped))
+            let key = makeActionKey(title: "ABC")
             applyFunctionKeyBorder(to: key)
+            configureSequencedKey(key, kind: .layoutSwitch(.letters))
             return key
         case .primaryAction:
-            return makePrimaryActionKey(action: #selector(actionKeyTapped))
+            return makePrimaryActionKey()
         case .cursor(let offset, let symbolName):
             return makeCursorMovementKey(symbolName: symbolName, offset: offset)
         case .inlineSettings:
@@ -587,19 +629,24 @@ final class KeyboardViewController: UIInputViewController {
         key.setImage(symbolImage, for: .normal)
         key.setImage(symbolImage, for: .highlighted)
         key.accessibilityLabel = accessibilityLabel
-        key.addTarget(self, action: #selector(shiftTapped), for: .touchUpInside)
+        configureSequencedKey(key, kind: .shift)
         return key
     }
 
-    private func makeCharacterActionKey(title: String, action: Selector) -> UIButton {
+    private func makeSpaceKey() -> UIButton {
+        let key = makeCharacterActionKey(title: "")
+        configureSequencedKey(key, kind: .text(" "))
+        return key
+    }
+
+    private func makeCharacterActionKey(title: String) -> UIButton {
         let key = makeBaseKey(title: title, role: .character)
-        key.addTarget(self, action: action, for: .touchUpInside)
         return key
     }
 
-    private func makePrimaryActionKey(action: Selector) -> UIButton {
+    private func makePrimaryActionKey() -> UIButton {
         let key = makeBaseKey(title: nil, role: .primaryAction)
-        key.addTarget(self, action: action, for: .touchUpInside)
+        configureSequencedKey(key, kind: .primaryAction)
 
         if let pressableKey = key as? KeyboardPressableButton {
             pressableKey.setTitleFonts(
@@ -714,6 +761,15 @@ final class KeyboardViewController: UIInputViewController {
         return button
     }
 
+    private func configureSequencedKey(_ button: UIButton, kind: SequencedKeyKind) {
+        sequencedKeyKindsByButtonID[ObjectIdentifier(button)] = kind
+        button.addTarget(self, action: #selector(sequencedKeyTouchDown(_:)), for: .touchDown)
+        button.addTarget(self, action: #selector(sequencedKeyTouchUpInside(_:)), for: .touchUpInside)
+        button.addTarget(self, action: #selector(sequencedKeyTouchEnded(_:)), for: .touchUpOutside)
+        button.addTarget(self, action: #selector(sequencedKeyTouchEnded(_:)), for: .touchCancel)
+        button.addTarget(self, action: #selector(sequencedKeyTouchEnded(_:)), for: .touchDragExit)
+    }
+
     private func applyFunctionKeyBorder(to key: UIButton) {
         if let pressableKey = key as? KeyboardPressableButton {
             pressableKey.setBorder(
@@ -807,6 +863,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func handleClipboardModeChanged(_ isEnabled: Bool) {
+        cancelSequencedInteractions()
         sharedSettings.clipboardModeEnabled = isEnabled
         sharedSettingsStore.setClipboardModeEnabled(isEnabled)
         reloadFeatureState(rebuildKeyboard: true)
@@ -821,6 +878,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func handleKeyHapticsChanged(_ isEnabled: Bool) {
+        cancelSequencedInteractions()
         sharedSettings.keyHapticsEnabled = isEnabled
         sharedSettingsStore.setKeyHapticsEnabled(isEnabled)
         hapticFeedbackController.setEnabled(isEnabled)
@@ -833,11 +891,13 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func handleInlineSettingsTapped() {
+        cancelSequencedInteractions()
         clearAccentState(rebuild: mode == .keyboard)
         mode = (mode == .settings) ? .keyboard : .settings
     }
 
     private func returnToLetterKeyboard() {
+        cancelSequencedInteractions()
         keyboardLayoutMode = .letters
         mode = .keyboard
     }
@@ -846,53 +906,134 @@ final class KeyboardViewController: UIInputViewController {
         hapticFeedbackController.triggerKeyPress()
     }
 
-    @objc private func characterKeyTapped(_ sender: UIButton) {
+    private func beginSequencedTouch(on sender: UIButton, kind: SequencedKeyKind) {
+        characterHoldController.stop()
+        let keyID = ObjectIdentifier(sender)
+        let effects = pressSequenceCoordinator.commitPendingInteractionBeforeTouchDown(id: keyID)
+        applySequencedEffects(effects, allowsImmediateRebuild: false)
+        pressSequenceCoordinator.beginPendingInteraction(id: keyID, kind: kind)
+    }
+
+    private func completeSequencedTouch(on sender: UIButton) {
+        let effects = pressSequenceCoordinator.handleTouchUpInside(id: ObjectIdentifier(sender))
+        applySequencedEffects(effects, allowsImmediateRebuild: true)
+        performDeferredKeyboardRebuildIfNeeded()
+    }
+
+    private func cancelSequencedTouch(on sender: UIButton) {
+        pressSequenceCoordinator.handleTouchCancelled(id: ObjectIdentifier(sender))
+        performDeferredKeyboardRebuildIfNeeded()
+    }
+
+    private func applySequencedEffects(_ effects: [SequencedKeyEffect], allowsImmediateRebuild: Bool) {
+        for effect in effects {
+            switch effect {
+            case .insertText(let text):
+                if text == " " {
+                    insertSpace(allowsImmediateRebuild: allowsImmediateRebuild)
+                } else {
+                    insertCharacter(text, allowsImmediateRebuild: allowsImmediateRebuild)
+                }
+            case .toggleShift:
+                toggleShift(allowsImmediateRebuild: allowsImmediateRebuild)
+            case .setKeyboardLayout(let target):
+                setKeyboardLayout(target, allowsImmediateRebuild: allowsImmediateRebuild)
+            case .insertPrimaryAction:
+                insertPrimaryAction(allowsImmediateRebuild: allowsImmediateRebuild)
+            }
+        }
+    }
+
+    private func resolvedSequencedCharacterText(for displayedTitle: String) -> String {
+        guard keyboardLayoutMode == .letters, accentState == nil else {
+            return displayedTitle
+        }
+
+        return isShiftActive ? displayedTitle.uppercased() : displayedTitle.lowercased()
+    }
+
+    @objc private func sequencedKeyTouchDown(_ sender: UIButton) {
+        guard let kind = sequencedKeyKindsByButtonID[ObjectIdentifier(sender)] else {
+            return
+        }
+
+        beginSequencedTouch(on: sender, kind: kind)
+    }
+
+    @objc private func sequencedKeyTouchUpInside(_ sender: UIButton) {
+        completeSequencedTouch(on: sender)
+    }
+
+    @objc private func sequencedKeyTouchEnded(_ sender: UIButton) {
+        cancelSequencedTouch(on: sender)
+    }
+
+    @objc private func characterKeyTouchUpInside(_ sender: UIButton) {
         guard let title = sender.currentTitle else {
+            return
+        }
+
+        guard accentState != nil else {
+            characterHoldController.stop()
+            completeSequencedTouch(on: sender)
             return
         }
 
         let didTriggerAccentReveal = characterHoldController.wasTriggered(on: sender)
         let didHandleTap = characterHoldController.completeTap(on: sender) { [weak self] in
-            self?.insertCharacter(title)
+            self?.insertCharacter(title, allowsImmediateRebuild: true)
         }
 
         guard !didHandleTap, !didTriggerAccentReveal else {
             return
         }
 
-        insertCharacter(title)
+        insertCharacter(title, allowsImmediateRebuild: true)
     }
 
     @objc private func characterKeyTouchDown(_ sender: UIButton) {
-        guard
-            keyboardLayoutMode == .letters,
-            accentState == nil,
-            let title = sender.currentTitle,
-            AccentCatalog.replacementState(for: title, isUppercase: isShiftActive) != nil
-        else {
+        guard let displayedTitle = sender.currentTitle else {
+            return
+        }
+
+        guard accentState == nil else {
             characterHoldController.stop()
             return
         }
 
+        let resolvedTitle = resolvedSequencedCharacterText(for: displayedTitle)
+        beginSequencedTouch(on: sender, kind: .text(resolvedTitle))
+
+        guard
+            keyboardLayoutMode == .letters,
+            AccentCatalog.replacementState(for: resolvedTitle, isUppercase: isShiftActive) != nil
+        else {
+            return
+        }
+
         characterHoldController.begin(on: sender) { [weak self] in
-            self?.revealAccentVariants(for: title)
+            self?.revealAccentVariants(for: resolvedTitle)
         }
     }
 
     @objc private func characterKeyTouchEnded(_ sender: UIButton) {
-        _ = sender
         characterHoldController.stop()
+        guard accentState == nil else {
+            return
+        }
+
+        cancelSequencedTouch(on: sender)
     }
 
-    @objc private func shiftTapped() {
+    private func toggleShift(allowsImmediateRebuild: Bool) {
         triggerKeyPressHaptic()
-        clearAccentState(rebuild: false)
+        _ = clearAccentState(rebuild: false)
         let now = Date()
 
         if let lastShiftTapAt, now.timeIntervalSince(lastShiftTapAt) <= shiftDoubleTapInterval {
             shiftState = (shiftState == .locked) ? .off : .locked
             self.lastShiftTapAt = nil
-            rebuildKeyboardRows()
+            requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
             return
         }
 
@@ -904,7 +1045,7 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         lastShiftTapAt = now
-        rebuildKeyboardRows()
+        requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
     }
 
     private func backspaceTapped(triggerHaptic: Bool) {
@@ -917,6 +1058,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     @objc private func backspaceTouchDown(_ sender: UIButton) {
+        cancelSequencedInteractions()
         backspaceRepeatController.begin(on: sender) { [weak self] in
             self?.backspaceTapped(triggerHaptic: true)
         }
@@ -934,6 +1076,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     @objc private func cursorMovementTouchDown(_ sender: UIButton) {
+        cancelSequencedInteractions()
         cursorRepeatController.begin(on: sender, identifier: sender.tag) { [weak self, offset = sender.tag] in
             self?.triggerKeyPressHaptic()
             self?.moveCursor(by: offset)
@@ -952,33 +1095,42 @@ final class KeyboardViewController: UIInputViewController {
         cursorRepeatController.stop()
     }
 
-    @objc private func spaceTapped() {
+    private func insertSpace(allowsImmediateRebuild: Bool) {
         triggerKeyPressHaptic()
-        clearAccentState(rebuild: true)
+        let didClearAccentState = clearAccentState(rebuild: false)
         textDocumentProxy.insertText(" ")
+
+        if didClearAccentState {
+            requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
+        }
     }
 
-    @objc private func actionKeyTapped() {
+    private func insertPrimaryAction(allowsImmediateRebuild: Bool) {
         triggerKeyPressHaptic()
-        clearAccentState(rebuild: true)
+        let didClearAccentState = clearAccentState(rebuild: false)
         textDocumentProxy.insertText("\n")
+
+        if didClearAccentState {
+            requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
+        }
     }
 
-    @objc private func symbolKeyboardTapped() {
+    private func setKeyboardLayout(_ target: SequencedKeyboardLayoutTarget, allowsImmediateRebuild: Bool) {
         triggerKeyPressHaptic()
-        clearAccentState(rebuild: false)
-        keyboardLayoutMode = .symbols
-        rebuildKeyboardRows()
-    }
+        _ = clearAccentState(rebuild: false)
 
-    @objc private func letterKeyboardTapped() {
-        triggerKeyPressHaptic()
-        clearAccentState(rebuild: false)
-        keyboardLayoutMode = .letters
-        rebuildKeyboardRows()
+        switch target {
+        case .letters:
+            keyboardLayoutMode = .letters
+        case .symbols:
+            keyboardLayoutMode = .symbols
+        }
+
+        requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
     }
 
     @objc private func inlineSettingsTapped() {
+        cancelSequencedInteractions()
         triggerKeyPressHaptic()
         handleInlineSettingsTapped()
     }
@@ -1002,6 +1154,7 @@ final class KeyboardViewController: UIInputViewController {
             return
         }
 
+        pressSequenceCoordinator.cancelAll()
         accentState = AccentCatalog.replacementState(
             for: displayedLetter,
             isUppercase: isShiftActive
@@ -1009,7 +1162,7 @@ final class KeyboardViewController: UIInputViewController {
         rebuildKeyboardRows()
     }
 
-    private func insertCharacter(_ title: String) {
+    private func insertCharacter(_ title: String, allowsImmediateRebuild: Bool) {
         triggerKeyPressHaptic()
         textDocumentProxy.insertText(title)
 
@@ -1026,13 +1179,14 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         if shouldDisableShift || shouldResetAccentState {
-            rebuildKeyboardRows()
+            requestKeyboardRebuild(allowsImmediateRebuild: allowsImmediateRebuild)
         }
     }
 
-    private func clearAccentState(rebuild: Bool) {
+    @discardableResult
+    private func clearAccentState(rebuild: Bool) -> Bool {
         guard accentState != nil else {
-            return
+            return false
         }
 
         accentState = nil
@@ -1040,5 +1194,7 @@ final class KeyboardViewController: UIInputViewController {
         if rebuild && keyboardLayoutMode == .letters && mode == .keyboard {
             rebuildKeyboardRows()
         }
+
+        return true
     }
 }
