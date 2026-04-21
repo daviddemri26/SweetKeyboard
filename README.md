@@ -92,7 +92,7 @@ If Full Access is disabled, SweetKeyboard automatically falls back to typing-onl
 
 The project contains two Apple targets plus shared logic:
 
-- `SweetKeyboard`: containing iOS app for setup, feature toggles, privacy explanation, clipboard debug tools, and action-key diagnostics
+- `SweetKeyboard`: containing iOS app for setup, feature toggles, and privacy explanation
 - `SweetKeyboardKeyboard`: custom keyboard extension built on `UIInputViewController`
 - `Shared/`: shared models, persistence, layout rules, and typing-state logic used by both targets
 
@@ -109,8 +109,6 @@ The project contains two Apple targets plus shared logic:
 - Long-press accent replacement logic through `AccentCatalog`
 - Repeating backspace and repeating cursor controls
 - Optional haptic feedback controller
-- Action-key debug snapshot logging in the containing app
-
 ### Recent Additions Reflected In This Documentation
 
 The main behaviors added in the latest implementation pass are:

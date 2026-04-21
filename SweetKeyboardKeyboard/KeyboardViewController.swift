@@ -22,7 +22,6 @@ final class KeyboardViewController: UIInputViewController {
     private let clipboardStore = ClipboardStore()
     private let actionKeyResolver = ActionKeyResolver()
     private let autoCapitalizationResolver = AutoCapitalizationResolver()
-    private let actionKeyDebugStore = ActionKeyDebugStore()
     private let sharedSettingsStore = SharedKeyboardSettingsStore()
     private let capabilityStatusStore = KeyboardCapabilityStatusStore()
     private let shiftStateMachine = KeyboardShiftStateMachine()
@@ -942,8 +941,22 @@ final class KeyboardViewController: UIInputViewController {
                 widthConstraint: actionKeyWidthConstraint
             )
         }
+    }
 
-        logActionKeyState(model: model, context: context)
+    private func copySelectedText() {
+        guard displayMode == .clipboard else {
+            feedbackPresenter.show("Clipboard mode is off")
+            return
+        }
+
+        guard let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty else {
+            feedbackPresenter.show("No selection")
+            return
+        }
+
+        UIPasteboard.general.string = selectedText
+        clipboardStore.add(text: selectedText, source: .keyboardCopy)
+        feedbackPresenter.show("Copied")
     }
 
     private func syncAutoCapitalization(using context: ActionKeyInputContext) -> Bool {
@@ -972,44 +985,6 @@ final class KeyboardViewController: UIInputViewController {
         shiftState = newShiftState
         lastShiftTapAt = nil
         return true
-    }
-
-    private func logActionKeyState(model: ActionKeyModel, context: ActionKeyInputContext) {
-        let snapshot = ActionKeyDebugSnapshot(
-            id: UUID(),
-            createdAt: Date(),
-            actionType: model.actionType.rawValue,
-            displayMode: model.displayMode.rawValue,
-            visibleLabel: model.fallbackTitle,
-            accessibilityLabel: model.accessibilityLabel,
-            debugDescription: model.debugDescription,
-            returnKeyType: context.returnKeyType?.debugName,
-            keyboardType: context.keyboardType?.debugName,
-            textContentType: context.textContentType,
-            enablesReturnKeyAutomatically: context.enablesReturnKeyAutomatically,
-            hasText: context.hasText,
-            hasDocumentText: context.hasDocumentText,
-            hasSelection: context.hasSelection,
-            documentContextContainsLineBreaks: context.documentContextContainsLineBreaks
-        )
-
-        actionKeyDebugStore.record(snapshot)
-    }
-
-    private func copySelectedText() {
-        guard displayMode == .clipboard else {
-            feedbackPresenter.show("Clipboard mode is off")
-            return
-        }
-
-        guard let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty else {
-            feedbackPresenter.show("No selection")
-            return
-        }
-
-        UIPasteboard.general.string = selectedText
-        clipboardStore.add(text: selectedText, source: .keyboardCopy)
-        feedbackPresenter.show("Copied")
     }
 
     private func pasteFromSystemClipboard() {

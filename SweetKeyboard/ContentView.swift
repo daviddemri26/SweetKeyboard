@@ -3,13 +3,9 @@ import SwiftUI
 
 @MainActor
 final class AppScreenModel: ObservableObject {
-    @Published private(set) var history: [ClipboardItem] = []
-    @Published private(set) var actionSnapshots: [ActionKeyDebugSnapshot] = []
     @Published private(set) var sharedSettings = SharedKeyboardSettings()
     @Published private(set) var capabilityStatus = KeyboardCapabilityStatus()
 
-    private let clipboardStore = ClipboardStore()
-    private let actionKeyDebugStore = ActionKeyDebugStore()
     private let sharedSettingsStore = SharedKeyboardSettingsStore()
     private let capabilityStatusStore = KeyboardCapabilityStatusStore()
 
@@ -40,8 +36,6 @@ final class AppScreenModel: ObservableObject {
     }
 
     func reload() {
-        history = clipboardStore.allItems()
-        actionSnapshots = actionKeyDebugStore.allSnapshots()
         sharedSettings = sharedSettingsStore.load()
         capabilityStatus = capabilityStatusStore.load()
     }
@@ -63,26 +57,6 @@ final class AppScreenModel: ObservableObject {
     func setKeyHapticsEnabled(_ isEnabled: Bool) {
         sharedSettings.keyHapticsEnabled = isEnabled
         sharedSettingsStore.setKeyHapticsEnabled(isEnabled)
-    }
-
-    func addClipboardItem(text: String) {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
-            return
-        }
-
-        clipboardStore.add(text: trimmed, source: .manualImport)
-        history = clipboardStore.allItems()
-    }
-
-    func clearClipboardHistory() {
-        clipboardStore.clearAll()
-        history = []
-    }
-
-    func clearActionSnapshots() {
-        actionKeyDebugStore.clearAll()
-        actionSnapshots = []
     }
 }
 
@@ -112,13 +86,6 @@ struct ContentView: View {
             }
             .tabItem {
                 Label("Info", systemImage: "info.circle")
-            }
-
-            tabContainer(title: "Debug") {
-                DebugView()
-            }
-            .tabItem {
-                Label("Debug", systemImage: "waveform.path.ecg")
             }
         }
         .tint(AppTheme.accent)
@@ -294,117 +261,6 @@ private struct InfoView: View {
                 )
             }
         }
-    }
-}
-
-private struct DebugView: View {
-    @EnvironmentObject private var model: AppScreenModel
-    @State private var manualClipboardText = ""
-
-    var body: some View {
-        VStack(spacing: 18) {
-            AppHeroCard(
-                eyebrow: "Debug",
-                title: "Technical tools separated from the main experience",
-                message: "These views are for checking local clipboard behavior and the action key behavior."
-            )
-
-            AppCard {
-                VStack(alignment: .leading, spacing: 16) {
-                    SectionHeader(title: "Clipboard Debug", subtitle: "Local history used by the clipboard bar.")
-
-                    TextField("Manual import text", text: $manualClipboardText)
-                        .textInputAutocapitalization(.never)
-                        .textFieldStyle(.plain)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 12)
-                        .background(AppTheme.fieldBackground, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-
-                    HStack(spacing: 10) {
-                        Button("Add to Local History") {
-                            let trimmed = manualClipboardText.trimmingCharacters(in: .whitespacesAndNewlines)
-                            guard !trimmed.isEmpty else {
-                                return
-                            }
-
-                            model.addClipboardItem(text: trimmed)
-                            manualClipboardText = ""
-                        }
-                        .buttonStyle(FilledActionButtonStyle())
-
-                        Button("Clear History", role: .destructive) {
-                            model.clearClipboardHistory()
-                        }
-                        .buttonStyle(SecondaryActionButtonStyle())
-                    }
-
-                    if model.history.isEmpty {
-                        EmptyStateLabel("No local clipboard items yet.")
-                    } else {
-                        VStack(spacing: 10) {
-                            ForEach(model.history) { item in
-                                DebugItemRow(
-                                    title: item.text,
-                                    detail: item.createdAt.formatted(date: .abbreviated, time: .shortened)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            AppCard {
-                VStack(alignment: .leading, spacing: 16) {
-                    SectionHeader(
-                        title: "Action Key Debug",
-                        subtitle: "Trait snapshots recorded by the extension, without typed text."
-                    )
-
-                    Button("Clear Action Key Log", role: .destructive) {
-                        model.clearActionSnapshots()
-                    }
-                    .buttonStyle(SecondaryActionButtonStyle())
-
-                    if model.actionSnapshots.isEmpty {
-                        EmptyStateLabel("No action-key observations yet.")
-                    } else {
-                        VStack(spacing: 10) {
-                            ForEach(model.actionSnapshots) { snapshot in
-                                VStack(alignment: .leading, spacing: 6) {
-                                    Text("\(snapshot.accessibilityLabel) · \(snapshot.displayMode)")
-                                        .font(.system(.headline, design: .rounded).weight(.semibold))
-                                        .foregroundStyle(AppTheme.primaryText)
-
-                                    Text(snapshot.debugDescription)
-                                        .font(.system(.subheadline, design: .rounded))
-                                        .foregroundStyle(AppTheme.secondaryText)
-
-                                    Text(snapshotSummary(snapshot))
-                                        .font(.system(.caption, design: .monospaced))
-                                        .foregroundStyle(AppTheme.secondaryText)
-
-                                    Text(snapshot.createdAt.formatted(date: .abbreviated, time: .shortened))
-                                        .font(.system(.caption2, design: .rounded))
-                                        .foregroundStyle(AppTheme.tertiaryText)
-                                }
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(14)
-                                .background(AppTheme.innerCardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private func snapshotSummary(_ snapshot: ActionKeyDebugSnapshot) -> String {
-        let returnKey = snapshot.returnKeyType ?? "unavailable"
-        let keyboardType = snapshot.keyboardType ?? "unavailable"
-        let textContentType = snapshot.textContentType ?? "nil"
-        let autoReturn = snapshot.enablesReturnKeyAutomatically.map(String.init) ?? "nil"
-
-        return "returnKeyType=\(returnKey)  keyboardType=\(keyboardType)  textContentType=\(textContentType)  autoReturn=\(autoReturn)  hasText=\(snapshot.hasText)  hasDocumentText=\(snapshot.hasDocumentText)"
     }
 }
 
@@ -608,63 +464,6 @@ private struct InfoCard: View {
     }
 }
 
-private struct DebugItemRow: View {
-    let title: String
-    let detail: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(.system(.body, design: .rounded))
-                .foregroundStyle(AppTheme.primaryText)
-                .lineLimit(2)
-
-            Text(detail)
-                .font(.system(.caption, design: .rounded))
-                .foregroundStyle(AppTheme.secondaryText)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(AppTheme.innerCardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-    }
-}
-
-private struct SectionHeader: View {
-    let title: String
-    let subtitle: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-                .font(.system(.headline, design: .rounded).weight(.semibold))
-                .foregroundStyle(AppTheme.primaryText)
-
-            Text(subtitle)
-                .font(.system(.footnote, design: .rounded))
-                .foregroundStyle(AppTheme.secondaryText)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-private struct EmptyStateLabel: View {
-    let message: String
-
-    init(_ message: String) {
-        self.message = message
-    }
-
-    var body: some View {
-        Text(message)
-            .font(.system(.footnote, design: .rounded))
-            .foregroundStyle(AppTheme.secondaryText)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(14)
-            .background(AppTheme.innerCardBackground, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-    }
-}
-
 private struct CapabilityBadge: View {
     let title: String
     let systemImage: String
@@ -724,36 +523,6 @@ private struct AppBackground: View {
                 .blur(radius: 10)
                 .offset(x: -130, y: -120)
         }
-    }
-}
-
-private struct FilledActionButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(.subheadline, design: .rounded).weight(.semibold))
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(configuration.isPressed ? AppTheme.accent.opacity(0.78) : AppTheme.accent)
-            )
-    }
-}
-
-private struct SecondaryActionButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(.subheadline, design: .rounded).weight(.semibold))
-            .foregroundStyle(AppTheme.primaryText)
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(configuration.isPressed ? AppTheme.innerCardBackground.opacity(0.75) : AppTheme.innerCardBackground)
-            )
     }
 }
 

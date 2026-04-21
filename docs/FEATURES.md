@@ -45,8 +45,6 @@ This document is the detailed functional reference for the current codebase. It 
 - Keyboard setup instructions
 - Feature toggles mirrored from shared settings
 - Privacy explanation
-- Clipboard debug list
-- Action-key debug log
 - Platform limitation notes
 
 ## Newly Added Behaviors
@@ -194,11 +192,10 @@ Current behavior:
 - Uses icon presentation for default return and search
 - Uses text presentation for most named actions
 - Falls back conservatively when traits are missing
-- Logs snapshots in shared storage for inspection from the containing app
 
 ## Clipboard Model
 
-Implemented through `ClipboardStore`, the keyboard toolbar, and the containing app debug tools.
+Implemented through `ClipboardStore` and the keyboard toolbar.
 
 Storage rules:
 

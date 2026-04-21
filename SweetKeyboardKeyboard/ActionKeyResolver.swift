@@ -28,7 +28,6 @@ struct ActionKeyModel: Equatable {
     let fallbackTitle: String
     let accessibilityLabel: String
     let accessibilityHint: String
-    let debugDescription: String
     let minimumWidthUnits: CGFloat
 }
 
@@ -100,7 +99,6 @@ struct ActionKeyResolver {
                 fallbackTitle: "Return",
                 accessibilityLabel: "Return",
                 accessibilityHint: "Inserts a line break or triggers the host field’s default return action.",
-                debugDescription: debugDescription(for: .default, context: context),
                 minimumWidthUnits: 2.0
             )
         case .search:
@@ -111,7 +109,6 @@ struct ActionKeyResolver {
                 fallbackTitle: "Search",
                 accessibilityLabel: "Search",
                 accessibilityHint: "Triggers the host field’s search return action.",
-                debugDescription: debugDescription(for: .search, context: context),
                 minimumWidthUnits: 2.0
             )
         case .go:
@@ -122,7 +119,6 @@ struct ActionKeyResolver {
                 fallbackTitle: "Go",
                 accessibilityLabel: "Go",
                 accessibilityHint: "Triggers the host field’s Go return action.",
-                debugDescription: debugDescription(for: .go, context: context),
                 minimumWidthUnits: 2.0
             )
         case .google:
@@ -204,86 +200,11 @@ struct ActionKeyResolver {
             fallbackTitle: title,
             accessibilityLabel: accessibilityLabel ?? title,
             accessibilityHint: accessibilityHint,
-            debugDescription: debugDescription(for: type, context: context),
             minimumWidthUnits: minimumWidthUnits
         )
-    }
-
-    private func debugDescription(for actionType: ActionKeyType, context: ActionKeyInputContext) -> String {
-        if let returnKeyType = context.returnKeyType {
-            return "Resolved \(actionType.rawValue) from returnKeyType=\(returnKeyType.debugName)"
-        }
-
-        return "Fell back to default because returnKeyType was unavailable on the proxy."
     }
 }
 
 private enum ActionKeySymbol {
     static let defaultReturn = "return.left"
-}
-
-extension UIReturnKeyType {
-    var debugName: String {
-        switch self {
-        case .default:
-            return "default"
-        case .go:
-            return "go"
-        case .google:
-            return "google"
-        case .join:
-            return "join"
-        case .next:
-            return "next"
-        case .route:
-            return "route"
-        case .search:
-            return "search"
-        case .send:
-            return "send"
-        case .yahoo:
-            return "yahoo"
-        case .done:
-            return "done"
-        case .emergencyCall:
-            return "emergencyCall"
-        case .continue:
-            return "continue"
-        @unknown default:
-            return "unknown(\(rawValue))"
-        }
-    }
-}
-
-extension UIKeyboardType {
-    var debugName: String {
-        switch self {
-        case .default:
-            return "default"
-        case .asciiCapable:
-            return "asciiCapable"
-        case .numbersAndPunctuation:
-            return "numbersAndPunctuation"
-        case .URL:
-            return "URL"
-        case .numberPad:
-            return "numberPad"
-        case .phonePad:
-            return "phonePad"
-        case .namePhonePad:
-            return "namePhonePad"
-        case .emailAddress:
-            return "emailAddress"
-        case .decimalPad:
-            return "decimalPad"
-        case .twitter:
-            return "twitter"
-        case .webSearch:
-            return "webSearch"
-        case .asciiCapableNumberPad:
-            return "asciiCapableNumberPad"
-        @unknown default:
-            return "unknown(\(rawValue))"
-        }
-    }
 }

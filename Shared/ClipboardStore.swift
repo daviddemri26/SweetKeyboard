@@ -10,7 +10,7 @@ final class ClipboardStore {
     private let defaults: UserDefaults
 
     init(defaults: UserDefaults? = UserDefaults(suiteName: AppGroup.identifier)) {
-        // Fallback makes local debugging possible even before entitlements are configured.
+        // Fallback keeps local storage available even before entitlements are configured.
         self.defaults = defaults ?? .standard
     }
 

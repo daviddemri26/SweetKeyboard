@@ -1,14 +1,15 @@
 import XCTest
 @testable import SweetKeyboard
 
+@MainActor
 final class SharedStoreTests: XCTestCase {
     func testClipboardStoreNormalizesAndDeduplicatesConsecutiveValues() {
         let defaults = makeDefaults()
         let store = ClipboardStore(defaults: defaults)
         let longText = "  " + String(repeating: "a", count: 600) + "  "
 
-        store.add(text: longText, source: .manualImport)
-        store.add(text: String(repeating: "a", count: 500), source: .manualImport)
+        store.add(text: longText, source: .keyboardCopy)
+        store.add(text: String(repeating: "a", count: 500), source: .keyboardCopy)
 
         let items = store.allItems()
         XCTAssertEqual(items.count, 1)
@@ -21,42 +22,13 @@ final class SharedStoreTests: XCTestCase {
         let store = ClipboardStore(defaults: defaults)
 
         for index in 0..<60 {
-            store.add(text: "item-\(index)", source: .manualImport)
+            store.add(text: "item-\(index)", source: .keyboardCopy)
         }
 
         let items = store.allItems()
         XCTAssertEqual(items.count, 50)
         XCTAssertEqual(items.first?.text, "item-59")
         XCTAssertEqual(items.last?.text, "item-10")
-    }
-
-    func testActionKeyDebugStoreDeduplicatesConsecutiveSnapshotsAndClearsState() {
-        let defaults = makeDefaults()
-        let store = ActionKeyDebugStore(userDefaults: defaults)
-        let snapshot = makeSnapshot(id: UUID(), label: "Done")
-
-        store.record(snapshot)
-        store.record(makeSnapshot(id: UUID(), label: "Done"))
-
-        XCTAssertEqual(store.allSnapshots().count, 1)
-
-        store.clearAll()
-
-        XCTAssertTrue(store.allSnapshots().isEmpty)
-    }
-
-    func testActionKeyDebugStoreCapsHistoryAtFortySnapshots() {
-        let defaults = makeDefaults()
-        let store = ActionKeyDebugStore(userDefaults: defaults)
-
-        for index in 0..<45 {
-            store.record(makeSnapshot(id: UUID(), label: "Label-\(index)", createdAt: Date(timeIntervalSince1970: TimeInterval(index))))
-        }
-
-        let snapshots = store.allSnapshots()
-        XCTAssertEqual(snapshots.count, 40)
-        XCTAssertEqual(snapshots.first?.visibleLabel, "Label-44")
-        XCTAssertEqual(snapshots.last?.visibleLabel, "Label-5")
     }
 
     func testSharedKeyboardSettingsStoreDefaultsClipboardModeToOff() {
@@ -149,11 +121,13 @@ final class SharedStoreTests: XCTestCase {
         let defaults = makeDefaults()
         let store = KeyboardCapabilityStatusStore(defaults: defaults)
 
-        XCTAssertNil(store.load().lastConfirmedFullAccessAt)
+        XCTAssertFalse(store.load().isFullAccessEnabled)
+        XCTAssertNil(store.load().lastUpdatedAt)
 
-        store.confirmFullAccessNow()
+        store.setFullAccessEnabled(true)
 
-        XCTAssertNotNil(store.load().lastConfirmedFullAccessAt)
+        XCTAssertTrue(store.load().isFullAccessEnabled)
+        XCTAssertNotNil(store.load().lastUpdatedAt)
     }
 
     private func makeDefaults() -> UserDefaults {
@@ -161,25 +135,5 @@ final class SharedStoreTests: XCTestCase {
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
         return defaults
-    }
-
-    private func makeSnapshot(id: UUID, label: String, createdAt: Date = Date()) -> ActionKeyDebugSnapshot {
-        ActionKeyDebugSnapshot(
-            id: id,
-            createdAt: createdAt,
-            actionType: "done",
-            displayMode: "text",
-            visibleLabel: label,
-            accessibilityLabel: label,
-            debugDescription: "debug-\(label)",
-            returnKeyType: "done",
-            keyboardType: "default",
-            textContentType: nil,
-            enablesReturnKeyAutomatically: nil,
-            hasText: true,
-            hasDocumentText: true,
-            hasSelection: false,
-            documentContextContainsLineBreaks: false
-        )
     }
 }
