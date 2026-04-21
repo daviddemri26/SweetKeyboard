@@ -47,18 +47,17 @@ final class KeyboardSettingsPanelView: UIView {
         isClipboardModeEnabled: Bool,
         isAutoCapitalizationEnabled: Bool,
         isHapticsEnabled: Bool,
-        isClipboardToggleEnabled: Bool
+        fullAccessStatusText: String
     ) {
-        clipboardSwitch.isOn = isClipboardToggleEnabled && isClipboardModeEnabled
+        clipboardSwitch.isOn = isClipboardModeEnabled
         hapticsSwitch.isOn = isHapticsEnabled
         autoCapitalizationSwitch.isOn = isAutoCapitalizationEnabled
 
-        clipboardSwitch.isEnabled = isClipboardToggleEnabled
-        clipboardInfoRow.isHidden = isClipboardToggleEnabled
+        clipboardSwitch.isEnabled = true
+        clipboardInfoRow.isHidden = false
+        clipboardInfoLabel.text = fullAccessStatusText
 
-        clipboardTitleLabel.textColor = isClipboardToggleEnabled
-            ? KeyboardTheme.keyLabelColor
-            : KeyboardTheme.secondaryLabelColor
+        clipboardTitleLabel.textColor = KeyboardTheme.keyLabelColor
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
     }
@@ -128,8 +127,8 @@ final class KeyboardSettingsPanelView: UIView {
         )
 
         clipboardInfoLabel.font = .preferredFont(forTextStyle: .footnote)
-        clipboardInfoLabel.numberOfLines = 2
-        clipboardInfoLabel.text = "Turn on Full Access to use the clipboard toolbar."
+        clipboardInfoLabel.numberOfLines = 0
+        clipboardInfoLabel.text = "Full Access has never been confirmed on this device."
 
         clipboardInfoRow.addSubview(clipboardInfoLabel)
         clipboardInfoLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -218,9 +217,7 @@ final class KeyboardSettingsPanelView: UIView {
         clipboardSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
         hapticsSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
 
-        clipboardTitleLabel.textColor = clipboardSwitch.isEnabled
-            ? KeyboardTheme.keyLabelColor
-            : KeyboardTheme.secondaryLabelColor
+        clipboardTitleLabel.textColor = KeyboardTheme.keyLabelColor
         clipboardInfoLabel.textColor = KeyboardTheme.secondaryLabelColor
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor

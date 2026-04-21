@@ -9,12 +9,16 @@ final class AppScreenModel: ObservableObject {
     private let sharedSettingsStore = SharedKeyboardSettingsStore()
     private let capabilityStatusStore = KeyboardCapabilityStatusStore()
 
-    var canEnableClipboardMode: Bool {
-        capabilityStatus.isFullAccessEnabled
+    var hasConfirmedFullAccess: Bool {
+        capabilityStatus.lastConfirmedFullAccessAt != nil
     }
 
-    var displayedClipboardModeEnabled: Bool {
-        canEnableClipboardMode && sharedSettings.clipboardModeEnabled
+    var fullAccessHistorySummary: String {
+        KeyboardCapabilityStatusTextFormatter.historySummary(for: capabilityStatus)
+    }
+
+    var fullAccessSettingsSummary: String {
+        KeyboardCapabilityStatusTextFormatter.appSettingsSummary(for: capabilityStatus)
     }
 
     var versionDescription: String? {
@@ -46,10 +50,6 @@ final class AppScreenModel: ObservableObject {
     }
 
     func setClipboardModeEnabled(_ isEnabled: Bool) {
-        guard canEnableClipboardMode || !isEnabled else {
-            return
-        }
-
         sharedSettings.clipboardModeEnabled = isEnabled
         sharedSettingsStore.setClipboardModeEnabled(isEnabled)
     }
@@ -63,7 +63,6 @@ final class AppScreenModel: ObservableObject {
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = AppScreenModel()
-    private let refreshTimer = Timer.publish(every: 0.75, on: .main, in: .common).autoconnect()
 
     var body: some View {
         TabView {
@@ -91,13 +90,6 @@ struct ContentView: View {
         .tint(AppTheme.accent)
         .environmentObject(model)
         .task {
-            model.reload()
-        }
-        .onReceive(refreshTimer) { _ in
-            guard scenePhase == .active else {
-                return
-            }
-
             model.reload()
         }
         .onChange(of: scenePhase) { _, newPhase in
@@ -142,13 +134,8 @@ private struct HomeView: View {
                 showsFilledNumber: false
             ) {
                 CapabilityBadge(
-                    title: model.canEnableClipboardMode
-                        ? "Full Access is enabled"
-                        : "Full Access is not enabled",
-                    systemImage: model.canEnableClipboardMode
-                        ? "checkmark.circle.fill"
-                        : "exclamationmark.circle.fill",
-                    color: model.canEnableClipboardMode ? AppTheme.success : AppTheme.accent
+                    title: model.fullAccessHistorySummary,
+                    color: AppTheme.accent
                 )
             }
 
@@ -183,13 +170,10 @@ private struct SettingsView: View {
                 title: "Clipboard toolbar",
                 message: "Shows Copy, Paste, Clipboard, and Settings above the keyboard.",
                 isOn: Binding(
-                    get: { model.displayedClipboardModeEnabled },
+                    get: { model.sharedSettings.clipboardModeEnabled },
                     set: model.setClipboardModeEnabled
                 ),
-                isDisabled: !model.canEnableClipboardMode,
-                footnote: model.canEnableClipboardMode
-                    ? nil
-                    : "Turn on Full Access to use the clipboard toolbar."
+                footnote: model.fullAccessSettingsSummary
             )
 
             SettingsToggleCard(
@@ -236,9 +220,8 @@ private struct InfoView: View {
                 title: "Full Access",
                 items: [
                     "Required only for clipboard tools and for sharing certain states between the app and the extension.",
-                    model.canEnableClipboardMode
-                        ? "The keyboard has already confirmed Full Access on this device."
-                        : "Without Full Access, SweetKeyboard stays in basic typing mode."
+                    model.fullAccessHistorySummary,
+                    "Clipboard tools appear only when the keyboard currently has Full Access."
                 ]
             )
 
@@ -466,20 +449,20 @@ private struct InfoCard: View {
 
 private struct CapabilityBadge: View {
     let title: String
-    let systemImage: String
     let color: Color
 
     var body: some View {
-        Label {
-            Text(title)
-                .font(.system(.subheadline, design: .rounded).weight(.semibold))
-        } icon: {
-            Image(systemName: systemImage)
-        }
-        .foregroundStyle(color)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(color.opacity(0.12), in: Capsule())
+        Text(title)
+            .font(.system(.footnote, design: .rounded).weight(.semibold))
+            .foregroundStyle(color)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(color.opacity(0.10))
+            )
     }
 }
 

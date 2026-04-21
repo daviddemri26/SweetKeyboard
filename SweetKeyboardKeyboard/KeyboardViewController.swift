@@ -23,7 +23,7 @@ final class KeyboardViewController: UIInputViewController {
     private let actionKeyResolver = ActionKeyResolver()
     private let autoCapitalizationResolver = AutoCapitalizationResolver()
     private let sharedSettingsStore = SharedKeyboardSettingsStore()
-    private let capabilityStatusStore = KeyboardCapabilityStatusStore()
+    private let capabilityStatusStore = KeyboardCapabilityStatusStore(localFallbackDefaults: .standard)
     private let shiftStateMachine = KeyboardShiftStateMachine()
 
     private let shiftDoubleTapInterval: TimeInterval = 0.35
@@ -290,7 +290,11 @@ final class KeyboardViewController: UIInputViewController {
         sharedSettings = sharedSettingsStore.load()
         hapticFeedbackController.setEnabled(sharedSettings.keyHapticsEnabled)
 
-        capabilityStatusStore.setFullAccessEnabled(hasFullAccess)
+        if hasFullAccess {
+            capabilityStatusStore.confirmFullAccessNow()
+        }
+
+        let capabilityStatus = capabilityStatusStore.load()
 
         let previousDisplayMode = displayMode
         displayMode = effectiveDisplayMode
@@ -300,20 +304,22 @@ final class KeyboardViewController: UIInputViewController {
             mode = .keyboard
         }
 
-        updateSettingsPanel()
+        updateSettingsPanel(capabilityStatus: capabilityStatus)
         updateKeyboardSizingIfNeeded()
         refreshModeUI()
         refreshInputContext(forceKeyboardRebuild: rebuildKeyboard || previousDisplayMode != displayMode)
     }
 
-    private func updateSettingsPanel() {
-        let isClipboardToggleEnabled = hasFullAccess
-
+    private func updateSettingsPanel(capabilityStatus: KeyboardCapabilityStatus) {
         settingsPanel.render(
             isClipboardModeEnabled: desiredClipboardModeEnabled,
             isAutoCapitalizationEnabled: sharedSettings.autoCapitalizationEnabled,
             isHapticsEnabled: sharedSettings.keyHapticsEnabled,
-            isClipboardToggleEnabled: isClipboardToggleEnabled
+            fullAccessStatusText: KeyboardCapabilityStatusTextFormatter.keyboardSettingsSummary(
+                isFullAccessCurrentlyAvailable: hasFullAccess,
+                status: capabilityStatus,
+                isClipboardModeEnabled: desiredClipboardModeEnabled
+            )
         )
     }
 
@@ -1010,11 +1016,13 @@ final class KeyboardViewController: UIInputViewController {
         reloadFeatureState(rebuildKeyboard: true)
 
         if isEnabled {
-            feedbackPresenter.show("Clipboard toolbar turned on")
+            if hasFullAccess {
+                feedbackPresenter.show("Clipboard toolbar turned on")
+            } else {
+                feedbackPresenter.show("Clipboard toolbar saved. It becomes available when Full Access is on")
+            }
         } else {
-            feedbackPresenter.show(
-                "Clipboard toolbar turned off. To re-enable it later, open the SweetKeyboard app."
-            )
+            feedbackPresenter.show("Clipboard toolbar turned off")
         }
     }
 

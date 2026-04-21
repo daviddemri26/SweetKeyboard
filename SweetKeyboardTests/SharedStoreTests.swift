@@ -117,17 +117,121 @@ final class SharedStoreTests: XCTestCase {
         )
     }
 
-    func testKeyboardCapabilityStatusStoreConfirmsFullAccess() {
+    func testKeyboardCapabilityStatusStoreDefaultsToNoConfirmation() {
         let defaults = makeDefaults()
-        let store = KeyboardCapabilityStatusStore(defaults: defaults)
+        let store = KeyboardCapabilityStatusStore(defaults: defaults, fileURL: nil)
 
-        XCTAssertFalse(store.load().isFullAccessEnabled)
-        XCTAssertNil(store.load().lastUpdatedAt)
+        XCTAssertNil(store.load().lastConfirmedFullAccessAt)
+    }
 
-        store.setFullAccessEnabled(true)
+    func testKeyboardCapabilityStatusStorePersistsConfirmationTimestamp() {
+        let defaults = makeDefaults()
+        let fileURL = makeCapabilityStatusFileURL()
+        let store = KeyboardCapabilityStatusStore(defaults: defaults, fileURL: fileURL)
+        let confirmationDate = Date(timeIntervalSince1970: 1_713_708_900)
 
-        XCTAssertTrue(store.load().isFullAccessEnabled)
-        XCTAssertNotNil(store.load().lastUpdatedAt)
+        store.confirmFullAccessNow(at: confirmationDate)
+
+        let reloadedStore = KeyboardCapabilityStatusStore(defaults: defaults, fileURL: fileURL)
+
+        XCTAssertEqual(
+            reloadedStore.load(),
+            KeyboardCapabilityStatus(lastConfirmedFullAccessAt: confirmationDate)
+        )
+    }
+
+    func testKeyboardCapabilityStatusStoreMigratesBooleanPayloadToConfirmationTimestamp() {
+        let defaults = makeDefaults()
+        let fileURL = makeCapabilityStatusFileURL()
+        let confirmationDate = Date(timeIntervalSince1970: 1_713_708_900)
+        let payload = try! JSONEncoder().encode(
+            LegacyBooleanCapabilityStatus(
+                isFullAccessEnabled: true,
+                lastUpdatedAt: confirmationDate
+            )
+        )
+
+        defaults.set(payload, forKey: "keyboard.capabilities.v1")
+
+        let store = KeyboardCapabilityStatusStore(defaults: defaults, fileURL: fileURL)
+
+        XCTAssertEqual(store.load().lastConfirmedFullAccessAt, confirmationDate)
+    }
+
+    func testKeyboardCapabilityStatusStoreLoadsLegacyConfirmationPayload() {
+        let defaults = makeDefaults()
+        let fileURL = makeCapabilityStatusFileURL()
+        let confirmationDate = Date(timeIntervalSince1970: 1_713_708_900)
+        let payload = try! JSONEncoder().encode(
+            KeyboardCapabilityStatus(lastConfirmedFullAccessAt: confirmationDate)
+        )
+
+        defaults.set(payload, forKey: "keyboard.capabilities.v1")
+
+        let store = KeyboardCapabilityStatusStore(defaults: defaults, fileURL: fileURL)
+
+        XCTAssertEqual(store.load().lastConfirmedFullAccessAt, confirmationDate)
+    }
+
+    func testKeyboardCapabilityStatusStoreLoadsLocalFallbackWhenSharedStateIsUnavailable() {
+        let localDefaults = makeDefaults()
+        let confirmationDate = Date(timeIntervalSince1970: 1_713_708_900)
+        let localStore = KeyboardCapabilityStatusStore(defaults: nil, fileURL: nil, localFallbackDefaults: localDefaults)
+
+        localStore.confirmFullAccessNow(at: confirmationDate)
+
+        let unavailableSharedStore = KeyboardCapabilityStatusStore(
+            defaults: nil,
+            fileURL: nil,
+            localFallbackDefaults: localDefaults
+        )
+
+        XCTAssertEqual(
+            unavailableSharedStore.load(),
+            KeyboardCapabilityStatus(lastConfirmedFullAccessAt: confirmationDate)
+        )
+    }
+
+    func testHistorySummaryMentionsMissingConfirmation() {
+        XCTAssertEqual(
+            KeyboardCapabilityStatusTextFormatter.historySummary(for: KeyboardCapabilityStatus()),
+            "Full Access has never been confirmed on this device."
+        )
+    }
+
+    func testHistorySummaryUsesFactualConfirmationLanguage() {
+        let text = KeyboardCapabilityStatusTextFormatter.historySummary(
+            for: KeyboardCapabilityStatus(lastConfirmedFullAccessAt: Date(timeIntervalSince1970: 1_713_708_900))
+        )
+
+        XCTAssertTrue(text.hasPrefix("Last confirmed on "))
+    }
+
+    func testAppSettingsSummaryExplainsSavedPreferenceWhenNeverConfirmed() {
+        let text = KeyboardCapabilityStatusTextFormatter.appSettingsSummary(for: KeyboardCapabilityStatus())
+
+        XCTAssertTrue(text.hasPrefix("Clipboard tools only appear in the keyboard when Full Access is currently available."))
+        XCTAssertTrue(text.contains("\nFull Access has never been confirmed on this device."))
+    }
+
+    func testKeyboardSettingsSummaryReflectsUnavailableSavedClipboardPreference() {
+        let text = KeyboardCapabilityStatusTextFormatter.keyboardSettingsSummary(
+            isFullAccessCurrentlyAvailable: false,
+            status: KeyboardCapabilityStatus(lastConfirmedFullAccessAt: Date(timeIntervalSince1970: 1_713_708_900)),
+            isClipboardModeEnabled: true
+        )
+
+        XCTAssertEqual(text, "Please enable Full Access for SweetKeyboard in Settings app.")
+    }
+
+    func testKeyboardSettingsSummaryReflectsCurrentAvailability() {
+        let text = KeyboardCapabilityStatusTextFormatter.keyboardSettingsSummary(
+            isFullAccessCurrentlyAvailable: true,
+            status: KeyboardCapabilityStatus(lastConfirmedFullAccessAt: Date(timeIntervalSince1970: 1_713_708_900)),
+            isClipboardModeEnabled: false
+        )
+
+        XCTAssertEqual(text, "Full Access activated.")
     }
 
     private func makeDefaults() -> UserDefaults {
@@ -135,5 +239,16 @@ final class SharedStoreTests: XCTestCase {
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
         return defaults
+    }
+
+    private func makeCapabilityStatusFileURL() -> URL {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathExtension("json")
+    }
+
+    private struct LegacyBooleanCapabilityStatus: Encodable {
+        let isFullAccessEnabled: Bool
+        let lastUpdatedAt: Date
     }
 }
