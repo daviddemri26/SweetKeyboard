@@ -9,6 +9,10 @@ final class AppScreenModel: ObservableObject {
     private let sharedSettingsStore = SharedKeyboardSettingsStore()
     private let capabilityStatusStore = KeyboardCapabilityStatusStore()
 
+    var canEnableClipboardMode: Bool {
+        hasConfirmedFullAccess
+    }
+
     var hasConfirmedFullAccess: Bool {
         capabilityStatus.lastConfirmedFullAccessAt != nil
     }
@@ -78,6 +82,13 @@ struct ContentView: View {
             }
             .tabItem {
                 Label("Settings", systemImage: "switch.2")
+            }
+
+            tabContainer(title: "Features") {
+                FeaturesView()
+            }
+            .tabItem {
+                Label("Features", systemImage: "sparkles")
             }
 
             tabContainer(title: "Info") {
@@ -243,6 +254,213 @@ private struct InfoView: View {
                     ]
                 )
             }
+        }
+    }
+}
+
+private struct FeaturesView: View {
+    @EnvironmentObject private var model: AppScreenModel
+
+    private let typingBasicsItems = [
+        FeatureItem(
+            title: "QWERTY layout",
+            message: "Type on a familiar English keyboard layout."
+        ),
+        FeatureItem(
+            title: "Number row",
+            message: "Numbers stay visible at the top, so you do not need to switch layouts for basic digits."
+        ),
+        FeatureItem(
+            title: "Period key",
+            message: "A period is always available in letter mode for faster everyday typing."
+        ),
+        FeatureItem(
+            title: "Action key",
+            message: "The return key adapts to the current field when iOS provides the right context."
+        ),
+        FeatureItem(
+            title: "Email shortcut",
+            message: "Email fields can show a dedicated @ key to make addresses faster to enter."
+        )
+    ]
+
+    private let smartTypingItems = [
+        FeatureItem(
+            title: "Auto-capitalization",
+            message: "Shift turns on automatically at the start of sentences and after supported punctuation."
+        ),
+        FeatureItem(
+            title: "Manual Shift",
+            message: "Tap Shift once for one capital letter, or tap twice to lock capitals."
+        ),
+        FeatureItem(
+            title: "Smart override",
+            message: "If automatic Shift is active, tapping Shift lets you take over manually for the current context."
+        ),
+        FeatureItem(
+            title: "Fast typing support",
+            message: "Overlapping touches are handled in press order to reduce missed keys when typing quickly."
+        ),
+        FeatureItem(
+            title: "Field-aware behavior",
+            message: "Auto-capitalization stays off in email, URL, and similar input fields."
+        )
+    ]
+
+    private let symbolsAndEmojiItems = [
+        FeatureItem(
+            title: "Symbols layout",
+            message: "A dedicated symbols keyboard gives quick access to punctuation and special characters."
+        ),
+        FeatureItem(
+            title: "Emoji layout",
+            message: "You can open a built-in emoji view directly from symbols mode."
+        ),
+        FeatureItem(
+            title: "Cursor controls",
+            message: "Left and right arrow keys help move the cursor while staying in non-letter layouts."
+        ),
+        FeatureItem(
+            title: "Auto return",
+            message: "After entering a single symbol or emoji, the keyboard can jump back to letters for faster typing."
+        ),
+        FeatureItem(
+            title: "Symbol lock",
+            message: "Turn on symbol lock to stay in symbols or emoji mode for repeated entry."
+        ),
+        FeatureItem(
+            title: "Inline settings key",
+            message: "Compact non-letter layouts can show a settings shortcut directly inside the keyboard."
+        )
+    ]
+
+    private let holdForMoreItems = [
+        FeatureItem(
+            title: "Accent variants",
+            message: "Supported letters can open accented and alternate versions with a long press."
+        ),
+        FeatureItem(
+            title: "Uppercase variants",
+            message: "When Shift is active, long-press variants follow the same uppercase behavior."
+        ),
+        FeatureItem(
+            title: "Period shortcuts",
+            message: "Holding the period key reveals extra punctuation shortcuts such as ellipsis and symbols."
+        ),
+        FeatureItem(
+            title: "Temporary replacement",
+            message: "The keyboard swaps in these alternate choices during the press, then returns to normal afterward."
+        )
+    ]
+
+    private let clipboardToolsItems = [
+        FeatureItem(
+            title: "Copy",
+            message: "Copies selected text when the current app exposes it to the keyboard."
+        ),
+        FeatureItem(
+            title: "Paste",
+            message: "Pastes the current system clipboard contents into the active field."
+        ),
+        FeatureItem(
+            title: "Clipboard history",
+            message: "Saved snippets are listed locally so you can paste recent items again quickly."
+        ),
+        FeatureItem(
+            title: "Toolbar shortcut",
+            message: "The top bar can also open keyboard settings directly."
+        )
+    ]
+
+    private let sharedSettingsItems = [
+        FeatureItem(
+            title: "Clipboard toolbar",
+            message: "Turn the top clipboard bar on or off from the app or from the keyboard."
+        ),
+        FeatureItem(
+            title: "Auto-capitalization",
+            message: "Choose whether Shift should react automatically to sentence context."
+        ),
+        FeatureItem(
+            title: "Key haptics",
+            message: "Enable light tactile feedback on supported devices and actions."
+        ),
+        FeatureItem(
+            title: "Shared state",
+            message: "Changes made in the app are reflected inside the keyboard automatically."
+        )
+    ]
+
+    private let highlightItems = [
+        "Always-on numbers",
+        "Smart Shift",
+        "Symbols & emoji",
+        "Clipboard tools"
+    ]
+
+    var body: some View {
+        VStack(spacing: 18) {
+            AppHeroCard(
+                eyebrow: "Features",
+                title: "Everything SweetKeyboard can do",
+                message: "A quick guide to typing, symbols, shortcuts, and smart behavior built into the keyboard."
+            ) {
+                FeatureHighlightsCard(items: highlightItems)
+            }
+
+            FeatureSectionCard(
+                title: "Typing Basics",
+                systemImage: "keyboard",
+                intro: "The default layout keeps the most-used keys visible and predictable.",
+                items: typingBasicsItems
+            )
+
+            FeatureSectionCard(
+                title: "Smart Typing",
+                systemImage: "shift",
+                intro: "SweetKeyboard helps with capitalization and keeps up with fast input.",
+                items: smartTypingItems
+            )
+
+            FeatureSectionCard(
+                title: "Symbols & Emoji",
+                systemImage: "face.smiling",
+                intro: "Extra characters stay close when you need them, without slowing normal typing.",
+                items: symbolsAndEmojiItems
+            )
+
+            FeatureSectionCard(
+                title: "Hold For More",
+                systemImage: "ellipsis.circle",
+                intro: "Some keys reveal extra characters when you press and hold them.",
+                items: holdForMoreItems
+            ) {
+                EmptyView()
+            }
+
+            FeatureSectionCard(
+                title: "Clipboard Tools",
+                systemImage: "doc.on.clipboard",
+                intro: "Optional clipboard actions live above the keyboard when Full Access is available.",
+                items: clipboardToolsItems
+            ) {
+                CapabilityBadge(
+                    title: model.canEnableClipboardMode
+                        ? "Full Access is enabled"
+                        : "Full Access is required for clipboard tools",
+                    systemImage: model.canEnableClipboardMode
+                        ? "checkmark.circle.fill"
+                        : "exclamationmark.circle.fill",
+                    color: model.canEnableClipboardMode ? AppTheme.success : AppTheme.accent
+                )
+            }
+
+            FeatureSectionCard(
+                title: "Shared Settings",
+                systemImage: "switch.2",
+                intro: "The app and the keyboard stay in sync for the main behavior toggles.",
+                items: sharedSettingsItems
+            )
         }
     }
 }
@@ -416,6 +634,92 @@ private struct SettingsToggleCard: View {
     }
 }
 
+private struct FeatureItem: Identifiable {
+    let id = UUID()
+    let title: String
+    let message: String
+}
+
+private struct FeatureSectionCard<Accessory: View>: View {
+    let title: String
+    let systemImage: String
+    let intro: String
+    let items: [FeatureItem]
+    @ViewBuilder var accessory: Accessory
+
+    init(
+        title: String,
+        systemImage: String,
+        intro: String,
+        items: [FeatureItem],
+        @ViewBuilder accessory: () -> Accessory = { EmptyView() }
+    ) {
+        self.title = title
+        self.systemImage = systemImage
+        self.intro = intro
+        self.items = items
+        self.accessory = accessory()
+    }
+
+    var body: some View {
+        AppCard {
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(alignment: .center, spacing: 12) {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(AppTheme.accent)
+                        .frame(width: 34, height: 34)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(AppTheme.accent.opacity(0.12))
+                        )
+
+                    Text(title)
+                        .font(.system(.title3, design: .rounded).weight(.bold))
+                        .foregroundStyle(AppTheme.primaryText)
+                }
+
+                Text(intro)
+                    .font(.system(.subheadline, design: .rounded))
+                    .foregroundStyle(AppTheme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(items) { item in
+                        FeatureItemRow(item: item)
+                    }
+                }
+
+                accessory
+            }
+        }
+    }
+}
+
+private struct FeatureItemRow: View {
+    let item: FeatureItem
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 10) {
+            Circle()
+                .fill(AppTheme.accent)
+                .frame(width: 7, height: 7)
+                .padding(.top, 7)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.title)
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    .foregroundStyle(AppTheme.primaryText)
+
+                Text(item.message)
+                    .font(.system(.subheadline, design: .rounded))
+                    .foregroundStyle(AppTheme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
 private struct InfoCard: View {
     let title: String
     let items: [String]
@@ -447,22 +751,66 @@ private struct InfoCard: View {
     }
 }
 
+private struct FeatureHighlightsCard: View {
+    let items: [String]
+    private let columns = [
+        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: 10)
+    ]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Highlights")
+                .font(.system(.headline, design: .rounded).weight(.semibold))
+                .foregroundStyle(AppTheme.primaryText)
+
+            LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
+                ForEach(items, id: \.self) { item in
+                    Text(item)
+                        .font(.system(.footnote, design: .rounded).weight(.semibold))
+                        .foregroundStyle(AppTheme.accent)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(AppTheme.accent.opacity(0.10))
+                        )
+                }
+            }
+        }
+    }
+}
+
 private struct CapabilityBadge: View {
     let title: String
+    var systemImage: String? = nil
     let color: Color
 
     var body: some View {
-        Text(title)
-            .font(.system(.footnote, design: .rounded).weight(.semibold))
-            .foregroundStyle(color)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(color.opacity(0.10))
-            )
+        Group {
+            if let systemImage {
+                Label {
+                    Text(title)
+                        .font(.system(.footnote, design: .rounded).weight(.semibold))
+                } icon: {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 13, weight: .semibold))
+                }
+            } else {
+                Text(title)
+                    .font(.system(.footnote, design: .rounded).weight(.semibold))
+            }
+        }
+        .foregroundStyle(color)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .fill(color.opacity(0.10))
+        )
     }
 }
 
