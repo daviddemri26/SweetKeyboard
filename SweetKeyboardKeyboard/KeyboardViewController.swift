@@ -71,6 +71,8 @@ final class KeyboardViewController: UIInputViewController {
     private var keyboardRebuildIsDeferred = false
 
     private weak var actionKeyButton: UIButton?
+    private weak var actionKeyHitTarget: KeyboardHitTargetButton?
+    private weak var lastKeyboardRowView: KeyboardInteractiveRowView?
     private var actionKeyWidthConstraint: NSLayoutConstraint?
     private var inputViewHeightConstraint: NSLayoutConstraint?
     private var keyboardContainerHeightConstraint: NSLayoutConstraint?
@@ -163,7 +165,7 @@ final class KeyboardViewController: UIInputViewController {
         keyboardRows.axis = .vertical
         keyboardRows.alignment = .fill
         keyboardRows.distribution = .fill
-        keyboardRows.spacing = KeyboardMetrics.keyboardRowSpacing
+        keyboardRows.spacing = 0
 
         actionBar.setContentHuggingPriority(.required, for: .vertical)
         actionBar.setContentCompressionResistancePriority(.required, for: .vertical)
@@ -191,7 +193,7 @@ final class KeyboardViewController: UIInputViewController {
 
         keyboardRowsBottomConstraint = keyboardRows.bottomAnchor.constraint(
             equalTo: keyboardContainer.bottomAnchor,
-            constant: -KeyboardMetrics.minimumKeyboardBottomInset
+            constant: 0
         )
         keyboardContainerHeightConstraint = keyboardContainer.heightAnchor.constraint(
             equalToConstant: KeyboardMetrics.keyboardContainerHeight(
@@ -361,7 +363,9 @@ final class KeyboardViewController: UIInputViewController {
         sequencedKeyKindsByButtonID.removeAll()
         keyboardRebuildIsDeferred = false
         actionKeyButton = nil
+        actionKeyHitTarget = nil
         actionKeyWidthConstraint = nil
+        lastKeyboardRowView = nil
         keyboardRows.arrangedSubviews.forEach { $0.removeFromSuperview() }
 
         let rowSpecs: [KeyboardRowSpec]
@@ -384,28 +388,51 @@ final class KeyboardViewController: UIInputViewController {
             )
         }
 
-        for rowSpec in rowSpecs {
-            keyboardRows.addArrangedSubview(makeRow(from: rowSpec))
+        let bottomInset = KeyboardMetrics.keyboardBottomInset(for: view.safeAreaInsets)
+
+        for (index, rowSpec) in rowSpecs.enumerated() {
+            let rowView = makeRow(
+                from: rowSpec,
+                rowIndex: index,
+                rowCount: rowSpecs.count,
+                bottomInset: bottomInset
+            )
+            if index == (rowSpecs.count - 1) {
+                lastKeyboardRowView = rowView
+            }
+            keyboardRows.addArrangedSubview(rowView)
         }
 
         refreshActionKey()
     }
 
-    private func makeRow(from spec: KeyboardRowSpec) -> UIStackView {
-        let row = UIStackView()
-        row.axis = .horizontal
-        row.distribution = .fill
-        row.alignment = .fill
-        row.spacing = KeyboardMetrics.keyboardKeySpacing
-        row.setContentHuggingPriority(.required, for: .vertical)
-        row.setContentCompressionResistancePriority(.required, for: .vertical)
+    private func makeRow(
+        from spec: KeyboardRowSpec,
+        rowIndex: Int,
+        rowCount: Int,
+        bottomInset: CGFloat
+    ) -> KeyboardInteractiveRowView {
+        let rowInsets = KeyboardTouchLayoutCalculator.rowInsets(
+            rowIndex: rowIndex,
+            rowCount: rowCount,
+            visualRowSpacing: KeyboardMetrics.keyboardVisualRowSpacing,
+            bottomInset: bottomInset
+        )
+        let row = KeyboardInteractiveRowView(
+            topInset: rowInsets.top,
+            bottomInset: rowInsets.bottom,
+            keyHeight: KeyboardMetrics.keyboardRowHeight,
+            visualRowSpacing: KeyboardMetrics.keyboardVisualRowSpacing
+        )
 
         guard let firstItem = spec.items.first else {
             return row
         }
 
         let referenceButton = makeKey(for: firstItem.kind)
-        row.addArrangedSubview(referenceButton)
+        sequencedKeyKindsByButtonID.removeValue(forKey: ObjectIdentifier(referenceButton))
+        let referenceHitTarget = makeHitTarget(for: firstItem.kind, visualButton: referenceButton)
+        row.addKey(visualButton: referenceButton, hitTarget: referenceHitTarget)
         let referenceMinimumWidthConstraint = referenceButton.widthAnchor.constraint(
             greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * firstItem.width.minimumUnits
         )
@@ -413,6 +440,7 @@ final class KeyboardViewController: UIInputViewController {
 
         if case .primaryAction = firstItem.kind {
             actionKeyButton = referenceButton
+            actionKeyHitTarget = referenceHitTarget
             actionKeyWidthConstraint = referenceMinimumWidthConstraint
         }
 
@@ -420,7 +448,9 @@ final class KeyboardViewController: UIInputViewController {
 
         for item in spec.items.dropFirst() {
             let button = makeKey(for: item.kind)
-            row.addArrangedSubview(button)
+            sequencedKeyKindsByButtonID.removeValue(forKey: ObjectIdentifier(button))
+            let hitTarget = makeHitTarget(for: item.kind, visualButton: button)
+            row.addKey(visualButton: button, hitTarget: hitTarget)
 
             let minimumWidthConstraint = button.widthAnchor.constraint(
                 greaterThanOrEqualToConstant: KeyboardMetrics.keyUnitWidth * item.width.minimumUnits
@@ -436,6 +466,7 @@ final class KeyboardViewController: UIInputViewController {
 
             if case .primaryAction = item.kind {
                 actionKeyButton = button
+                actionKeyHitTarget = hitTarget
                 actionKeyWidthConstraint = minimumWidthConstraint
             }
         }
@@ -481,9 +512,7 @@ final class KeyboardViewController: UIInputViewController {
             showsUtilityRow: displayMode == .clipboard
         )
 
-        if keyboardRowsBottomConstraint?.constant != -bottomInset {
-            keyboardRowsBottomConstraint?.constant = -bottomInset
-        }
+        lastKeyboardRowView?.setBottomInset(bottomInset)
 
         if keyboardContainerHeightConstraint?.constant != containerHeight {
             keyboardContainerHeightConstraint?.constant = containerHeight
@@ -885,7 +914,54 @@ final class KeyboardViewController: UIInputViewController {
             cornerRadius: KeyboardMetrics.keyCornerRadius
         )
         button.heightAnchor.constraint(equalToConstant: KeyboardMetrics.keyboardRowHeight).isActive = true
+        button.isUserInteractionEnabled = false
+        button.isAccessibilityElement = false
         return button
+    }
+
+    private func makeHitTarget(for kind: KeyboardKeyKind, visualButton: UIButton) -> KeyboardHitTargetButton {
+        let hitTarget = KeyboardHitTargetButton(type: .custom)
+        hitTarget.visualButton = visualButton
+
+        switch kind {
+        case .character:
+            hitTarget.addTarget(self, action: #selector(characterKeyTouchDown(_:)), for: .touchDown)
+            hitTarget.addTarget(self, action: #selector(characterKeyTouchUpInside(_:)), for: .touchUpInside)
+            hitTarget.addTarget(self, action: #selector(characterKeyTouchEnded(_:)), for: .touchUpOutside)
+            hitTarget.addTarget(self, action: #selector(characterKeyTouchEnded(_:)), for: .touchCancel)
+            hitTarget.addTarget(self, action: #selector(characterKeyTouchEnded(_:)), for: .touchDragExit)
+        case .shift:
+            configureSequencedKey(hitTarget, kind: .shift)
+        case .backspace:
+            hitTarget.addTarget(self, action: #selector(backspaceTouchDown(_:)), for: .touchDown)
+            hitTarget.addTarget(self, action: #selector(backspaceKeyTapped(_:)), for: .touchUpInside)
+            hitTarget.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchUpOutside)
+            hitTarget.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchCancel)
+            hitTarget.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchDragExit)
+        case .space:
+            configureSequencedKey(hitTarget, kind: .text(" "))
+        case .symbolToggle:
+            configureSequencedKey(hitTarget, kind: .layoutSwitch(.symbols))
+        case .letterToggle:
+            configureSequencedKey(hitTarget, kind: .layoutSwitch(.letters))
+        case .primaryAction:
+            configureSequencedKey(hitTarget, kind: .primaryAction)
+        case .cursor(let offset, _):
+            hitTarget.tag = offset
+            hitTarget.addTarget(self, action: #selector(cursorMovementTouchDown(_:)), for: .touchDown)
+            hitTarget.addTarget(self, action: #selector(cursorMovementKeyTapped(_:)), for: .touchUpInside)
+            hitTarget.addTarget(self, action: #selector(cursorMovementTouchEnded(_:)), for: .touchUpOutside)
+            hitTarget.addTarget(self, action: #selector(cursorMovementTouchEnded(_:)), for: .touchCancel)
+            hitTarget.addTarget(self, action: #selector(cursorMovementTouchEnded(_:)), for: .touchDragExit)
+        case .inlineSettings:
+            hitTarget.addTarget(self, action: #selector(inlineSettingsTapped), for: .touchUpInside)
+        case .symbolLock:
+            hitTarget.addTarget(self, action: #selector(symbolLockTapped), for: .touchUpInside)
+        case .nonLetterLayoutToggle(_, let target):
+            configureSequencedKey(hitTarget, kind: .layoutSwitch(target))
+        }
+
+        return hitTarget
     }
 
     private func configureSequencedKey(_ button: UIButton, kind: SequencedKeyKind) {
@@ -946,6 +1022,7 @@ final class KeyboardViewController: UIInputViewController {
                 to: actionKeyButton,
                 widthConstraint: actionKeyWidthConstraint
             )
+            actionKeyHitTarget?.syncFromVisualButton()
         }
     }
 

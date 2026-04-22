@@ -16,6 +16,10 @@ enum KeyboardMetrics {
     static let keyboardRowHeight: CGFloat = 42
     static let keyboardRowSpacing: CGFloat = 6
     static let keyboardKeySpacing: CGFloat = 6
+    static var keyboardVisualRowSpacing: CGFloat { keyboardRowSpacing }
+    static var keyboardVisualKeySpacing: CGFloat { keyboardKeySpacing }
+    static var keyboardTouchVerticalInset: CGFloat { keyboardVisualRowSpacing / 2 }
+    static var keyboardTouchHorizontalInset: CGFloat { keyboardVisualKeySpacing / 2 }
 
     static let keyUnitWidth: CGFloat = 28
     static let keyCornerRadius: CGFloat = 9
@@ -45,7 +49,7 @@ enum KeyboardMetrics {
     static func keyboardContainerHeight(bottomInset: CGFloat) -> CGFloat {
         keyboardTopPadding +
         (keyboardRowHeight * 5) +
-        (keyboardRowSpacing * 4) +
+        (keyboardVisualRowSpacing * 4) +
         bottomInset
     }
 
