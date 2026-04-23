@@ -3,7 +3,6 @@ import UIKit
 final class KeyboardActionBarView: UIView {
     enum Action {
         case copy
-        case paste
         case importClipboard
         case clipboard
         case settings
@@ -11,11 +10,10 @@ final class KeyboardActionBarView: UIView {
 
     var onAction: ((Action) -> Void)?
 
-    private let copyButton = KeyboardActionBarView.makeTextButton(title: "Copy")
-    private let pasteButton = KeyboardActionBarView.makeTextButton(title: "Paste")
-    private let importClipboardButton = KeyboardActionBarView.makeIconButton(symbolName: "square.and.arrow.down")
-    private let clipboardButton = KeyboardActionBarView.makeTextButton(title: "Clipboard")
     private let settingsButton = KeyboardActionBarView.makeIconButton(symbolName: "gearshape")
+    private let importClipboardButton = KeyboardActionBarView.makeIconButton(symbolName: "square.and.arrow.down")
+    private let copyButton = KeyboardActionBarView.makeIconButton(symbolName: "doc.on.doc")
+    private let clipboardButton = KeyboardActionBarView.makeIconButton(symbolNames: ["list.clipboard", "clipboard"])
 
     private var isClipboardActive = false
     private var isSettingsActive = false
@@ -55,20 +53,15 @@ final class KeyboardActionBarView: UIView {
     private func setup() {
         backgroundColor = .clear
 
-        let leftStack = UIStackView(arrangedSubviews: [copyButton, pasteButton, clipboardButton])
-        leftStack.axis = .horizontal
-        leftStack.alignment = .fill
-        leftStack.spacing = KeyboardMetrics.utilityRowButtonSpacing
-
-        let rightStack = UIStackView(arrangedSubviews: [importClipboardButton, settingsButton])
+        let rightStack = UIStackView(arrangedSubviews: [importClipboardButton, copyButton, clipboardButton])
         rightStack.axis = .horizontal
         rightStack.alignment = .fill
-        rightStack.spacing = KeyboardMetrics.utilityGroupSpacing
+        rightStack.spacing = KeyboardMetrics.utilityRowButtonSpacing
 
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
 
-        let stack = UIStackView(arrangedSubviews: [leftStack, spacer, rightStack])
+        let stack = UIStackView(arrangedSubviews: [settingsButton, spacer, rightStack])
         stack.axis = .horizontal
         stack.alignment = .fill
         stack.distribution = .fill
@@ -86,14 +79,17 @@ final class KeyboardActionBarView: UIView {
         ])
 
         copyButton.addTarget(self, action: #selector(copyTapped), for: .touchUpInside)
-        pasteButton.addTarget(self, action: #selector(pasteTapped), for: .touchUpInside)
         importClipboardButton.addTarget(self, action: #selector(importClipboardTapped), for: .touchUpInside)
         clipboardButton.addTarget(self, action: #selector(clipboardTapped), for: .touchUpInside)
         settingsButton.addTarget(self, action: #selector(settingsTapped), for: .touchUpInside)
 
+        copyButton.accessibilityLabel = "Copy"
+        copyButton.accessibilityHint = "Copies selected text into SweetKeyboard history."
         importClipboardButton.isHidden = true
         importClipboardButton.accessibilityLabel = "Import clipboard"
         importClipboardButton.accessibilityHint = "Imports the current iOS clipboard text into SweetKeyboard history."
+        clipboardButton.accessibilityLabel = "Clipboard"
+        clipboardButton.accessibilityHint = "Shows SweetKeyboard clipboard history."
         settingsButton.accessibilityLabel = "Settings"
         settingsButton.accessibilityHint = "Shows SweetKeyboard settings."
     }
@@ -102,18 +98,13 @@ final class KeyboardActionBarView: UIView {
         KeyboardTheme.applyChrome(
             to: copyButton,
             role: .utility,
-            cornerRadius: KeyboardMetrics.utilityCornerRadius
-        )
-        KeyboardTheme.applyChrome(
-            to: pasteButton,
-            role: .utility,
-            cornerRadius: KeyboardMetrics.utilityCornerRadius
+            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
         )
         KeyboardTheme.applyChrome(
             to: clipboardButton,
             role: .utility,
             isActive: isClipboardActive,
-            cornerRadius: KeyboardMetrics.utilityCornerRadius
+            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
         )
         if isClipboardActive, let pressableButton = clipboardButton as? KeyboardPressableButton {
             pressableButton.setBorder(
@@ -124,48 +115,21 @@ final class KeyboardActionBarView: UIView {
         KeyboardTheme.applyChrome(
             to: importClipboardButton,
             role: .utility,
-            cornerRadius: KeyboardMetrics.utilityCornerRadius
+            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
         )
         KeyboardTheme.applyChrome(
             to: settingsButton,
             role: .utility,
             isActive: isSettingsActive,
-            cornerRadius: KeyboardMetrics.utilityCornerRadius
+            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
         )
-    }
-
-    private static func makeTextButton(title: String) -> UIButton {
-        let button = KeyboardPressableButton(type: .custom)
-        let titleFont = UIFont.systemFont(ofSize: KeyboardMetrics.utilityButtonFontSize, weight: .regular)
-        button.setTitle(title, for: .normal)
-        button.setTitleFonts(
-            normal: titleFont,
-            highlighted: titleFont
-        )
-        button.titleLabel?.adjustsFontSizeToFitWidth = true
-        button.titleLabel?.minimumScaleFactor = 0.8
-        if #available(iOS 15.0, *) {
-            var configuration = button.configuration ?? .plain()
-            configuration.contentInsets = NSDirectionalEdgeInsets(
-                top: 0,
-                leading: KeyboardMetrics.utilityButtonHorizontalPadding,
-                bottom: 0,
-                trailing: KeyboardMetrics.utilityButtonHorizontalPadding
-            )
-            button.configuration = configuration
-        } else {
-            button.contentEdgeInsets = UIEdgeInsets(
-                top: 0,
-                left: KeyboardMetrics.utilityButtonHorizontalPadding,
-                bottom: 0,
-                right: KeyboardMetrics.utilityButtonHorizontalPadding
-            )
-        }
-        button.heightAnchor.constraint(equalToConstant: KeyboardMetrics.utilityRowHeight).isActive = true
-        return button
     }
 
     private static func makeIconButton(symbolName: String) -> KeyboardPressableButton {
+        makeIconButton(symbolNames: [symbolName])
+    }
+
+    private static func makeIconButton(symbolNames: [String]) -> KeyboardPressableButton {
         let button = KeyboardPressableButton(type: .custom)
         button.setSymbolConfigurations(
             normal: UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.iconPointSize, weight: .medium),
@@ -175,7 +139,7 @@ final class KeyboardActionBarView: UIView {
             normal: KeyboardTheme.keyLabelColor,
             highlighted: KeyboardTheme.keyLabelColor
         )
-        button.setSymbolImage(UIImage(systemName: symbolName))
+        button.setSymbolImage(symbolNames.lazy.compactMap { UIImage(systemName: $0) }.first)
         button.widthAnchor.constraint(equalToConstant: KeyboardMetrics.iconButtonWidth).isActive = true
         button.heightAnchor.constraint(equalToConstant: KeyboardMetrics.utilityRowHeight).isActive = true
         return button
@@ -183,10 +147,6 @@ final class KeyboardActionBarView: UIView {
 
     @objc private func copyTapped() {
         onAction?(.copy)
-    }
-
-    @objc private func pasteTapped() {
-        onAction?(.paste)
     }
 
     @objc private func importClipboardTapped() {

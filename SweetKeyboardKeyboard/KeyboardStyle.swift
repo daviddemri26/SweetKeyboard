@@ -24,6 +24,7 @@ enum KeyboardMetrics {
     static let keyUnitWidth: CGFloat = 28
     static let keyCornerRadius: CGFloat = 9
     static let utilityCornerRadius: CGFloat = 9
+    static let actionBarButtonCornerRadius: CGFloat = 17
     static let feedbackCornerRadius: CGFloat = 11
 
     static let iconButtonWidth: CGFloat = 34

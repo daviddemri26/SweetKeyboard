@@ -6,9 +6,22 @@ final class KeyboardSettingsPanelView: UIView {
     var onHapticsEnabledChanged: ((Bool) -> Void)?
     var onClose: (() -> Void)?
 
+    private enum Constants {
+        static let chromeSpacing: CGFloat = 8
+        static let contentTopInset: CGFloat = 6
+        static let contentHorizontalInset: CGFloat = 12
+        static let contentBottomInset: CGFloat = 8
+        static let rowMinHeight: CGFloat = 50
+        static let rowHorizontalInset: CGFloat = 16
+        static let rowSpacing: CGFloat = 12
+        static let cardCornerRadius: CGFloat = 16
+    }
+
     private let contentStack = UIStackView()
     private let chromeStack = UIStackView()
     private let closeButton = KeyboardPressableButton(type: .custom)
+    private let scrollView = UIScrollView()
+    private let scrollContentStack = UIStackView()
 
     private let togglesCard = UIView()
     private let togglesCardStack = UIStackView()
@@ -71,9 +84,23 @@ final class KeyboardSettingsPanelView: UIView {
         contentStack.translatesAutoresizingMaskIntoConstraints = false
         contentStack.axis = .vertical
         contentStack.alignment = .fill
-        contentStack.spacing = 8
+        contentStack.spacing = Constants.chromeSpacing
         contentStack.isLayoutMarginsRelativeArrangement = true
-        contentStack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 6, leading: 12, bottom: 8, trailing: 12)
+        contentStack.directionalLayoutMargins = NSDirectionalEdgeInsets(
+            top: Constants.contentTopInset,
+            leading: Constants.contentHorizontalInset,
+            bottom: Constants.contentBottomInset,
+            trailing: Constants.contentHorizontalInset
+        )
+
+        scrollView.alwaysBounceVertical = true
+        scrollView.delaysContentTouches = false
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.addSubview(scrollContentStack)
+        scrollContentStack.translatesAutoresizingMaskIntoConstraints = false
+        scrollContentStack.axis = .vertical
+        scrollContentStack.alignment = .fill
+        scrollContentStack.spacing = 0
 
         var closeConfiguration = UIButton.Configuration.plain()
         closeConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 6, bottom: 6, trailing: 6)
@@ -103,6 +130,7 @@ final class KeyboardSettingsPanelView: UIView {
         chromeStack.addArrangedSubview(closeButton)
 
         contentStack.addArrangedSubview(chromeStack)
+        contentStack.addArrangedSubview(scrollView)
 
         configureRow(
             clipboardRow,
@@ -139,7 +167,7 @@ final class KeyboardSettingsPanelView: UIView {
             clipboardInfoLabel.bottomAnchor.constraint(equalTo: clipboardInfoRow.bottomAnchor, constant: -8)
         ])
 
-        togglesCard.layer.cornerRadius = 16
+        togglesCard.layer.cornerRadius = Constants.cardCornerRadius
         togglesCard.layer.cornerCurve = .continuous
         togglesCard.clipsToBounds = true
 
@@ -168,13 +196,18 @@ final class KeyboardSettingsPanelView: UIView {
             hapticsSeparatorHeightConstraint!
         ])
 
-        contentStack.addArrangedSubview(togglesCard)
+        scrollContentStack.addArrangedSubview(togglesCard)
 
         NSLayoutConstraint.activate([
             contentStack.topAnchor.constraint(equalTo: topAnchor),
             contentStack.leadingAnchor.constraint(equalTo: leadingAnchor),
             contentStack.trailingAnchor.constraint(equalTo: trailingAnchor),
             contentStack.bottomAnchor.constraint(equalTo: bottomAnchor),
+            scrollContentStack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor),
+            scrollContentStack.leadingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.leadingAnchor),
+            scrollContentStack.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor),
+            scrollContentStack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
+            scrollContentStack.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
             closeButton.widthAnchor.constraint(equalToConstant: 28),
             closeButton.heightAnchor.constraint(equalToConstant: 28)
         ])
@@ -195,12 +228,18 @@ final class KeyboardSettingsPanelView: UIView {
 
         row.axis = .horizontal
         row.alignment = .center
-        row.spacing = 12
+        row.spacing = Constants.rowSpacing
         row.isLayoutMarginsRelativeArrangement = true
-        row.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 9, leading: 16, bottom: 9, trailing: 16)
+        row.directionalLayoutMargins = NSDirectionalEdgeInsets(
+            top: 0,
+            leading: Constants.rowHorizontalInset,
+            bottom: 0,
+            trailing: Constants.rowHorizontalInset
+        )
         row.addArrangedSubview(titleLabel)
         row.addArrangedSubview(UIView())
         row.addArrangedSubview(toggle)
+        row.heightAnchor.constraint(greaterThanOrEqualToConstant: Constants.rowMinHeight).isActive = true
     }
 
     private func observeTraitChanges() {

@@ -179,7 +179,7 @@ private struct SettingsView: View {
 
             SettingsToggleCard(
                 title: "Clipboard toolbar",
-                message: "Shows Copy, Paste, Clipboard, and Settings above the keyboard.",
+                message: "Shows Copy, Import, Clipboard, and Settings above the keyboard.",
                 isOn: Binding(
                     get: { model.sharedSettings.clipboardModeEnabled },
                     set: model.setClipboardModeEnabled
@@ -358,10 +358,6 @@ private struct FeaturesView: View {
         FeatureItem(
             title: "Copy",
             message: "Copies selected text when the current app exposes it to the keyboard."
-        ),
-        FeatureItem(
-            title: "Paste",
-            message: "Pastes the current system clipboard contents into the active field."
         ),
         FeatureItem(
             title: "Clipboard history",

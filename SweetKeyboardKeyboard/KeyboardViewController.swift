@@ -261,8 +261,6 @@ final class KeyboardViewController: UIInputViewController {
             switch action {
             case .copy:
                 copySelectedText()
-            case .paste:
-                pasteFromSystemClipboard()
             case .importClipboard:
                 importSystemClipboardFromUserAction()
             case .clipboard:
@@ -1264,22 +1262,6 @@ final class KeyboardViewController: UIInputViewController {
         shiftState = newShiftState
         lastShiftTapAt = nil
         return true
-    }
-
-    private func pasteFromSystemClipboard() {
-        guard displayMode == .clipboard else {
-            feedbackPresenter.show("Clipboard mode is off")
-            return
-        }
-
-        guard let pasteText = UIPasteboard.general.string, !pasteText.isEmpty else {
-            feedbackPresenter.show("Nothing to paste")
-            return
-        }
-
-        textDocumentProxy.insertText(pasteText)
-        feedbackPresenter.show("Pasted")
-        refreshInputContext(forceKeyboardRebuild: keyboardLayoutMode == .letters)
     }
 
     private func handleClipboardModeChanged(_ isEnabled: Bool) {

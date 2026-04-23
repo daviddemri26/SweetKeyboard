@@ -29,7 +29,7 @@ This document is the detailed functional reference for the current codebase. It 
 
 - Optional top action bar in clipboard mode
 - `Copy`
-- `Paste`
+- `Import`
 - `Clipboard`
 - `Settings`
 - Local clipboard history grid
@@ -211,7 +211,6 @@ Storage rules:
 Interaction rules:
 
 - `Copy` saves the selected text if the host exposes it, or the selected text inside an open clipboard detail view
-- `Paste` inserts the current system pasteboard text
 - The top toolbar shows an import button when iOS reports plain text is available in the system pasteboard
 - Tapping the import button saves the current system pasteboard text into local history
 - Selecting a history item inserts it directly into the current field

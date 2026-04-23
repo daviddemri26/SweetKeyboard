@@ -58,7 +58,7 @@ SweetKeyboard is intentionally optimized around practical typing flows rather th
 - Long-press accent variants for `a`, `c`, `e`, `i`, `n`, `o`, `u`, and `y`
 - Long-press period variants: `…`, `:`, `•`, `@`, `!`, `?`, `,`
 - Contextual action key for `return`, `search`, `go`, `next`, `send`, `done`, and related host return-key types
-- Optional clipboard toolbar with `Copy`, `Paste`, `Clipboard`, and `Settings`
+- Optional clipboard toolbar with `Copy`, `Import`, `Clipboard`, and `Settings`
 - Local clipboard history grid inside the keyboard
 - Manual plain-text import from the iOS clipboard when the toolbar shows available text
 - In-keyboard settings panel for clipboard mode, auto-capitalization, and key haptics
@@ -83,7 +83,7 @@ Basic typing works without Full Access.
 
 Full Access is requested only for optional features that require system capability beyond basic text entry:
 
-- `UIPasteboard` integration for copy, paste, and manual plain-text import
+- `UIPasteboard` integration for copy verification and manual plain-text import
 - shared settings and clipboard state between the containing app and the keyboard extension
 
 If Full Access is disabled, SweetKeyboard automatically falls back to typing-only mode.
@@ -173,7 +173,6 @@ Behavior highlights:
 - Clipboard mode is user-controlled through shared settings
 - The top action bar appears only when Full Access is available and clipboard mode is enabled
 - `Copy` uses `selectedText` when the host exposes it, or selected text inside a clipboard detail view; it writes plain text only and verifies the pasteboard round trip byte-for-byte before saving history
-- `Paste` reads from `UIPasteboard.general`
 - A toolbar import button appears when iOS reports that plain text is available; tapping it saves the current `UIPasteboard.general` text into local history
 - Clipboard history is local only
 - History is stored newest first
