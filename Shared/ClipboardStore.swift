@@ -26,18 +26,17 @@ final class ClipboardStore {
     }
 
     func add(text: String, source: ClipboardItem.Source) {
-        let normalized = normalize(text)
-        guard !normalized.isEmpty else {
+        guard !text.isEmpty else {
             return
         }
 
         var items = allItems()
 
-        if items.first?.text == normalized {
+        if items.first?.text == text {
             return
         }
 
-        items.insert(ClipboardItem(text: normalized, source: source), at: 0)
+        items.insert(ClipboardItem(text: text, source: source), at: 0)
 
         if items.count > Constants.maxItems {
             items = Array(items.prefix(Constants.maxItems))
@@ -48,10 +47,6 @@ final class ClipboardStore {
 
     func clearAll() {
         defaults.removeObject(forKey: Constants.storageKey)
-    }
-
-    private func normalize(_ text: String) -> String {
-        text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func save(_ items: [ClipboardItem]) {

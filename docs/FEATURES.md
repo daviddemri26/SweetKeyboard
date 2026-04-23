@@ -268,7 +268,7 @@ The current test suite explicitly covers the newest functional work:
 - symbol-to-letter return rules
 - overlapping-touch sequencing
 - shared settings backward compatibility
-- clipboard history normalization and truncation rules
+- clipboard history preservation and item-cap rules
 
 ## Platform Constraints
 

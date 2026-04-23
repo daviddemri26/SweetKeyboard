@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor
 final class SharedStoreTests: XCTestCase {
-    func testClipboardStoreNormalizesAndKeepsFullText() {
+    func testClipboardStorePreservesCopiedTextExactly() {
         let defaults = makeDefaults()
         let store = ClipboardStore(defaults: defaults)
         let longText = "  " + String(repeating: "a", count: 600) + "  "
@@ -12,8 +12,29 @@ final class SharedStoreTests: XCTestCase {
 
         let items = store.allItems()
         XCTAssertEqual(items.count, 1)
-        XCTAssertEqual(items.first?.text.count, 600)
-        XCTAssertEqual(items.first?.text, String(repeating: "a", count: 600))
+        XCTAssertEqual(items.first?.text.count, longText.count)
+        XCTAssertEqual(items.first?.text, longText)
+    }
+
+    func testClipboardStorePreservesSpecialCharactersExactly() {
+        let defaults = makeDefaults()
+        let store = ClipboardStore(defaults: defaults)
+        let text = "  \n" + """
+        Leading spaces, tabs, and symbols:
+        \t"quoted" 'single' \\ backslash / slash
+        emoji: 👩🏽‍💻🚀
+        accents: éèêçàùñ
+        math: ≠ ≤ ≥ ∞ ±
+        zero-width:\u{200B}end
+
+        trailing spaces
+        """ + "  "
+
+        store.add(text: text, source: .keyboardCopy)
+
+        let items = store.allItems()
+        XCTAssertEqual(items.count, 1)
+        XCTAssertEqual(items.first?.text, text)
     }
 
     func testClipboardStoreDeduplicatesConsecutiveUntruncatedValues() {

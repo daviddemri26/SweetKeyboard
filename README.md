@@ -289,7 +289,7 @@ The shared behavior is covered by `SweetKeyboardTests`, including:
 - overlapping-touch sequencing
 - auto-capitalization decisions
 - shared settings persistence
-- clipboard normalization rules
+- clipboard preservation rules
 
 Useful local commands:
 
