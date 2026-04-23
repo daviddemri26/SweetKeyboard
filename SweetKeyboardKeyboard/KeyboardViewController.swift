@@ -1445,11 +1445,16 @@ final class KeyboardViewController: UIInputViewController {
             return
         }
 
-        pressSequenceCoordinator.cancelAll()
-        accentState = AccentCatalog.replacementState(
+        guard let replacementState = AccentCatalog.replacementState(
             for: displayedLetter,
             isUppercase: isShiftActive
-        )
+        ) else {
+            return
+        }
+
+        pressSequenceCoordinator.cancelAll()
+        accentState = replacementState
+        triggerKeyPressHaptic()
         rebuildKeyboardRows()
     }
 
