@@ -175,7 +175,7 @@ Behavior highlights:
 - Clipboard history is local only
 - History is stored newest first
 - History keeps a maximum of 50 items
-- History trims each item to 500 characters
+- History preserves the full copied text for each item
 - Consecutive duplicate items are ignored
 - Tapping a history item inserts its text and returns to keyboard mode
 

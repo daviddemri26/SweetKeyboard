@@ -105,6 +105,12 @@ final class KeyboardActionBarView: UIView {
             isActive: isClipboardActive,
             cornerRadius: KeyboardMetrics.utilityCornerRadius
         )
+        if isClipboardActive, let pressableButton = clipboardButton as? KeyboardPressableButton {
+            pressableButton.setBorder(
+                width: KeyboardMetrics.functionKeyBorderWidth,
+                colorProvider: { _ in KeyboardTheme.functionKeyBorderColor }
+            )
+        }
         KeyboardTheme.applyChrome(
             to: settingsButton,
             role: .utility,

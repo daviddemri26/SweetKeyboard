@@ -202,7 +202,7 @@ Storage rules:
 - Local only
 - Shared through the App Group
 - Maximum 50 items
-- Maximum 500 characters per item
+- Full copied text is preserved per item
 - Consecutive duplicates are ignored
 - Newest items appear first
 
@@ -211,6 +211,7 @@ Interaction rules:
 - `Copy` saves the selected text if the host exposes it
 - `Paste` inserts the current system pasteboard text
 - Selecting a history item inserts it directly into the current field
+- Long-pressing a history item opens a full-text detail view with Back and Paste actions
 - Clipboard mode depends on Full Access
 
 ## Settings Model

@@ -270,6 +270,14 @@ final class KeyboardViewController: UIInputViewController {
             self.refreshInputContext(forceKeyboardRebuild: self.keyboardLayoutMode == .letters)
         }
 
+        clipboardPanel.onOpenDetail = { [weak self] in
+            self?.triggerKeyPressHaptic()
+        }
+
+        clipboardPanel.onCloseDetail = { [weak self] in
+            self?.triggerKeyPressHaptic()
+        }
+
         settingsPanel.onClipboardModeChanged = { [weak self] isEnabled in
             self?.handleClipboardModeChanged(isEnabled)
         }
@@ -1039,7 +1047,16 @@ final class KeyboardViewController: UIInputViewController {
 
         UIPasteboard.general.string = selectedText
         clipboardStore.add(text: selectedText, source: .keyboardCopy)
+        refreshClipboardPanelIfVisible()
         feedbackPresenter.show("Copied")
+    }
+
+    private func refreshClipboardPanelIfVisible() {
+        guard displayMode == .clipboard, mode == .clipboard else {
+            return
+        }
+
+        clipboardPanel.render(items: clipboardStore.allItems())
     }
 
     private func syncAutoCapitalization(using context: ActionKeyInputContext) -> Bool {

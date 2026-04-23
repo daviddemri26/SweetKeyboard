@@ -4,7 +4,6 @@ final class ClipboardStore {
     private enum Constants {
         static let storageKey = "clipboard.history.v1"
         static let maxItems = 50
-        static let maxItemLength = 500
     }
 
     private let defaults: UserDefaults
@@ -52,8 +51,7 @@ final class ClipboardStore {
     }
 
     private func normalize(_ text: String) -> String {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        return String(trimmed.prefix(Constants.maxItemLength))
+        text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     private func save(_ items: [ClipboardItem]) {

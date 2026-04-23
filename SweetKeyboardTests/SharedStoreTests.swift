@@ -3,18 +3,30 @@ import XCTest
 
 @MainActor
 final class SharedStoreTests: XCTestCase {
-    func testClipboardStoreNormalizesAndDeduplicatesConsecutiveValues() {
+    func testClipboardStoreNormalizesAndKeepsFullText() {
         let defaults = makeDefaults()
         let store = ClipboardStore(defaults: defaults)
         let longText = "  " + String(repeating: "a", count: 600) + "  "
 
         store.add(text: longText, source: .keyboardCopy)
-        store.add(text: String(repeating: "a", count: 500), source: .keyboardCopy)
 
         let items = store.allItems()
         XCTAssertEqual(items.count, 1)
-        XCTAssertEqual(items.first?.text.count, 500)
-        XCTAssertEqual(items.first?.text, String(repeating: "a", count: 500))
+        XCTAssertEqual(items.first?.text.count, 600)
+        XCTAssertEqual(items.first?.text, String(repeating: "a", count: 600))
+    }
+
+    func testClipboardStoreDeduplicatesConsecutiveUntruncatedValues() {
+        let defaults = makeDefaults()
+        let store = ClipboardStore(defaults: defaults)
+        let longText = String(repeating: "a", count: 600)
+
+        store.add(text: longText, source: .keyboardCopy)
+        store.add(text: longText, source: .keyboardCopy)
+
+        let items = store.allItems()
+        XCTAssertEqual(items.count, 1)
+        XCTAssertEqual(items.first?.text, longText)
     }
 
     func testClipboardStoreKeepsOnlyMostRecentFiftyItems() {
