@@ -3,6 +3,7 @@ import Foundation
 struct ClipboardItem: Codable, Identifiable, Equatable {
     enum Source: String, Codable {
         case keyboardCopy
+        case systemPasteboardImport
 
         init(from decoder: Decoder) throws {
             let container = try decoder.singleValueContainer()
@@ -11,6 +12,8 @@ struct ClipboardItem: Codable, Identifiable, Equatable {
             switch rawValue {
             case Self.keyboardCopy.rawValue, "manualImport":
                 self = .keyboardCopy
+            case Self.systemPasteboardImport.rawValue:
+                self = .systemPasteboardImport
             default:
                 throw DecodingError.dataCorruptedError(
                     in: container,

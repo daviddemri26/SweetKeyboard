@@ -21,6 +21,7 @@ final class KeyboardViewController: UIInputViewController {
     private let layoutEngine = KeyboardLayoutEngine()
     private let clipboardStore = ClipboardStore()
     private let clipboardCopyService = ClipboardCopyService()
+    private let clipboardSystemImportService = ClipboardSystemImportService()
     private let actionKeyResolver = ActionKeyResolver()
     private let autoCapitalizationResolver = AutoCapitalizationResolver()
     private let sharedSettingsStore = SharedKeyboardSettingsStore()
@@ -70,6 +71,9 @@ final class KeyboardViewController: UIInputViewController {
     private var pressSequenceCoordinator = KeyboardPressSequenceCoordinator()
     private var sequencedKeyKindsByButtonID: [ObjectIdentifier: SequencedKeyKind] = [:]
     private var keyboardRebuildIsDeferred = false
+    private var pasteboardChangeObserver: NSObjectProtocol?
+    private var clipboardImportPollTimer: Timer?
+    private var clipboardImportPollsRemaining = 0
 
     private weak var actionKeyButton: UIButton?
     private weak var actionKeyHitTarget: KeyboardHitTargetButton?
@@ -81,6 +85,10 @@ final class KeyboardViewController: UIInputViewController {
 
     private var desiredClipboardModeEnabled: Bool {
         sharedSettings.clipboardModeEnabled
+    }
+
+    private var canCheckSystemClipboardImport: Bool {
+        hasFullAccess && sharedSettings.clipboardModeEnabled
     }
 
     private var effectiveDisplayMode: DisplayMode {
@@ -116,6 +124,7 @@ final class KeyboardViewController: UIInputViewController {
         keyboardLayoutMode = .letters
         clearAccentState(rebuild: false)
         reloadFeatureState(rebuildKeyboard: true)
+        beginClipboardImportAvailabilitySessionIfAllowed()
     }
 
     override func viewWillLayoutSubviews() {
@@ -132,6 +141,7 @@ final class KeyboardViewController: UIInputViewController {
         super.viewDidDisappear(animated)
         stopKeyRepeats()
         cancelSequencedInteractions(performDeferredRebuild: false)
+        stopClipboardImportAvailabilityMonitoring()
     }
 
     override func textDidChange(_ textInput: UITextInput?) {
@@ -253,6 +263,8 @@ final class KeyboardViewController: UIInputViewController {
                 copySelectedText()
             case .paste:
                 pasteFromSystemClipboard()
+            case .importClipboard:
+                importSystemClipboardFromUserAction()
             case .clipboard:
                 toggleMode(.clipboard)
             case .settings:
@@ -319,6 +331,7 @@ final class KeyboardViewController: UIInputViewController {
         updateKeyboardSizingIfNeeded()
         refreshModeUI()
         refreshInputContext(forceKeyboardRebuild: rebuildKeyboard || previousDisplayMode != displayMode)
+        refreshClipboardImportAvailabilityObservation()
     }
 
     private func updateSettingsPanel(capabilityStatus: KeyboardCapabilityStatus) {
@@ -349,6 +362,10 @@ final class KeyboardViewController: UIInputViewController {
         cancelSequencedInteractions()
         clearAccentState(rebuild: mode == .keyboard)
         mode = (mode == targetMode) ? .keyboard : targetMode
+
+        if mode == .clipboard {
+            updateClipboardImportAvailability()
+        }
     }
 
     private func refreshModeUI() {
@@ -362,6 +379,7 @@ final class KeyboardViewController: UIInputViewController {
         actionBar.setSettingsActive(displayMode == .clipboard && mode == .settings)
 
         if isClipboardVisible {
+            updateClipboardImportAvailability()
             clipboardPanel.render(items: clipboardStore.allItems())
         }
     }
@@ -1059,8 +1077,128 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         clipboardStore.add(text: selectedText, source: .keyboardCopy)
+        clipboardSystemImportService.markProcessed(UIPasteboard.general)
+        updateClipboardImportAvailability()
         refreshClipboardPanelIfVisible()
         feedbackPresenter.show("Copied")
+    }
+
+    private func beginClipboardImportAvailabilitySessionIfAllowed() {
+        guard canCheckSystemClipboardImport else {
+            stopClipboardImportAvailabilityMonitoring()
+            return
+        }
+
+        refreshClipboardImportAvailabilityObservation()
+        updateClipboardImportAvailability()
+        startClipboardImportAvailabilityPollingWindowIfAllowed()
+    }
+
+    private func refreshClipboardImportAvailabilityObservation() {
+        guard canCheckSystemClipboardImport else {
+            stopClipboardImportAvailabilityMonitoring()
+            return
+        }
+
+        guard pasteboardChangeObserver == nil else {
+            return
+        }
+
+        pasteboardChangeObserver = NotificationCenter.default.addObserver(
+            forName: UIPasteboard.changedNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.updateClipboardImportAvailability()
+        }
+    }
+
+    private func startClipboardImportAvailabilityPollingWindowIfAllowed() {
+        guard canCheckSystemClipboardImport else {
+            clipboardImportPollTimer?.invalidate()
+            clipboardImportPollTimer = nil
+            return
+        }
+
+        clipboardImportPollTimer?.invalidate()
+        clipboardImportPollsRemaining = 3
+
+        let timer = Timer(timeInterval: 1, repeats: true) { [weak self] timer in
+            guard let self else {
+                timer.invalidate()
+                return
+            }
+
+            self.updateClipboardImportAvailability()
+            self.clipboardImportPollsRemaining -= 1
+
+            if self.clipboardImportPollsRemaining <= 0 {
+                timer.invalidate()
+                self.clipboardImportPollTimer = nil
+            }
+        }
+
+        clipboardImportPollTimer = timer
+        RunLoop.main.add(timer, forMode: .common)
+    }
+
+    private func stopClipboardImportAvailabilityMonitoring() {
+        if let pasteboardChangeObserver {
+            NotificationCenter.default.removeObserver(pasteboardChangeObserver)
+            self.pasteboardChangeObserver = nil
+        }
+
+        clipboardImportPollTimer?.invalidate()
+        clipboardImportPollTimer = nil
+        clipboardImportPollsRemaining = 0
+        actionBar.setClipboardImportAvailable(false)
+    }
+
+    private func updateClipboardImportAvailability() {
+        let isAvailable = clipboardSystemImportService.hasAvailableText(
+            in: UIPasteboard.general,
+            context: ClipboardSystemImportContext(
+                isFullAccessAvailable: hasFullAccess,
+                isClipboardModeEnabled: sharedSettings.clipboardModeEnabled
+            )
+        )
+
+        actionBar.setClipboardImportAvailable(displayMode == .clipboard && isAvailable)
+    }
+
+    private func importSystemClipboardFromUserAction() {
+        let result = clipboardSystemImportService.importAvailableText(
+            from: UIPasteboard.general,
+            into: clipboardStore,
+            context: ClipboardSystemImportContext(
+                isFullAccessAvailable: hasFullAccess,
+                isClipboardModeEnabled: sharedSettings.clipboardModeEnabled
+            )
+        )
+
+        updateClipboardImportAvailability()
+
+        switch result {
+        case .stored:
+            showClipboardPanel()
+            feedbackPresenter.show("Imported")
+        case .duplicate:
+            showClipboardPanel()
+            feedbackPresenter.show("Already saved")
+        case .unavailable:
+            feedbackPresenter.show("Clipboard mode is off")
+        case .alreadyProcessed, .noText, .emptyText:
+            feedbackPresenter.show("Nothing to import")
+        }
+    }
+
+    private func showClipboardPanel() {
+        guard displayMode == .clipboard else {
+            return
+        }
+
+        mode = .clipboard
+        clipboardPanel.render(items: clipboardStore.allItems())
     }
 
     private func refreshClipboardPanelIfVisible() {
@@ -1120,6 +1258,11 @@ final class KeyboardViewController: UIInputViewController {
         sharedSettings.clipboardModeEnabled = isEnabled
         sharedSettingsStore.setClipboardModeEnabled(isEnabled)
         reloadFeatureState(rebuildKeyboard: true)
+
+        if canCheckSystemClipboardImport {
+            updateClipboardImportAvailability()
+            startClipboardImportAvailabilityPollingWindowIfAllowed()
+        }
 
         if isEnabled {
             if hasFullAccess {
@@ -1524,4 +1667,4 @@ final class KeyboardViewController: UIInputViewController {
     }
 }
 
-extension UIPasteboard: ClipboardTextPasteboard {}
+extension UIPasteboard: ClipboardReadablePasteboard, ClipboardTextPasteboard {}

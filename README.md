@@ -29,7 +29,7 @@ SweetKeyboard helps users type faster without forcing them to learn a new layout
 - Emoji access from the symbols layer without adding a separate primary keyboard
 - Contextual `@` shortcut in email fields
 - Contextual action key that adapts to host app return-key traits
-- Optional clipboard toolbar with copy, paste, and local history
+- Optional clipboard toolbar with copy, paste, local history, and manual system clipboard import
 - Local-only privacy model with no analytics, no sync, and no remote text processing
 
 ### What Feels Different
@@ -60,6 +60,7 @@ SweetKeyboard is intentionally optimized around practical typing flows rather th
 - Contextual action key for `return`, `search`, `go`, `next`, `send`, `done`, and related host return-key types
 - Optional clipboard toolbar with `Copy`, `Paste`, `Clipboard`, and `Settings`
 - Local clipboard history grid inside the keyboard
+- Manual plain-text import from the iOS clipboard when the toolbar shows available text
 - In-keyboard settings panel for clipboard mode, auto-capitalization, and key haptics
 - Optional key haptics
 
@@ -74,6 +75,7 @@ SweetKeyboard is intentionally local-first.
 - No remote inference or text processing
 
 Clipboard history is stored locally in the shared App Group container used by the app and keyboard extension.
+System clipboard import only reads plain text after the user taps the import button.
 
 ### Full Access Positioning
 
@@ -81,7 +83,7 @@ Basic typing works without Full Access.
 
 Full Access is requested only for optional features that require system capability beyond basic text entry:
 
-- `UIPasteboard` integration for copy and paste helpers
+- `UIPasteboard` integration for copy, paste, and manual plain-text import
 - shared settings and clipboard state between the containing app and the keyboard extension
 
 If Full Access is disabled, SweetKeyboard automatically falls back to typing-only mode.
@@ -172,6 +174,7 @@ Behavior highlights:
 - The top action bar appears only when Full Access is available and clipboard mode is enabled
 - `Copy` uses `selectedText` when the host exposes it, or selected text inside a clipboard detail view; it writes plain text only and verifies the pasteboard round trip byte-for-byte before saving history
 - `Paste` reads from `UIPasteboard.general`
+- A toolbar import button appears when iOS reports that plain text is available; tapping it saves the current `UIPasteboard.general` text into local history
 - Clipboard history is local only
 - History is stored newest first
 - History keeps a maximum of 50 items
@@ -211,6 +214,7 @@ Symbol lock is persisted as shared state and controlled directly from the symbol
 
 - Basic typing does not require Full Access
 - Clipboard tools require Full Access
+- Clipboard import requires a user tap on the toolbar import button
 - Shared settings between app and extension rely on the App Group
 - The current codebase is local-only and performs no network requests
 

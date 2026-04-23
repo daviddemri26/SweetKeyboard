@@ -223,6 +223,7 @@ private struct InfoView: View {
                 title: "Privacy",
                 items: [
                     "Clipboard data stays on this device.",
+                    "System clipboard import only reads plain text after you tap the import button.",
                     "No network, no analytics, no cloud."
                 ]
             )
@@ -367,6 +368,10 @@ private struct FeaturesView: View {
             message: "Saved snippets are listed locally so you can paste recent items again quickly."
         ),
         FeatureItem(
+            title: "Clipboard import",
+            message: "Shows an import button when iOS reports that plain text is available to save."
+        ),
+        FeatureItem(
             title: "Toolbar shortcut",
             message: "The top bar can also open keyboard settings directly."
         )
@@ -376,6 +381,10 @@ private struct FeaturesView: View {
         FeatureItem(
             title: "Clipboard toolbar",
             message: "Turn the top clipboard bar on or off from the app or from the keyboard."
+        ),
+        FeatureItem(
+            title: "Clipboard import",
+            message: "Import available iOS clipboard text manually from the top toolbar."
         ),
         FeatureItem(
             title: "Auto-capitalization",

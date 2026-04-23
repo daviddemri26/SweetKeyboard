@@ -25,15 +25,16 @@ final class ClipboardStore {
         }
     }
 
-    func add(text: String, source: ClipboardItem.Source) {
+    @discardableResult
+    func add(text: String, source: ClipboardItem.Source) -> Bool {
         guard !text.isEmpty else {
-            return
+            return false
         }
 
         var items = allItems()
 
         if items.first?.text.hasSameUTF8Bytes(as: text) == true {
-            return
+            return false
         }
 
         items.insert(ClipboardItem(text: text, source: source), at: 0)
@@ -42,19 +43,20 @@ final class ClipboardStore {
             items = Array(items.prefix(Constants.maxItems))
         }
 
-        save(items)
+        return save(items)
     }
 
     func clearAll() {
         defaults.removeObject(forKey: Constants.storageKey)
     }
 
-    private func save(_ items: [ClipboardItem]) {
+    private func save(_ items: [ClipboardItem]) -> Bool {
         do {
             let data = try JSONEncoder().encode(items)
             defaults.set(data, forKey: Constants.storageKey)
+            return true
         } catch {
-            return
+            return false
         }
     }
 }

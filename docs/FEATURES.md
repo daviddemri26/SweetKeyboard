@@ -33,6 +33,7 @@ This document is the detailed functional reference for the current codebase. It 
 - `Clipboard`
 - `Settings`
 - Local clipboard history grid
+- Manual system clipboard import button for available plain text
 
 ### In-Keyboard Settings
 
@@ -211,6 +212,8 @@ Interaction rules:
 
 - `Copy` saves the selected text if the host exposes it, or the selected text inside an open clipboard detail view
 - `Paste` inserts the current system pasteboard text
+- The top toolbar shows an import button when iOS reports plain text is available in the system pasteboard
+- Tapping the import button saves the current system pasteboard text into local history
 - Selecting a history item inserts it directly into the current field
 - Long-pressing a history item opens a full-text detail view with Back and Paste actions; selected detail text can be copied into history from the top action bar
 - Clipboard mode depends on Full Access
@@ -247,6 +250,7 @@ Default values:
 ### With Full Access
 
 - Clipboard toolbar can be enabled
+- Clipboard import button appears only when system pasteboard text is available
 - Shared app-to-keyboard settings stay synchronized
 - Clipboard history and system pasteboard features work
 

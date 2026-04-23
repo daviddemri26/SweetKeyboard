@@ -4,6 +4,7 @@ final class KeyboardActionBarView: UIView {
     enum Action {
         case copy
         case paste
+        case importClipboard
         case clipboard
         case settings
     }
@@ -12,6 +13,7 @@ final class KeyboardActionBarView: UIView {
 
     private let copyButton = KeyboardActionBarView.makeTextButton(title: "Copy")
     private let pasteButton = KeyboardActionBarView.makeTextButton(title: "Paste")
+    private let importClipboardButton = KeyboardActionBarView.makeIconButton(symbolName: "square.and.arrow.down")
     private let clipboardButton = KeyboardActionBarView.makeTextButton(title: "Clipboard")
     private let settingsButton = KeyboardActionBarView.makeIconButton(symbolName: "gearshape")
 
@@ -39,6 +41,10 @@ final class KeyboardActionBarView: UIView {
         applyTheme()
     }
 
+    func setClipboardImportAvailable(_ available: Bool) {
+        importClipboardButton.isHidden = !available
+    }
+
     private func observeTraitChanges() {
         registerForTraitChanges([UITraitUserInterfaceStyle.self, UITraitAccessibilityContrast.self]) {
             (self: Self, _: UITraitCollection) in
@@ -54,7 +60,7 @@ final class KeyboardActionBarView: UIView {
         leftStack.alignment = .fill
         leftStack.spacing = KeyboardMetrics.utilityRowButtonSpacing
 
-        let rightStack = UIStackView(arrangedSubviews: [settingsButton])
+        let rightStack = UIStackView(arrangedSubviews: [importClipboardButton, settingsButton])
         rightStack.axis = .horizontal
         rightStack.alignment = .fill
         rightStack.spacing = KeyboardMetrics.utilityGroupSpacing
@@ -81,9 +87,13 @@ final class KeyboardActionBarView: UIView {
 
         copyButton.addTarget(self, action: #selector(copyTapped), for: .touchUpInside)
         pasteButton.addTarget(self, action: #selector(pasteTapped), for: .touchUpInside)
+        importClipboardButton.addTarget(self, action: #selector(importClipboardTapped), for: .touchUpInside)
         clipboardButton.addTarget(self, action: #selector(clipboardTapped), for: .touchUpInside)
         settingsButton.addTarget(self, action: #selector(settingsTapped), for: .touchUpInside)
 
+        importClipboardButton.isHidden = true
+        importClipboardButton.accessibilityLabel = "Import clipboard"
+        importClipboardButton.accessibilityHint = "Imports the current iOS clipboard text into SweetKeyboard history."
         settingsButton.accessibilityLabel = "Settings"
         settingsButton.accessibilityHint = "Shows SweetKeyboard settings."
     }
@@ -111,6 +121,11 @@ final class KeyboardActionBarView: UIView {
                 colorProvider: { _ in KeyboardTheme.functionKeyBorderColor }
             )
         }
+        KeyboardTheme.applyChrome(
+            to: importClipboardButton,
+            role: .utility,
+            cornerRadius: KeyboardMetrics.utilityCornerRadius
+        )
         KeyboardTheme.applyChrome(
             to: settingsButton,
             role: .utility,
@@ -172,6 +187,10 @@ final class KeyboardActionBarView: UIView {
 
     @objc private func pasteTapped() {
         onAction?(.paste)
+    }
+
+    @objc private func importClipboardTapped() {
+        onAction?(.importClipboard)
     }
 
     @objc private func clipboardTapped() {

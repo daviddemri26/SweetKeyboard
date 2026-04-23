@@ -71,9 +71,9 @@ final class KeyboardSettingsPanelView: UIView {
         contentStack.translatesAutoresizingMaskIntoConstraints = false
         contentStack.axis = .vertical
         contentStack.alignment = .fill
-        contentStack.spacing = 12
+        contentStack.spacing = 8
         contentStack.isLayoutMarginsRelativeArrangement = true
-        contentStack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 10, leading: 12, bottom: 12, trailing: 12)
+        contentStack.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 6, leading: 12, bottom: 8, trailing: 12)
 
         var closeConfiguration = UIButton.Configuration.plain()
         closeConfiguration.contentInsets = NSDirectionalEdgeInsets(top: 6, leading: 6, bottom: 6, trailing: 6)
@@ -136,7 +136,7 @@ final class KeyboardSettingsPanelView: UIView {
             clipboardInfoLabel.topAnchor.constraint(equalTo: clipboardInfoRow.topAnchor),
             clipboardInfoLabel.leadingAnchor.constraint(equalTo: clipboardInfoRow.leadingAnchor, constant: 16),
             clipboardInfoLabel.trailingAnchor.constraint(equalTo: clipboardInfoRow.trailingAnchor, constant: -16),
-            clipboardInfoLabel.bottomAnchor.constraint(equalTo: clipboardInfoRow.bottomAnchor, constant: -12)
+            clipboardInfoLabel.bottomAnchor.constraint(equalTo: clipboardInfoRow.bottomAnchor, constant: -8)
         ])
 
         togglesCard.layer.cornerRadius = 16
@@ -175,8 +175,8 @@ final class KeyboardSettingsPanelView: UIView {
             contentStack.leadingAnchor.constraint(equalTo: leadingAnchor),
             contentStack.trailingAnchor.constraint(equalTo: trailingAnchor),
             contentStack.bottomAnchor.constraint(equalTo: bottomAnchor),
-            closeButton.widthAnchor.constraint(equalToConstant: 32),
-            closeButton.heightAnchor.constraint(equalToConstant: 32)
+            closeButton.widthAnchor.constraint(equalToConstant: 28),
+            closeButton.heightAnchor.constraint(equalToConstant: 28)
         ])
     }
 
@@ -197,7 +197,7 @@ final class KeyboardSettingsPanelView: UIView {
         row.alignment = .center
         row.spacing = 12
         row.isLayoutMarginsRelativeArrangement = true
-        row.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 15, leading: 16, bottom: 15, trailing: 16)
+        row.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 9, leading: 16, bottom: 9, trailing: 16)
         row.addArrangedSubview(titleLabel)
         row.addArrangedSubview(UIView())
         row.addArrangedSubview(toggle)
