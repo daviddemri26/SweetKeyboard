@@ -27,7 +27,7 @@ final class KeyboardViewController: UIInputViewController {
     private let shiftStateMachine = KeyboardShiftStateMachine()
 
     private let shiftDoubleTapInterval: TimeInterval = 0.35
-    private let accentHoldDelay: TimeInterval = 0.5
+    private let accentHoldDelay: TimeInterval = 0.25
     private let keyRepeatDelay: TimeInterval = 0.8
     private let keyRepeatInterval: TimeInterval = 0.1
     private var shiftState: KeyboardShiftState = .off
