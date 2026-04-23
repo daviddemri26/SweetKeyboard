@@ -288,7 +288,36 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         clipboardPanel.onCloseDetail = { [weak self] in
-            self?.triggerKeyPressHaptic()
+            guard let self else { return }
+            self.triggerKeyPressHaptic()
+            self.refreshClipboardPanelIfVisible()
+        }
+
+        clipboardPanel.onTogglePin = { [weak self] item in
+            guard let self else { return item }
+            self.cancelSequencedInteractions()
+            self.triggerKeyPressHaptic()
+
+            let shouldPin = !item.isPinned
+            guard self.clipboardStore.setPinned(id: item.id, isPinned: shouldPin),
+                  let updatedItem = self.clipboardStore.allItems().first(where: { $0.id == item.id }) else {
+                return item
+            }
+
+            self.feedbackPresenter.show(shouldPin ? "Pinned" : "Unpinned")
+            return updatedItem
+        }
+
+        clipboardPanel.onDeleteItem = { [weak self] item in
+            guard let self else { return }
+            self.cancelSequencedInteractions()
+            self.triggerKeyPressHaptic()
+
+            if self.clipboardStore.delete(id: item.id) {
+                self.feedbackPresenter.show("Deleted")
+            }
+
+            self.showClipboardPanel()
         }
 
         settingsPanel.onClipboardModeChanged = { [weak self] isEnabled in

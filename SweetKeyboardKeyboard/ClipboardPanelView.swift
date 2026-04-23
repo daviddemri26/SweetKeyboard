@@ -4,6 +4,8 @@ final class ClipboardPanelView: UIView {
     var onSelectText: ((String) -> Void)?
     var onOpenDetail: (() -> Void)?
     var onCloseDetail: (() -> Void)?
+    var onTogglePin: ((ClipboardItem) -> ClipboardItem?)?
+    var onDeleteItem: ((ClipboardItem) -> Void)?
 
     private enum Constants {
         static let columnCount = 3
@@ -23,6 +25,8 @@ final class ClipboardPanelView: UIView {
     private let detailButtonStack = UIStackView()
     private let detailBackButton = KeyboardPressableButton(type: .custom)
     private let detailPasteButton = KeyboardPressableButton(type: .custom)
+    private let detailPinButton = KeyboardPressableButton(type: .custom)
+    private let detailDeleteButton = KeyboardPressableButton(type: .custom)
     private var detailItem: ClipboardItem?
     private let emptyLabel: UILabel = {
         let label = UILabel()
@@ -119,6 +123,8 @@ final class ClipboardPanelView: UIView {
         detailButtonStack.spacing = Constants.detailSpacing
         detailButtonStack.addArrangedSubview(detailBackButton)
         detailButtonStack.addArrangedSubview(detailPasteButton)
+        detailButtonStack.addArrangedSubview(detailPinButton)
+        detailButtonStack.addArrangedSubview(detailDeleteButton)
         detailButtonStack.addArrangedSubview(UIView())
 
         configureDetailTextView()
@@ -133,6 +139,18 @@ final class ClipboardPanelView: UIView {
             symbolName: "doc.on.clipboard",
             accessibilityLabel: "Paste",
             action: #selector(detailPasteTapped)
+        )
+        configureDetailIconButton(
+            detailPinButton,
+            symbolName: "pin",
+            accessibilityLabel: "Pin",
+            action: #selector(detailPinTapped)
+        )
+        configureDetailIconButton(
+            detailDeleteButton,
+            symbolName: "trash",
+            accessibilityLabel: "Delete",
+            action: #selector(detailDeleteTapped)
         )
 
         NSLayoutConstraint.activate([
@@ -167,7 +185,9 @@ final class ClipboardPanelView: UIView {
             detailButtonStack.widthAnchor.constraint(equalToConstant: Constants.detailButtonWidth),
 
             detailBackButton.heightAnchor.constraint(equalToConstant: Constants.detailButtonHeight),
-            detailPasteButton.heightAnchor.constraint(equalToConstant: Constants.detailButtonHeight)
+            detailPasteButton.heightAnchor.constraint(equalToConstant: Constants.detailButtonHeight),
+            detailPinButton.heightAnchor.constraint(equalToConstant: Constants.detailButtonHeight),
+            detailDeleteButton.heightAnchor.constraint(equalToConstant: Constants.detailButtonHeight)
         ])
     }
 
@@ -187,6 +207,17 @@ final class ClipboardPanelView: UIView {
             role: .utility,
             cornerRadius: KeyboardMetrics.utilityCornerRadius
         )
+        KeyboardTheme.applyChrome(
+            to: detailPinButton,
+            role: .utility,
+            cornerRadius: KeyboardMetrics.utilityCornerRadius
+        )
+        KeyboardTheme.applyChrome(
+            to: detailDeleteButton,
+            role: .utility,
+            cornerRadius: KeyboardMetrics.utilityCornerRadius
+        )
+        updateDetailPinButton()
     }
 
     private func registerForTraitChangesIfNeeded() {
@@ -289,6 +320,7 @@ final class ClipboardPanelView: UIView {
         let item = button.item
         detailItem = item
         detailTextView.text = item.text
+        updateDetailPinButton()
         detailTextView.selectedRange = NSRange(location: 0, length: 0)
         detailTextView.setContentOffset(.zero, animated: false)
         scrollView.isHidden = true
@@ -298,12 +330,8 @@ final class ClipboardPanelView: UIView {
     }
 
     @objc private func detailBackTapped() {
+        closeDetail()
         onCloseDetail?()
-        detailItem = nil
-        detailTextView.text = ""
-        detailContainer.isHidden = true
-        scrollView.isHidden = false
-        emptyLabel.isHidden = stackView.arrangedSubviews.isEmpty == false
     }
 
     @objc private func detailPasteTapped() {
@@ -316,6 +344,40 @@ final class ClipboardPanelView: UIView {
         } else {
             onSelectText?(detailItem.text)
         }
+    }
+
+    @objc private func detailPinTapped() {
+        guard let detailItem,
+              let updatedItem = onTogglePin?(detailItem) else {
+            return
+        }
+
+        self.detailItem = updatedItem
+        updateDetailPinButton()
+    }
+
+    @objc private func detailDeleteTapped() {
+        guard let detailItem else {
+            return
+        }
+
+        closeDetail()
+        onDeleteItem?(detailItem)
+    }
+
+    private func closeDetail() {
+        detailItem = nil
+        detailTextView.text = ""
+        detailContainer.isHidden = true
+        scrollView.isHidden = false
+        emptyLabel.isHidden = stackView.arrangedSubviews.isEmpty == false
+        updateDetailPinButton()
+    }
+
+    private func updateDetailPinButton() {
+        let isPinned = detailItem?.isPinned == true
+        detailPinButton.setSymbolImage(UIImage(systemName: isPinned ? "pin.fill" : "pin"))
+        detailPinButton.accessibilityLabel = isPinned ? "Unpin" : "Pin"
     }
 
     private func selectedDetailText() -> String? {
@@ -332,6 +394,7 @@ private final class ClipboardItemButton: UIControl {
     let item: ClipboardItem
 
     private let label = UILabel()
+    private let pinImageView = UIImageView(image: UIImage(systemName: "pin.fill"))
     private let normalBackgroundColor = KeyboardTheme.panelItemBackground
     private let highlightedBackgroundColor = KeyboardTheme.pressedBackground(for: .character)
 
@@ -363,15 +426,24 @@ private final class ClipboardItemButton: UIControl {
         label.numberOfLines = lineLimit
         label.lineBreakMode = .byTruncatingTail
         label.textAlignment = .left
+        pinImageView.tintColor = KeyboardTheme.keyLabelColor.withAlphaComponent(0.72)
+        pinImageView.contentMode = .scaleAspectFit
+        pinImageView.isHidden = !item.isPinned
 
         addSubview(label)
+        addSubview(pinImageView)
         label.translatesAutoresizingMaskIntoConstraints = false
+        pinImageView.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
             label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: contentInsets.left),
             label.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -contentInsets.right),
             label.topAnchor.constraint(equalTo: topAnchor, constant: contentInsets.top),
-            label.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -contentInsets.bottom)
+            label.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor, constant: -contentInsets.bottom),
+            pinImageView.topAnchor.constraint(equalTo: topAnchor, constant: 5),
+            pinImageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -5),
+            pinImageView.widthAnchor.constraint(equalToConstant: 12),
+            pinImageView.heightAnchor.constraint(equalToConstant: 12)
         ])
 
         isAccessibilityElement = true
