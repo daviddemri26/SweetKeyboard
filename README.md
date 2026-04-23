@@ -60,8 +60,9 @@ SweetKeyboard is intentionally optimized around practical typing flows rather th
 - Contextual action key for `return`, `search`, `go`, `next`, `send`, `done`, and related host return-key types
 - Optional clipboard toolbar with `Copy`, `Import`, `Clipboard`, and `Settings`
 - Local clipboard history grid inside the keyboard
+- Optional auto-open clipboard history after `Copy`
 - Manual plain-text import from the iOS clipboard when the toolbar shows available text
-- In-keyboard settings panel for clipboard mode, auto-capitalization, and key haptics
+- In-keyboard settings panel for clipboard mode, copy behavior, auto-capitalization, and key haptics
 - Optional key haptics
 
 ### Privacy Promise
@@ -205,6 +206,7 @@ The current settings are:
 
 - Auto-capitalization
 - Clipboard toolbar
+- Open clipboard after copy
 - Key haptics
 
 Symbol lock is persisted as shared state and controlled directly from the symbols and emoji keyboard row.

@@ -169,6 +169,7 @@ final class SharedStoreTests: XCTestCase {
         XCTAssertFalse(store.load().keyHapticsEnabled)
         XCTAssertTrue(store.load().autoCapitalizationEnabled)
         XCTAssertFalse(store.load().symbolLockEnabled)
+        XCTAssertFalse(store.load().openClipboardAfterCopyEnabled)
     }
 
     func testSharedKeyboardSettingsStorePersistsClipboardMode() {
@@ -207,6 +208,15 @@ final class SharedStoreTests: XCTestCase {
         XCTAssertTrue(store.load().symbolLockEnabled)
     }
 
+    func testSharedKeyboardSettingsStorePersistsOpenClipboardAfterCopyMode() {
+        let defaults = makeDefaults()
+        let store = SharedKeyboardSettingsStore(defaults: defaults)
+
+        store.setOpenClipboardAfterCopyEnabled(true)
+
+        XCTAssertTrue(store.load().openClipboardAfterCopyEnabled)
+    }
+
     func testSharedKeyboardSettingsStoreLoadsLegacyPayloadWithoutKeyHaptics() throws {
         let defaults = makeDefaults()
         let legacySettings = """
@@ -222,7 +232,8 @@ final class SharedStoreTests: XCTestCase {
                 clipboardModeEnabled: true,
                 keyHapticsEnabled: false,
                 autoCapitalizationEnabled: true,
-                symbolLockEnabled: false
+                symbolLockEnabled: false,
+                openClipboardAfterCopyEnabled: false
             )
         )
     }
@@ -242,7 +253,29 @@ final class SharedStoreTests: XCTestCase {
                 clipboardModeEnabled: true,
                 keyHapticsEnabled: true,
                 autoCapitalizationEnabled: false,
-                symbolLockEnabled: false
+                symbolLockEnabled: false,
+                openClipboardAfterCopyEnabled: false
+            )
+        )
+    }
+
+    func testSharedKeyboardSettingsStoreLoadsPayloadWithOpenClipboardAfterCopyField() throws {
+        let defaults = makeDefaults()
+        let payload = """
+        {"clipboardModeEnabled":true,"openClipboardAfterCopyEnabled":true}
+        """.data(using: .utf8)!
+        defaults.set(payload, forKey: "keyboard.settings.v1")
+
+        let store = SharedKeyboardSettingsStore(defaults: defaults)
+
+        XCTAssertEqual(
+            store.load(),
+            SharedKeyboardSettings(
+                clipboardModeEnabled: true,
+                keyHapticsEnabled: false,
+                autoCapitalizationEnabled: true,
+                symbolLockEnabled: false,
+                openClipboardAfterCopyEnabled: true
             )
         )
     }

@@ -5,24 +5,28 @@ struct SharedKeyboardSettings: Codable, Equatable {
     var keyHapticsEnabled: Bool = false
     var autoCapitalizationEnabled: Bool = true
     var symbolLockEnabled: Bool = false
+    var openClipboardAfterCopyEnabled: Bool = false
 
     private enum CodingKeys: String, CodingKey {
         case clipboardModeEnabled
         case keyHapticsEnabled
         case autoCapitalizationEnabled
         case symbolLockEnabled
+        case openClipboardAfterCopyEnabled
     }
 
     init(
         clipboardModeEnabled: Bool = false,
         keyHapticsEnabled: Bool = false,
         autoCapitalizationEnabled: Bool = true,
-        symbolLockEnabled: Bool = false
+        symbolLockEnabled: Bool = false,
+        openClipboardAfterCopyEnabled: Bool = false
     ) {
         self.clipboardModeEnabled = clipboardModeEnabled
         self.keyHapticsEnabled = keyHapticsEnabled
         self.autoCapitalizationEnabled = autoCapitalizationEnabled
         self.symbolLockEnabled = symbolLockEnabled
+        self.openClipboardAfterCopyEnabled = openClipboardAfterCopyEnabled
     }
 
     init(from decoder: Decoder) throws {
@@ -31,6 +35,10 @@ struct SharedKeyboardSettings: Codable, Equatable {
         keyHapticsEnabled = try container.decodeIfPresent(Bool.self, forKey: .keyHapticsEnabled) ?? false
         autoCapitalizationEnabled = try container.decodeIfPresent(Bool.self, forKey: .autoCapitalizationEnabled) ?? true
         symbolLockEnabled = try container.decodeIfPresent(Bool.self, forKey: .symbolLockEnabled) ?? false
+        openClipboardAfterCopyEnabled = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .openClipboardAfterCopyEnabled
+        ) ?? false
     }
 }
 
@@ -78,6 +86,12 @@ final class SharedKeyboardSettingsStore {
     func setSymbolLockEnabled(_ isEnabled: Bool) {
         var settings = load()
         settings.symbolLockEnabled = isEnabled
+        save(settings)
+    }
+
+    func setOpenClipboardAfterCopyEnabled(_ isEnabled: Bool) {
+        var settings = load()
+        settings.openClipboardAfterCopyEnabled = isEnabled
         save(settings)
     }
 

@@ -58,6 +58,11 @@ final class AppScreenModel: ObservableObject {
         sharedSettingsStore.setClipboardModeEnabled(isEnabled)
     }
 
+    func setOpenClipboardAfterCopyEnabled(_ isEnabled: Bool) {
+        sharedSettings.openClipboardAfterCopyEnabled = isEnabled
+        sharedSettingsStore.setOpenClipboardAfterCopyEnabled(isEnabled)
+    }
+
     func setKeyHapticsEnabled(_ isEnabled: Bool) {
         sharedSettings.keyHapticsEnabled = isEnabled
         sharedSettingsStore.setKeyHapticsEnabled(isEnabled)
@@ -185,6 +190,15 @@ private struct SettingsView: View {
                     set: model.setClipboardModeEnabled
                 ),
                 footnote: model.fullAccessSettingsSummary
+            )
+
+            SettingsToggleCard(
+                title: "Open clipboard after copy",
+                message: "After a successful Copy action, automatically shows your local clipboard history.",
+                isOn: Binding(
+                    get: { model.sharedSettings.openClipboardAfterCopyEnabled },
+                    set: model.setOpenClipboardAfterCopyEnabled
+                )
             )
 
             SettingsToggleCard(
@@ -357,7 +371,7 @@ private struct FeaturesView: View {
     private let clipboardToolsItems = [
         FeatureItem(
             title: "Copy",
-            message: "Copies selected text when the current app exposes it to the keyboard."
+            message: "Copies selected text when the current app exposes it to the keyboard, with an optional setting to open history after copy."
         ),
         FeatureItem(
             title: "Clipboard history",
@@ -381,6 +395,10 @@ private struct FeaturesView: View {
         FeatureItem(
             title: "Clipboard import",
             message: "Import available iOS clipboard text manually from the top toolbar."
+        ),
+        FeatureItem(
+            title: "Open after copy",
+            message: "Choose whether Copy should automatically reveal the clipboard history after saving text."
         ),
         FeatureItem(
             title: "Auto-capitalization",

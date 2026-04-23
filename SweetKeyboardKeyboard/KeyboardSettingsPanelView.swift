@@ -2,6 +2,7 @@ import UIKit
 
 final class KeyboardSettingsPanelView: UIView {
     var onClipboardModeChanged: ((Bool) -> Void)?
+    var onOpenClipboardAfterCopyChanged: ((Bool) -> Void)?
     var onAutoCapitalizationEnabledChanged: ((Bool) -> Void)?
     var onHapticsEnabledChanged: ((Bool) -> Void)?
     var onClose: (() -> Void)?
@@ -33,6 +34,11 @@ final class KeyboardSettingsPanelView: UIView {
     private let clipboardInfoLabel = UILabel()
     private let clipboardSeparator = UIView()
 
+    private let openClipboardAfterCopyRow = UIStackView()
+    private let openClipboardAfterCopyTitleLabel = UILabel()
+    private let openClipboardAfterCopySwitch = UISwitch()
+    private let openClipboardAfterCopySeparator = UIView()
+
     private let hapticsRow = UIStackView()
     private let hapticsTitleLabel = UILabel()
     private let hapticsSwitch = UISwitch()
@@ -43,6 +49,7 @@ final class KeyboardSettingsPanelView: UIView {
     private let autoCapitalizationSwitch = UISwitch()
 
     private var clipboardSeparatorHeightConstraint: NSLayoutConstraint?
+    private var openClipboardAfterCopySeparatorHeightConstraint: NSLayoutConstraint?
     private var hapticsSeparatorHeightConstraint: NSLayoutConstraint?
 
     override init(frame: CGRect) {
@@ -58,11 +65,13 @@ final class KeyboardSettingsPanelView: UIView {
 
     func render(
         isClipboardModeEnabled: Bool,
+        isOpenClipboardAfterCopyEnabled: Bool,
         isAutoCapitalizationEnabled: Bool,
         isHapticsEnabled: Bool,
         fullAccessStatusText: String?
     ) {
         clipboardSwitch.isOn = isClipboardModeEnabled
+        openClipboardAfterCopySwitch.isOn = isOpenClipboardAfterCopyEnabled
         hapticsSwitch.isOn = isHapticsEnabled
         autoCapitalizationSwitch.isOn = isAutoCapitalizationEnabled
 
@@ -71,6 +80,7 @@ final class KeyboardSettingsPanelView: UIView {
         clipboardInfoLabel.text = fullAccessStatusText
 
         clipboardTitleLabel.textColor = KeyboardTheme.keyLabelColor
+        openClipboardAfterCopyTitleLabel.textColor = KeyboardTheme.keyLabelColor
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
     }
@@ -140,6 +150,13 @@ final class KeyboardSettingsPanelView: UIView {
             action: #selector(clipboardSwitchChanged)
         )
         configureRow(
+            openClipboardAfterCopyRow,
+            titleLabel: openClipboardAfterCopyTitleLabel,
+            title: "Open after copy",
+            toggle: openClipboardAfterCopySwitch,
+            action: #selector(openClipboardAfterCopySwitchChanged)
+        )
+        configureRow(
             hapticsRow,
             titleLabel: hapticsTitleLabel,
             title: "Key haptics",
@@ -177,6 +194,8 @@ final class KeyboardSettingsPanelView: UIView {
         togglesCardStack.addArrangedSubview(clipboardRow)
         togglesCardStack.addArrangedSubview(clipboardInfoRow)
         togglesCardStack.addArrangedSubview(clipboardSeparator)
+        togglesCardStack.addArrangedSubview(openClipboardAfterCopyRow)
+        togglesCardStack.addArrangedSubview(openClipboardAfterCopySeparator)
         togglesCardStack.addArrangedSubview(hapticsRow)
         togglesCardStack.addArrangedSubview(hapticsSeparator)
         togglesCardStack.addArrangedSubview(autoCapitalizationRow)
@@ -185,6 +204,9 @@ final class KeyboardSettingsPanelView: UIView {
         togglesCardStack.translatesAutoresizingMaskIntoConstraints = false
 
         clipboardSeparatorHeightConstraint = clipboardSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
+        openClipboardAfterCopySeparatorHeightConstraint = openClipboardAfterCopySeparator.heightAnchor.constraint(
+            equalToConstant: separatorThickness
+        )
         hapticsSeparatorHeightConstraint = hapticsSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
 
         NSLayoutConstraint.activate([
@@ -193,6 +215,7 @@ final class KeyboardSettingsPanelView: UIView {
             togglesCardStack.trailingAnchor.constraint(equalTo: togglesCard.trailingAnchor),
             togglesCardStack.bottomAnchor.constraint(equalTo: togglesCard.bottomAnchor),
             clipboardSeparatorHeightConstraint!,
+            openClipboardAfterCopySeparatorHeightConstraint!,
             hapticsSeparatorHeightConstraint!
         ])
 
@@ -254,10 +277,12 @@ final class KeyboardSettingsPanelView: UIView {
         backgroundColor = KeyboardTheme.settingsScreenBackground
         togglesCard.backgroundColor = KeyboardTheme.settingsGroupBackground
         clipboardSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
+        openClipboardAfterCopySeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
         hapticsSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
 
         clipboardTitleLabel.textColor = KeyboardTheme.keyLabelColor
         clipboardInfoLabel.textColor = KeyboardTheme.secondaryLabelColor
+        openClipboardAfterCopyTitleLabel.textColor = KeyboardTheme.keyLabelColor
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
     }
@@ -269,6 +294,10 @@ final class KeyboardSettingsPanelView: UIView {
 
     @objc private func clipboardSwitchChanged() {
         onClipboardModeChanged?(clipboardSwitch.isOn)
+    }
+
+    @objc private func openClipboardAfterCopySwitchChanged() {
+        onOpenClipboardAfterCopyChanged?(openClipboardAfterCopySwitch.isOn)
     }
 
     @objc private func hapticsSwitchChanged() {
@@ -289,6 +318,7 @@ final class KeyboardSettingsPanelView: UIView {
 
     private func updateSeparatorThickness() {
         clipboardSeparatorHeightConstraint?.constant = separatorThickness
+        openClipboardAfterCopySeparatorHeightConstraint?.constant = separatorThickness
         hapticsSeparatorHeightConstraint?.constant = separatorThickness
     }
 }

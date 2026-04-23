@@ -39,6 +39,7 @@ This document is the detailed functional reference for the current codebase. It 
 
 - Auto-capitalization toggle
 - Clipboard toolbar toggle
+- Open clipboard after copy toggle
 - Key haptics toggle
 
 ### Containing App
@@ -211,6 +212,7 @@ Storage rules:
 Interaction rules:
 
 - `Copy` saves the selected text if the host exposes it, or the selected text inside an open clipboard detail view
+- `Copy` can optionally open clipboard history automatically after a successful save
 - The top toolbar shows an import button when iOS reports plain text is available in the system pasteboard
 - Tapping the import button saves the current system pasteboard text into local history
 - Selecting a history item inserts it directly into the current field
@@ -227,6 +229,7 @@ Shared settings currently stored:
 - `keyHapticsEnabled`
 - `autoCapitalizationEnabled`
 - `symbolLockEnabled`
+- `openClipboardAfterCopyEnabled`
 
 Default values:
 
@@ -234,6 +237,7 @@ Default values:
 - Key haptics off
 - Auto-capitalization on
 - Symbol lock off
+- Open clipboard after copy off
 
 ## Privacy And Permissions
 

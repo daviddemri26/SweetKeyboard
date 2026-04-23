@@ -30,7 +30,7 @@ final class KeyboardViewController: UIInputViewController {
 
     private let shiftDoubleTapInterval: TimeInterval = 0.35
     private let accentHoldDelay: TimeInterval = 0.25
-    private let keyRepeatDelay: TimeInterval = 0.8
+    private let keyRepeatDelay: TimeInterval = 0.25
     private let keyRepeatInterval: TimeInterval = 0.1
     private var shiftState: KeyboardShiftState = .off
     private var lastShiftTapAt: Date?
@@ -322,6 +322,10 @@ final class KeyboardViewController: UIInputViewController {
             self?.handleClipboardModeChanged(isEnabled)
         }
 
+        settingsPanel.onOpenClipboardAfterCopyChanged = { [weak self] isEnabled in
+            self?.handleOpenClipboardAfterCopyChanged(isEnabled)
+        }
+
         settingsPanel.onAutoCapitalizationEnabledChanged = { [weak self] isEnabled in
             self?.handleAutoCapitalizationChanged(isEnabled)
         }
@@ -364,6 +368,7 @@ final class KeyboardViewController: UIInputViewController {
     private func updateSettingsPanel(capabilityStatus: KeyboardCapabilityStatus) {
         settingsPanel.render(
             isClipboardModeEnabled: desiredClipboardModeEnabled,
+            isOpenClipboardAfterCopyEnabled: sharedSettings.openClipboardAfterCopyEnabled,
             isAutoCapitalizationEnabled: sharedSettings.autoCapitalizationEnabled,
             isHapticsEnabled: sharedSettings.keyHapticsEnabled,
             fullAccessStatusText: KeyboardCapabilityStatusTextFormatter.keyboardSettingsSummary(
@@ -1106,7 +1111,13 @@ final class KeyboardViewController: UIInputViewController {
         clipboardStore.add(text: selectedText, source: .keyboardCopy)
         clipboardSystemImportService.markProcessed(UIPasteboard.general)
         updateClipboardImportAvailability()
-        refreshClipboardPanelIfVisible()
+
+        if sharedSettings.openClipboardAfterCopyEnabled {
+            showClipboardPanel()
+        } else {
+            refreshClipboardPanelIfVisible()
+        }
+
         feedbackPresenter.show("Copied")
     }
 
@@ -1296,6 +1307,18 @@ final class KeyboardViewController: UIInputViewController {
             feedbackPresenter.show("Key haptics turned on")
         } else {
             feedbackPresenter.show("Key haptics turned off")
+        }
+    }
+
+    private func handleOpenClipboardAfterCopyChanged(_ isEnabled: Bool) {
+        cancelSequencedInteractions()
+        sharedSettings.openClipboardAfterCopyEnabled = isEnabled
+        sharedSettingsStore.setOpenClipboardAfterCopyEnabled(isEnabled)
+
+        if isEnabled {
+            feedbackPresenter.show("Clipboard opens after copy")
+        } else {
+            feedbackPresenter.show("Clipboard stays closed after copy")
         }
     }
 
@@ -1519,12 +1542,12 @@ final class KeyboardViewController: UIInputViewController {
         backspaceRepeatController.begin(on: sender) { [weak self] in
             self?.backspaceTapped(triggerHaptic: true)
         }
+        backspaceTapped(triggerHaptic: true)
     }
 
     @objc private func backspaceKeyTapped(_ sender: UIButton) {
-        backspaceRepeatController.completeTap(on: sender) { [weak self] in
-            self?.backspaceTapped(triggerHaptic: true)
-        }
+        _ = sender
+        backspaceRepeatController.stop()
     }
 
     @objc private func backspaceTouchEnded(_ sender: UIButton) {
