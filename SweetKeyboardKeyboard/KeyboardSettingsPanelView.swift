@@ -47,14 +47,14 @@ final class KeyboardSettingsPanelView: UIView {
         isClipboardModeEnabled: Bool,
         isAutoCapitalizationEnabled: Bool,
         isHapticsEnabled: Bool,
-        fullAccessStatusText: String
+        fullAccessStatusText: String?
     ) {
         clipboardSwitch.isOn = isClipboardModeEnabled
         hapticsSwitch.isOn = isHapticsEnabled
         autoCapitalizationSwitch.isOn = isAutoCapitalizationEnabled
 
         clipboardSwitch.isEnabled = true
-        clipboardInfoRow.isHidden = false
+        clipboardInfoRow.isHidden = fullAccessStatusText?.isEmpty ?? true
         clipboardInfoLabel.text = fullAccessStatusText
 
         clipboardTitleLabel.textColor = KeyboardTheme.keyLabelColor

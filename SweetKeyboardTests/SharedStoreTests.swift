@@ -231,7 +231,7 @@ final class SharedStoreTests: XCTestCase {
             isClipboardModeEnabled: false
         )
 
-        XCTAssertEqual(text, "Full Access activated.")
+        XCTAssertNil(text)
     }
 
     private func makeDefaults() -> UserDefaults {

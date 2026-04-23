@@ -152,12 +152,12 @@ enum KeyboardCapabilityStatusTextFormatter {
         isFullAccessCurrentlyAvailable: Bool,
         status: KeyboardCapabilityStatus,
         isClipboardModeEnabled: Bool
-    ) -> String {
+    ) -> String? {
         _ = status
         _ = isClipboardModeEnabled
 
         if isFullAccessCurrentlyAvailable {
-            return "Full Access activated."
+            return nil
         }
 
         return "Please enable Full Access for SweetKeyboard in Settings app."
