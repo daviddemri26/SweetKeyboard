@@ -25,6 +25,12 @@ final class SharedStoreTests: XCTestCase {
         emoji: 👩🏽‍💻🚀
         accents: éèêçàùñ
         math: ≠ ≤ ≥ ∞ ±
+        bullets:
+        • first item
+        • second item
+        numbered:
+        1. one
+        2. two
         zero-width:\u{200B}end
 
         trailing spaces
@@ -35,6 +41,23 @@ final class SharedStoreTests: XCTestCase {
         let items = store.allItems()
         XCTAssertEqual(items.count, 1)
         XCTAssertEqual(items.first?.text, text)
+        XCTAssertEqual(items.first.map { Array($0.text.utf8) }, Array(text.utf8))
+    }
+
+    func testClipboardStoreTreatsCanonicallyEquivalentDifferentBytesAsDistinct() {
+        let defaults = makeDefaults()
+        let store = ClipboardStore(defaults: defaults)
+        let composed = "\u{00E9}"
+        let decomposed = "e\u{0301}"
+
+        store.add(text: composed, source: .keyboardCopy)
+        store.add(text: decomposed, source: .keyboardCopy)
+
+        let items = store.allItems()
+        XCTAssertEqual(items.count, 2)
+        XCTAssertEqual(items.first.map { Array($0.text.utf8) }, Array(decomposed.utf8))
+        XCTAssertEqual(items.last.map { Array($0.text.utf8) }, Array(composed.utf8))
+        XCTAssertNotEqual(Array(composed.utf8), Array(decomposed.utf8))
     }
 
     func testClipboardStoreDeduplicatesConsecutiveUntruncatedValues() {

@@ -74,6 +74,18 @@ final class ClipboardPanelView: UIView {
         }
     }
 
+    var isShowingDetail: Bool {
+        detailItem != nil && detailContainer.isHidden == false
+    }
+
+    func selectedTextForCopyAction() -> String? {
+        guard isShowingDetail else {
+            return nil
+        }
+
+        return selectedDetailText()
+    }
+
     private func setup() {
         backgroundColor = .clear
 

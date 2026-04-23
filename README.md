@@ -170,7 +170,7 @@ Behavior highlights:
 
 - Clipboard mode is user-controlled through shared settings
 - The top action bar appears only when Full Access is available and clipboard mode is enabled
-- `Copy` uses `selectedText` when the host exposes it
+- `Copy` uses `selectedText` when the host exposes it, or selected text inside a clipboard detail view; it writes plain text only and verifies the pasteboard round trip byte-for-byte before saving history
 - `Paste` reads from `UIPasteboard.general`
 - Clipboard history is local only
 - History is stored newest first
@@ -219,7 +219,8 @@ Symbol lock is persisted as shared state and controlled directly from the symbol
 - Secure text fields do not allow third-party keyboards
 - Some apps block custom keyboards entirely
 - Host apps do not always expose enough `UITextInputTraits` information for perfect action-key matching
-- Copy depends on the host exposing `selectedText` to the keyboard extension
+- Copy depends on the host exposing plain `selectedText` to the keyboard extension
+- Rich-text attributes, styles, and list formatting are not available through the keyboard text proxy, so clipboard tools intentionally preserve exact plain text only
 - Real-world keyboard behavior should be validated on device, not only in Simulator
 
 ### Project Structure

@@ -203,15 +203,16 @@ Storage rules:
 - Shared through the App Group
 - Maximum 50 items
 - Full copied text is preserved per item
+- Copied text is handled as exact plain text; the pasteboard write is verified byte-for-byte before history is updated
 - Consecutive duplicates are ignored
 - Newest items appear first
 
 Interaction rules:
 
-- `Copy` saves the selected text if the host exposes it
+- `Copy` saves the selected text if the host exposes it, or the selected text inside an open clipboard detail view
 - `Paste` inserts the current system pasteboard text
 - Selecting a history item inserts it directly into the current field
-- Long-pressing a history item opens a full-text detail view with Back and Paste actions
+- Long-pressing a history item opens a full-text detail view with Back and Paste actions; selected detail text can be copied into history from the top action bar
 - Clipboard mode depends on Full Access
 
 ## Settings Model
@@ -275,7 +276,8 @@ The current test suite explicitly covers the newest functional work:
 - Secure text fields do not allow third-party keyboards
 - Some apps block custom keyboards altogether
 - Host apps do not always expose enough trait information for perfect return-key matching
-- Copy depends on the host exposing selected text to the extension
+- Copy depends on the host exposing plain selected text to the extension
+- The keyboard extension API does not expose selected text attributes, so rich styling and list formatting are out of scope for copy/paste
 
 ## Suggested Positioning For Future Copy
 

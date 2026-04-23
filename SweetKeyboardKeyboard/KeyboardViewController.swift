@@ -20,6 +20,7 @@ final class KeyboardViewController: UIInputViewController {
 
     private let layoutEngine = KeyboardLayoutEngine()
     private let clipboardStore = ClipboardStore()
+    private let clipboardCopyService = ClipboardCopyService()
     private let actionKeyResolver = ActionKeyResolver()
     private let autoCapitalizationResolver = AutoCapitalizationResolver()
     private let sharedSettingsStore = SharedKeyboardSettingsStore()
@@ -1040,12 +1041,23 @@ final class KeyboardViewController: UIInputViewController {
             return
         }
 
-        guard let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty else {
+        let selectedText: String?
+        if clipboardPanel.isShowingDetail {
+            selectedText = clipboardPanel.selectedTextForCopyAction()
+        } else {
+            selectedText = textDocumentProxy.selectedText
+        }
+
+        guard let selectedText, !selectedText.isEmpty else {
             feedbackPresenter.show("No selection")
             return
         }
 
-        UIPasteboard.general.string = selectedText
+        guard clipboardCopyService.copySelectedText(selectedText, to: UIPasteboard.general) else {
+            feedbackPresenter.show("Copy failed")
+            return
+        }
+
         clipboardStore.add(text: selectedText, source: .keyboardCopy)
         refreshClipboardPanelIfVisible()
         feedbackPresenter.show("Copied")
@@ -1511,3 +1523,5 @@ final class KeyboardViewController: UIInputViewController {
         return true
     }
 }
+
+extension UIPasteboard: ClipboardTextPasteboard {}

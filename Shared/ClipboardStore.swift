@@ -32,7 +32,7 @@ final class ClipboardStore {
 
         var items = allItems()
 
-        if items.first?.text == text {
+        if items.first?.text.hasSameUTF8Bytes(as: text) == true {
             return
         }
 
