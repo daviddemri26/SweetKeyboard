@@ -15,10 +15,12 @@ This document is the detailed functional reference for the current codebase. It 
 ### Symbols Keyboard
 
 - Three dedicated symbol rows
+- Native-style symbols grouped together on one symbols page
 - Emoji sub-view available only from symbols mode
 - Punctuation row with `.`, `,`, `?`, `!`, and `'`
 - Cursor left and cursor right keys
 - Optional horizontal swipe cursor movement across the keyboard
+- Faster cursor movement at higher horizontal swipe velocities
 - Backspace in symbols mode
 - `ABC` key to return to letters
 - Emoji toggle key between `ABC` and space in symbols mode
@@ -35,6 +37,7 @@ This document is the detailed functional reference for the current codebase. It 
 - `Settings`
 - `Hide Keyboard`
 - Local clipboard history grid
+- Pinned clipboard favorites shown before unpinned history
 - Manual system clipboard import button for available plain text
 
 ### In-Keyboard Settings
@@ -42,14 +45,17 @@ This document is the detailed functional reference for the current codebase. It 
 - Auto-capitalization toggle
 - Clipboard toolbar toggle
 - Open clipboard after copy toggle
+- Swipe cursor toggle
 - Key haptics toggle
 
 ### Containing App
 
 - Keyboard setup instructions
 - Feature toggles mirrored from shared settings
+- Marketing-oriented Features tab focused on differentiators
 - Privacy explanation
 - Platform limitation notes
+- Adaptive light and dark app chrome that follows the phone appearance
 
 ## Newly Added Behaviors
 
@@ -123,6 +129,25 @@ Current behavior:
 Design intent:
 
 - Make one-off symbol entry faster without breaking repeated symbol entry workflows
+
+### Cursor Movement
+
+Implemented through cursor keys in the symbols layout and a keyboard-wide `UIPanGestureRecognizer`.
+
+Current behavior:
+
+- The symbols punctuation row includes dedicated left and right cursor keys
+- Holding a cursor key repeats movement
+- Optional swipe cursor movement is enabled by shared settings
+- Horizontal swipes can begin anywhere across the keyboard rows
+- Faster horizontal swipes use a lower points-per-character threshold
+- Very fast swipes can move more characters per update than normal-speed swipes
+- Vertical or weakly horizontal pans are ignored so normal typing remains stable
+
+Design intent:
+
+- Make precise edits possible without relying only on the iOS magnifier
+- Make long horizontal cursor moves feel proportional to swipe speed
 
 ### Symbol Lock
 
@@ -209,7 +234,9 @@ Storage rules:
 - Full copied text is preserved per item
 - Copied text is handled as exact plain text; the pasteboard write is verified byte-for-byte before history is updated
 - Consecutive duplicates are ignored
-- Newest items appear first
+- Pinned favorites appear before unpinned history
+- Pinned favorites are ordered by newest pin first
+- Unpinned history appears newest first
 
 Interaction rules:
 
@@ -219,7 +246,15 @@ Interaction rules:
 - Tapping the import button saves the current system pasteboard text into local history
 - Selecting a history item inserts it directly into the current field
 - Long-pressing a history item opens a full-text detail view with Back and Paste actions; selected detail text can be copied into history from the top action bar
+- Detail view actions can pin or unpin an item
 - Clipboard mode depends on Full Access
+
+Favorite rules:
+
+- Pinned items are still plain clipboard history items
+- Pin state is persisted with the item
+- Legacy clipboard items without pin metadata load as unpinned
+- Pinning an item does not upload, sync, or transform the stored text
 
 ## Settings Model
 
@@ -268,6 +303,32 @@ Current privacy position:
 - No remote services
 - No typed text upload
 
+## Containing App Interface
+
+The app target is a setup and product-education surface, separate from the keyboard extension UI.
+
+Current tabs:
+
+- Home: setup steps for adding the keyboard and enabling Full Access when needed
+- Settings: shared toggles for clipboard mode, copy behavior, auto-capitalization, swipe cursor, and haptics
+- Features: marketing-oriented feature page focused on SweetKeyboard's differentiators
+- Info: privacy, Full Access explanation, iOS limits, and app version
+
+Features tab hierarchy:
+
+- Always-on number row on the main letter keyboard
+- Native-style symbols grouped on one page
+- Left and right cursor keys
+- Keyboard-wide swipe cursor movement with speed-aware travel
+- Clipboard history with pinned favorites and one-tap paste
+- Secondary compact coverage for auto-capitalization, action key, email shortcut, emoji, symbol lock, long-press shortcuts, haptics, shared settings, and local privacy
+
+Appearance:
+
+- The app follows the phone's light or dark setting automatically
+- Home, Settings, and Info keep their current content structure
+- Shared cards, badges, text colors, borders, and background colors use adaptive SwiftUI colors
+
 ## Test Coverage
 
 The current test suite explicitly covers the newest functional work:
@@ -281,6 +342,7 @@ The current test suite explicitly covers the newest functional work:
 - overlapping-touch sequencing
 - shared settings backward compatibility
 - clipboard history preservation and item-cap rules
+- clipboard pinning and ordering rules
 
 ## Platform Constraints
 
@@ -294,6 +356,8 @@ The current test suite explicitly covers the newest functional work:
 
 - "Fast typing without layout friction"
 - "Numbers always visible"
-- "Symbols when you need them, letters when you're done"
+- "Symbols in one place"
+- "Cursor movement without the magnifier"
+- "Favorites for the snippets you paste again"
 - "Clipboard tools only if you opt in"
 - "Private by default, local by design"

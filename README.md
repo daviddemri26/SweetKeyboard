@@ -2,7 +2,7 @@
 
 SweetKeyboard is an iPhone custom keyboard focused on fast daily typing, practical utility actions, and a local-first privacy model.
 
-It combines a familiar English QWERTY layout with a permanent number row, a symbols layer designed for quick access, contextual return-key behavior, optional clipboard tools, and several quality-of-life flows that reduce layout switching while typing.
+It combines a familiar English QWERTY layout with an always-on number row, a one-page symbols layer, cursor movement controls, speed-aware cursor swiping, optional clipboard history with pinned favorites, and several quality-of-life flows that reduce layout switching while typing.
 
 For a full functional breakdown, see [docs/FEATURES.md](docs/FEATURES.md).
 
@@ -13,23 +13,27 @@ For a full functional breakdown, see [docs/FEATURES.md](docs/FEATURES.md).
 SweetKeyboard is built for people who want a keyboard that feels familiar immediately, but removes a lot of small frictions from everyday typing:
 
 - numbers are always visible
-- common symbols are easy to reach
+- native-style symbols are available together on one page
+- cursor movement is available through arrow keys and keyboard-wide swipe gestures
+- copied snippets can be reused from local history and pinned favorites
 - the keyboard reacts to the current field
 - clipboard tools are available when the user explicitly opts in
 - everything stays local on device
 
-The product direction is simple: keep the keyboard compact, fast, and trustworthy, while adding a few smart behaviors that save time right away.
+The product direction is simple: keep the keyboard compact, fast, and trustworthy, while making the features that beat the native keyboard obvious inside the app.
 
 ### Core Value Proposition
 
 SweetKeyboard helps users type faster without forcing them to learn a new layout.
 
 - Permanent top number row for passwords, addresses, dates, and codes
-- Fast symbols access with a dedicated symbols layer
+- One-page symbols access with native-style symbols grouped together
+- Left and right cursor keys for precise text movement
+- Horizontal cursor swiping anywhere across the keyboard, with faster movement at higher swipe speeds
 - Emoji access from the symbols layer without adding a separate primary keyboard
 - Contextual `@` shortcut in email fields
 - Contextual action key that adapts to host app return-key traits
-- Optional clipboard toolbar with copy, paste, local history, and manual system clipboard import
+- Optional clipboard toolbar with copy, paste, local history, pinned favorites, and manual system clipboard import
 - Local-only privacy model with no analytics, no sync, and no remote text processing
 
 ### What Feels Different
@@ -37,11 +41,14 @@ SweetKeyboard helps users type faster without forcing them to learn a new layout
 SweetKeyboard is intentionally optimized around practical typing flows rather than novelty.
 
 - It reduces view switching by keeping numbers available at all times.
+- It puts all symbols on a dedicated one-page layout instead of forcing deeper symbol switching.
+- It offers both cursor arrow keys and keyboard-wide cursor swiping for editing text.
 - It supports quick one-shot symbol entry by returning to letters automatically after a symbol when symbol lock is off.
 - It can stay on symbols or emoji when symbol lock is enabled for repeated non-letter entry.
 - It keeps emoji behind the symbols layer so the main keyboard stays compact and familiar.
 - It exposes accent and punctuation variants through long press on supported keys.
 - It follows host auto-capitalization intent in compatible fields instead of forcing a static Shift behavior.
+- It lets users keep reusable snippets near the top of clipboard history by pinning them.
 
 ### Main User-Facing Features
 
@@ -50,21 +57,24 @@ SweetKeyboard is intentionally optimized around practical typing flows rather th
 - Bottom-row period key always available in letters mode
 - Direct `@` key in email fields
 - Dedicated symbols keyboard
+- All native-style symbols grouped on one symbols page
 - Emoji sub-view available only from symbols mode
 - Symbol lock toggle shared by symbols and emoji
 - Automatic return from symbols to letters after one symbol when symbol lock is off
 - Automatic return from emoji to letters after one emoji when symbol lock is off
 - Left and right cursor movement keys in symbols mode
-- Optional horizontal swipe cursor movement across the keyboard
+- Optional horizontal swipe cursor movement across the keyboard, with faster movement at higher swipe speeds
 - Long-press accent variants for `a`, `c`, `e`, `i`, `n`, `o`, `u`, and `y`
 - Long-press period variants: `…`, `:`, `•`, `@`, `!`, `?`, `,`
 - Contextual action key for `return`, `search`, `go`, `next`, `send`, `done`, and related host return-key types
 - Optional clipboard toolbar with `Copy`, `Import`, `Clipboard`, and `Settings`
 - Local clipboard history grid inside the keyboard
+- Pinned clipboard favorites shown before unpinned history
 - Optional auto-open clipboard history after `Copy`
 - Manual plain-text import from the iOS clipboard when the toolbar shows available text
 - In-keyboard settings panel for clipboard mode, copy behavior, auto-capitalization, swipe cursor, and key haptics
 - Optional key haptics
+- Containing app interface with adaptive light and dark appearance
 
 ### Privacy Promise
 
@@ -78,6 +88,7 @@ SweetKeyboard is intentionally local-first.
 
 Clipboard history is stored locally in the shared App Group container used by the app and keyboard extension.
 System clipboard import only reads plain text after the user taps the import button.
+Pinned clipboard favorites use the same local storage and never leave the device.
 
 ### Full Access Positioning
 
@@ -112,18 +123,23 @@ The project contains two Apple targets plus shared logic:
 - Deferred keyboard rebuilds to avoid visual churn during fast interactions
 - Long-press accent replacement logic through `AccentCatalog`
 - Repeating backspace and repeating cursor controls
-- Horizontal cursor swipe gesture through `UIPanGestureRecognizer`
+- Horizontal cursor swipe gesture through `UIPanGestureRecognizer`, with speed-aware distance thresholds
 - Optional haptic feedback controller
+- Containing app SwiftUI chrome with adaptive light and dark colors
+
 ### Recent Additions Reflected In This Documentation
 
 The main behaviors added in the latest implementation pass are:
 
+- containing app feature-page refresh with automatic light and dark appearance
 - contextual auto-capitalization with automatic, manual, and locked Shift states
 - sequenced key handling so overlapping touches commit in press order
 - emoji sub-view inside the symbols keyboard
 - automatic return from non-letter layouts to letters after symbol or emoji insertion
 - symbol lock persistence
 - long-press period variants on the bottom row
+- clipboard pinned favorites
+- faster cursor movement for very fast horizontal swipes
 
 These flows are covered by the current shared test suite and are documented in detail in [docs/FEATURES.md](docs/FEATURES.md).
 
@@ -179,11 +195,14 @@ Behavior highlights:
 - `Copy` uses `selectedText` when the host exposes it, or selected text inside a clipboard detail view; it writes plain text only and verifies the pasteboard round trip byte-for-byte before saving history
 - A toolbar import button appears when iOS reports that plain text is available; tapping it saves the current `UIPasteboard.general` text into local history
 - Clipboard history is local only
-- History is stored newest first
+- Pinned favorites are shown before unpinned history
+- Pinned favorites are ordered by newest pin first
+- Unpinned history is stored newest first
 - History keeps a maximum of 50 items
 - History preserves the full copied text for each item
 - Consecutive duplicate items are ignored
 - Tapping a history item inserts its text and returns to keyboard mode
+- Long-pressing a history item opens detail actions, including pinning or unpinning the item
 
 ### Action Key
 
@@ -214,6 +233,19 @@ The current settings are:
 - Key haptics
 
 Symbol lock is persisted as shared state and controlled directly from the symbols and emoji keyboard row.
+
+### Containing App Interface
+
+The containing app keeps Home, Settings, and Info as compact setup and reference screens.
+The Features tab is the marketing-oriented surface for the keyboard's differentiators:
+
+- always-on number row
+- one-page symbols layout
+- cursor arrow keys
+- keyboard-wide cursor swipe movement
+- clipboard history and pinned favorites
+
+The SwiftUI app chrome follows the phone's light or dark appearance automatically.
 
 ### Privacy And Permissions
 
@@ -299,6 +331,7 @@ The shared behavior is covered by `SweetKeyboardTests`, including:
 - auto-capitalization decisions
 - shared settings persistence
 - clipboard preservation rules
+- clipboard pinning and ordering rules
 
 Useful local commands:
 

@@ -34,10 +34,11 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
     private let keyRepeatInterval: TimeInterval = 0.1
     private let cursorSwipeBasePointsPerCharacter: CGFloat = 18
     private let cursorSwipeFastPointsPerCharacter: CGFloat = 13
-    private let cursorSwipeVeryFastPointsPerCharacter: CGFloat = 10
+    private let cursorSwipeVeryFastPointsPerCharacter: CGFloat = 5
     private let cursorSwipeFastVelocityThreshold: CGFloat = 900
     private let cursorSwipeVeryFastVelocityThreshold: CGFloat = 1_600
     private let cursorSwipeMaximumCharactersPerUpdate = 8
+    private let cursorSwipeVeryFastMaximumCharactersPerUpdate = 24
     private let cursorSwipeHorizontalDominanceRatio: CGFloat = 1.4
     private var shiftState: KeyboardShiftState = .off
     private var lastShiftTapAt: Date?
@@ -1672,15 +1673,15 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         cursorSwipeResidualTranslation += translation.x
         gestureRecognizer.setTranslation(.zero, in: keyboardRows)
 
-        let pointsPerCharacter = cursorSwipePointsPerCharacter(
-            forVelocityX: gestureRecognizer.velocity(in: keyboardRows).x
-        )
+        let velocityX = gestureRecognizer.velocity(in: keyboardRows).x
+        let pointsPerCharacter = cursorSwipePointsPerCharacter(forVelocityX: velocityX)
         var offset = Int(cursorSwipeResidualTranslation / pointsPerCharacter)
         guard offset != 0 else {
             return
         }
 
-        offset = min(max(offset, -cursorSwipeMaximumCharactersPerUpdate), cursorSwipeMaximumCharactersPerUpdate)
+        let maximumCharactersPerUpdate = cursorSwipeMaximumCharactersPerUpdate(forVelocityX: velocityX)
+        offset = min(max(offset, -maximumCharactersPerUpdate), maximumCharactersPerUpdate)
         cursorSwipeResidualTranslation -= CGFloat(offset) * pointsPerCharacter
         moveCursor(by: offset)
     }
@@ -1696,6 +1697,14 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         }
 
         return cursorSwipeBasePointsPerCharacter
+    }
+
+    private func cursorSwipeMaximumCharactersPerUpdate(forVelocityX velocityX: CGFloat) -> Int {
+        if abs(velocityX) >= cursorSwipeVeryFastVelocityThreshold {
+            return cursorSwipeVeryFastMaximumCharactersPerUpdate
+        }
+
+        return cursorSwipeMaximumCharactersPerUpdate
     }
 
     private func resetCursorSwipeState() {

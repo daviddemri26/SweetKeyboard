@@ -1,5 +1,6 @@
 import Combine
 import SwiftUI
+import UIKit
 
 @MainActor
 final class AppScreenModel: ObservableObject {
@@ -98,7 +99,7 @@ struct ContentView: View {
                 FeaturesView()
             }
             .tabItem {
-                Label("Features", systemImage: "sparkles")
+                Label("Features", systemImage: "keyboard")
             }
 
             tabContainer(title: "Info") {
@@ -290,196 +291,119 @@ private struct InfoView: View {
 private struct FeaturesView: View {
     @EnvironmentObject private var model: AppScreenModel
 
-    private let typingBasicsItems = [
-        FeatureItem(
-            title: "QWERTY layout",
-            message: "Type on a familiar English keyboard layout."
+    private let essentialFeatures = [
+        EssentialFeature(
+            title: "Numbers stay visible",
+            message: "The top row keeps 1 through 0 on the main letter keyboard, so dates, codes, addresses, and passwords take fewer switches.",
+            systemImage: "keyboard",
+            callout: "Main keyboard"
         ),
-        FeatureItem(
-            title: "Number row",
-            message: "Numbers stay visible at the top, so you do not need to switch layouts for basic digits."
+        EssentialFeature(
+            title: "Symbols in one place",
+            message: "SweetKeyboard keeps the native-style symbols together on a single symbols page, with punctuation close by when you need it.",
+            systemImage: "command",
+            callout: "One symbols page"
         ),
-        FeatureItem(
-            title: "Period key",
-            message: "A period is always available in letter mode for faster everyday typing."
+        EssentialFeature(
+            title: "Cursor keys",
+            message: "Dedicated left and right keys let you move through text precisely without fighting the magnifier.",
+            systemImage: "arrow.left.and.right",
+            callout: "Precise edits"
         ),
-        FeatureItem(
-            title: "Action key",
-            message: "The return key adapts to the current field when iOS provides the right context."
+        EssentialFeature(
+            title: "Swipe cursor movement",
+            message: "Swipe horizontally anywhere across the keyboard to move the cursor. Faster swipes travel farther, making long edits quicker.",
+            systemImage: "hand.draw",
+            callout: "Speed-aware"
         ),
-        FeatureItem(
-            title: "Email shortcut",
-            message: "Email fields can show a dedicated @ key to make addresses faster to enter."
+        EssentialFeature(
+            title: "Clipboard history and favorites",
+            message: "Keep copied text in local history, pin important snippets as favorites, and paste them back with one tap.",
+            systemImage: "doc.on.clipboard",
+            callout: "Full Access optional"
         )
     ]
 
-    private let smartTypingItems = [
+    private let secondaryFeatures = [
         FeatureItem(
             title: "Auto-capitalization",
-            message: "Shift turns on automatically at the start of sentences and after supported punctuation."
+            message: "Shift reacts to sentence context, field type, and manual override."
         ),
         FeatureItem(
-            title: "Manual Shift",
-            message: "Tap Shift once for one capital letter, or tap twice to lock capitals."
+            title: "Contextual action key",
+            message: "Return can become Search, Go, Next, Send, Done, and related host actions."
         ),
         FeatureItem(
-            title: "Smart override",
-            message: "If automatic Shift is active, tapping Shift lets you take over manually for the current context."
+            title: "Email @ shortcut",
+            message: "Email fields can show a direct @ key on the letter keyboard."
         ),
         FeatureItem(
-            title: "Fast typing support",
-            message: "Overlapping touches are handled in press order to reduce missed keys when typing quickly."
-        ),
-        FeatureItem(
-            title: "Field-aware behavior",
-            message: "Auto-capitalization stays off in email, URL, and similar input fields."
-        )
-    ]
-
-    private let symbolsAndEmojiItems = [
-        FeatureItem(
-            title: "Symbols layout",
-            message: "A dedicated symbols keyboard gives quick access to punctuation and special characters."
-        ),
-        FeatureItem(
-            title: "Emoji layout",
-            message: "You can open a built-in emoji view directly from symbols mode."
-        ),
-        FeatureItem(
-            title: "Cursor controls",
-            message: "Left and right arrow keys help move the cursor while staying in non-letter layouts."
-        ),
-        FeatureItem(
-            title: "Auto return",
-            message: "After entering a single symbol or emoji, the keyboard can jump back to letters for faster typing."
+            title: "Emoji from symbols",
+            message: "Emoji stay available from the symbols layer without crowding the main keyboard."
         ),
         FeatureItem(
             title: "Symbol lock",
-            message: "Turn on symbol lock to stay in symbols or emoji mode for repeated entry."
+            message: "Stay in symbols or emoji for repeated entry, or return to letters after one tap."
         ),
         FeatureItem(
-            title: "Inline settings key",
-            message: "Compact non-letter layouts can show a settings shortcut directly inside the keyboard."
+            title: "Long-press extras",
+            message: "Accent variants and period shortcuts appear only when you hold supported keys."
+        ),
+        FeatureItem(
+            title: "Haptics",
+            message: "Optional light feedback helps supported keys feel more responsive."
+        ),
+        FeatureItem(
+            title: "Shared settings",
+            message: "The app and keyboard stay synchronized through shared local settings."
+        ),
+        FeatureItem(
+            title: "Local privacy",
+            message: "Clipboard data stays on device, with no analytics, cloud sync, or remote processing."
         )
     ]
 
-    private let holdForMoreItems = [
-        FeatureItem(
-            title: "Accent variants",
-            message: "Supported letters can open accented and alternate versions with a long press."
-        ),
-        FeatureItem(
-            title: "Uppercase variants",
-            message: "When Shift is active, long-press variants follow the same uppercase behavior."
-        ),
-        FeatureItem(
-            title: "Period shortcuts",
-            message: "Holding the period key reveals extra punctuation shortcuts such as ellipsis and symbols."
-        ),
-        FeatureItem(
-            title: "Temporary replacement",
-            message: "The keyboard swaps in these alternate choices during the press, then returns to normal afterward."
-        )
-    ]
-
-    private let clipboardToolsItems = [
-        FeatureItem(
-            title: "Copy",
-            message: "Copies selected text when the current app exposes it to the keyboard, with an optional setting to open history after copy."
-        ),
-        FeatureItem(
-            title: "Clipboard history",
-            message: "Saved snippets are listed locally so you can paste recent items again quickly."
-        ),
-        FeatureItem(
-            title: "Clipboard import",
-            message: "Shows an import button when iOS reports that plain text is available to save."
-        ),
-        FeatureItem(
-            title: "Toolbar shortcut",
-            message: "The top bar can also open keyboard settings directly."
-        )
-    ]
-
-    private let sharedSettingsItems = [
-        FeatureItem(
-            title: "Clipboard toolbar",
-            message: "Turn the top clipboard bar on or off from the app or from the keyboard."
-        ),
-        FeatureItem(
-            title: "Clipboard import",
-            message: "Import available iOS clipboard text manually from the top toolbar."
-        ),
-        FeatureItem(
-            title: "Open clipboard after copy",
-            message: "Choose whether Copy should automatically reveal the clipboard history after saving text."
-        ),
-        FeatureItem(
-            title: "Auto-capitalization",
-            message: "Choose whether Shift should react automatically to sentence context."
-        ),
-        FeatureItem(
-            title: "Key haptics",
-            message: "Enable light tactile feedback on supported devices and actions."
-        ),
-        FeatureItem(
-            title: "Shared state",
-            message: "Changes made in the app are reflected inside the keyboard automatically."
-        )
-    ]
-
-    private let highlightItems = [
+    private let heroHighlights = [
         "Always-on numbers",
-        "Smart Shift",
-        "Symbols & emoji",
-        "Clipboard tools"
+        "One symbols page",
+        "Cursor control",
+        "Local clipboard"
     ]
 
     var body: some View {
         VStack(spacing: 18) {
             AppHeroCard(
                 eyebrow: "Features",
-                title: "Everything SweetKeyboard can do",
-                message: "A quick guide to typing, symbols, shortcuts, and smart behavior built into the keyboard."
+                title: "Typing without layout friction",
+                message: "SweetKeyboard keeps the controls that interrupt daily typing closer to your fingers: numbers, symbols, cursor movement, and reusable clipboard snippets."
             ) {
-                FeatureHighlightsCard(items: highlightItems)
+                FeatureHighlightsCard(items: heroHighlights)
+            }
+
+            VStack(spacing: 12) {
+                ForEach(essentialFeatures) { feature in
+                    EssentialFeatureCard(feature: feature)
+                }
             }
 
             FeatureSectionCard(
-                title: "Typing Basics",
-                systemImage: "keyboard",
-                intro: "The default layout keeps the most-used keys visible and predictable.",
-                items: typingBasicsItems
-            )
-
-            FeatureSectionCard(
-                title: "Smart Typing",
-                systemImage: "shift",
-                intro: "SweetKeyboard helps with capitalization and keeps up with fast input.",
-                items: smartTypingItems
-            )
-
-            FeatureSectionCard(
-                title: "Symbols & Emoji",
-                systemImage: "face.smiling",
-                intro: "Extra characters stay close when you need them, without slowing normal typing.",
-                items: symbolsAndEmojiItems
-            )
-
-            FeatureSectionCard(
-                title: "Hold For More",
-                systemImage: "ellipsis.circle",
-                intro: "Some keys reveal extra characters when you press and hold them.",
-                items: holdForMoreItems
-            ) {
-                EmptyView()
-            }
-
-            FeatureSectionCard(
-                title: "Clipboard Tools",
+                title: "Clipboard tools",
                 systemImage: "doc.on.clipboard",
-                intro: "Optional clipboard actions live above the keyboard when Full Access is available.",
-                items: clipboardToolsItems
+                intro: "Clipboard history, pinned favorites, manual import, and one-tap paste are available when Full Access is enabled.",
+                items: [
+                    FeatureItem(
+                        title: "History",
+                        message: "Copied and imported text is saved newest first in a local grid."
+                    ),
+                    FeatureItem(
+                        title: "Favorites",
+                        message: "Pin important snippets so they stay at the top of the clipboard list."
+                    ),
+                    FeatureItem(
+                        title: "One-tap paste",
+                        message: "Tap a saved item to insert it directly into the current text field."
+                    )
+                ]
             ) {
                 CapabilityBadge(
                     title: model.canEnableClipboardMode
@@ -492,12 +416,7 @@ private struct FeaturesView: View {
                 )
             }
 
-            FeatureSectionCard(
-                title: "Shared Settings",
-                systemImage: "switch.2",
-                intro: "The app and the keyboard stay in sync for the main behavior toggles.",
-                items: sharedSettingsItems
-            )
+            CompactFeatureSection(items: secondaryFeatures)
         }
     }
 }
@@ -672,9 +591,57 @@ private struct SettingsToggleCard: View {
 }
 
 private struct FeatureItem: Identifiable {
-    let id = UUID()
+    var id: String { title }
     let title: String
     let message: String
+}
+
+private struct EssentialFeature: Identifiable {
+    var id: String { title }
+    let title: String
+    let message: String
+    let systemImage: String
+    let callout: String
+}
+
+private struct EssentialFeatureCard: View {
+    let feature: EssentialFeature
+
+    var body: some View {
+        AppCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .top, spacing: 14) {
+                    Image(systemName: feature.systemImage)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(AppTheme.accent)
+                        .frame(width: 42, height: 42)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(AppTheme.accentSoftBackground)
+                        )
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(feature.callout.uppercased())
+                            .font(.system(.caption2, design: .rounded).weight(.bold))
+                            .tracking(1)
+                            .foregroundStyle(AppTheme.accent)
+
+                        Text(feature.title)
+                            .font(.system(.title3, design: .rounded).weight(.bold))
+                            .foregroundStyle(AppTheme.primaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer(minLength: 0)
+                }
+
+                Text(feature.message)
+                    .font(.system(.subheadline, design: .rounded))
+                    .foregroundStyle(AppTheme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
 }
 
 private struct FeatureSectionCard<Accessory: View>: View {
@@ -708,7 +675,7 @@ private struct FeatureSectionCard<Accessory: View>: View {
                         .frame(width: 34, height: 34)
                         .background(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(AppTheme.accent.opacity(0.12))
+                                .fill(AppTheme.accentSoftBackground)
                         )
 
                     Text(title)
@@ -730,6 +697,64 @@ private struct FeatureSectionCard<Accessory: View>: View {
                 accessory
             }
         }
+    }
+}
+
+private struct CompactFeatureSection: View {
+    let items: [FeatureItem]
+    private let columns = [
+        GridItem(.adaptive(minimum: 145), spacing: 10, alignment: .top)
+    ]
+
+    var body: some View {
+        AppCard {
+            VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Still built in")
+                        .font(.system(.title3, design: .rounded).weight(.bold))
+                        .foregroundStyle(AppTheme.primaryText)
+
+                    Text("The smaller details stay available without competing with the main typing improvements.")
+                        .font(.system(.subheadline, design: .rounded))
+                        .foregroundStyle(AppTheme.secondaryText)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
+                    ForEach(items) { item in
+                        CompactFeatureTile(item: item)
+                    }
+                }
+            }
+        }
+    }
+}
+
+private struct CompactFeatureTile: View {
+    let item: FeatureItem
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(item.title)
+                .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                .foregroundStyle(AppTheme.primaryText)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Text(item.message)
+                .font(.system(.footnote, design: .rounded))
+                .foregroundStyle(AppTheme.secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, minHeight: 104, alignment: .topLeading)
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(AppTheme.innerCardBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(AppTheme.innerCardBorder, lineWidth: 1)
+        )
     }
 }
 
@@ -811,7 +836,7 @@ private struct FeatureHighlightsCard: View {
                         .padding(.vertical, 10)
                         .background(
                             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .fill(AppTheme.accent.opacity(0.10))
+                                .fill(AppTheme.accentSoftBackground)
                         )
                 }
             }
@@ -874,38 +899,55 @@ private struct AppBackground: View {
     var body: some View {
         ZStack {
             LinearGradient(
-                colors: [Color.white, AppTheme.background],
+                colors: [AppTheme.backgroundTop, AppTheme.background],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
-
-            Circle()
-                .fill(AppTheme.accent.opacity(0.12))
-                .frame(width: 260, height: 260)
-                .blur(radius: 18)
-                .offset(x: 120, y: -260)
-
-            Circle()
-                .fill(AppTheme.success.opacity(0.08))
-                .frame(width: 220, height: 220)
-                .blur(radius: 10)
-                .offset(x: -130, y: -120)
         }
     }
 }
 
 private enum AppTheme {
-    static let background = Color(red: 0.95, green: 0.96, blue: 0.98)
-    static let cardBackground = Color.white.opacity(0.88)
-    static let innerCardBackground = Color(red: 0.96, green: 0.97, blue: 0.99)
-    static let fieldBackground = Color.white.opacity(0.96)
-    static let accent = Color(red: 0.96, green: 0.43, blue: 0.29)
-    static let success = Color(red: 0.20, green: 0.61, blue: 0.42)
-    static let primaryText = Color(red: 0.10, green: 0.15, blue: 0.23)
-    static let secondaryText = Color(red: 0.35, green: 0.40, blue: 0.49)
-    static let tertiaryText = Color(red: 0.55, green: 0.60, blue: 0.68)
-    static let cardBorder = Color.white.opacity(0.75)
-    static let shadow = Color.black.opacity(0.08)
+    static let backgroundTop = adaptiveColor(light: 0xFFFFFF, dark: 0x17191D)
+    static let background = adaptiveColor(light: 0xF2F4F8, dark: 0x0E1013)
+    static let cardBackground = adaptiveColor(light: 0xFFFFFF, dark: 0x1B1D22, lightAlpha: 0.90, darkAlpha: 0.94)
+    static let innerCardBackground = adaptiveColor(light: 0xF6F7FA, dark: 0x24272D, lightAlpha: 0.98, darkAlpha: 0.90)
+    static let fieldBackground = adaptiveColor(light: 0xFFFFFF, dark: 0x22252B, lightAlpha: 0.96, darkAlpha: 0.96)
+    static let accent = adaptiveColor(light: 0xF56E4A, dark: 0xFF8A66)
+    static let success = adaptiveColor(light: 0x339C6B, dark: 0x52C991)
+    static let primaryText = adaptiveColor(light: 0x1A263A, dark: 0xF4F5F7)
+    static let secondaryText = adaptiveColor(light: 0x59667D, dark: 0xB9C0CC)
+    static let tertiaryText = adaptiveColor(light: 0x8C99AD, dark: 0x737B89)
+    static let cardBorder = adaptiveColor(light: 0xFFFFFF, dark: 0x30343B, lightAlpha: 0.78, darkAlpha: 0.92)
+    static let innerCardBorder = adaptiveColor(light: 0xE6EAF1, dark: 0x343942, lightAlpha: 0.95, darkAlpha: 0.9)
+    static let accentSoftBackground = adaptiveColor(light: 0xF56E4A, dark: 0xFF8A66, lightAlpha: 0.11, darkAlpha: 0.18)
+    static let shadow = adaptiveColor(light: 0x000000, dark: 0x000000, lightAlpha: 0.08, darkAlpha: 0.28)
+
+    private static func adaptiveColor(
+        light: Int,
+        dark: Int,
+        lightAlpha: CGFloat = 1,
+        darkAlpha: CGFloat = 1
+    ) -> Color {
+        Color(
+            UIColor { traits in
+                traits.userInterfaceStyle == .dark
+                    ? UIColor(hex: dark, alpha: darkAlpha)
+                    : UIColor(hex: light, alpha: lightAlpha)
+            }
+        )
+    }
+}
+
+private extension UIColor {
+    convenience init(hex: Int, alpha: CGFloat = 1) {
+        self.init(
+            red: CGFloat((hex >> 16) & 0xFF) / 255,
+            green: CGFloat((hex >> 8) & 0xFF) / 255,
+            blue: CGFloat(hex & 0xFF) / 255,
+            alpha: alpha
+        )
+    }
 }
 
 #Preview {
