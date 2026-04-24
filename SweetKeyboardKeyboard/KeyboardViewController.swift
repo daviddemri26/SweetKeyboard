@@ -268,6 +268,8 @@ final class KeyboardViewController: UIInputViewController {
             case .settings:
                 self.handleNonLetterPostAction(.settings, allowsImmediateRebuild: true)
                 toggleMode(.settings)
+            case .hideKeyboard:
+                dismissKeyboard()
             }
         }
 

@@ -6,11 +6,13 @@ final class KeyboardActionBarView: UIView {
         case importClipboard
         case clipboard
         case settings
+        case hideKeyboard
     }
 
     var onAction: ((Action) -> Void)?
 
     private let settingsButton = KeyboardActionBarView.makeIconButton(symbolName: "gearshape")
+    private let hideKeyboardButton = KeyboardActionBarView.makeIconButton(symbolName: "chevron.down.2")
     private let importClipboardButton = KeyboardActionBarView.makeIconButton(symbolName: "square.and.arrow.down")
     private let copyButton = KeyboardActionBarView.makeIconButton(symbolName: "doc.on.doc")
     private let clipboardButton = KeyboardActionBarView.makeIconButton(symbolNames: ["list.clipboard", "clipboard"])
@@ -58,10 +60,15 @@ final class KeyboardActionBarView: UIView {
         rightStack.alignment = .fill
         rightStack.spacing = KeyboardMetrics.utilityRowButtonSpacing
 
+        let leftStack = UIStackView(arrangedSubviews: [settingsButton, hideKeyboardButton])
+        leftStack.axis = .horizontal
+        leftStack.alignment = .fill
+        leftStack.spacing = KeyboardMetrics.utilityRowButtonSpacing
+
         let spacer = UIView()
         spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
 
-        let stack = UIStackView(arrangedSubviews: [settingsButton, spacer, rightStack])
+        let stack = UIStackView(arrangedSubviews: [leftStack, spacer, rightStack])
         stack.axis = .horizontal
         stack.alignment = .fill
         stack.distribution = .fill
@@ -82,6 +89,7 @@ final class KeyboardActionBarView: UIView {
         importClipboardButton.addTarget(self, action: #selector(importClipboardTapped), for: .touchUpInside)
         clipboardButton.addTarget(self, action: #selector(clipboardTapped), for: .touchUpInside)
         settingsButton.addTarget(self, action: #selector(settingsTapped), for: .touchUpInside)
+        hideKeyboardButton.addTarget(self, action: #selector(hideKeyboardTapped), for: .touchUpInside)
 
         copyButton.accessibilityLabel = "Copy"
         copyButton.accessibilityHint = "Copies selected text into SweetKeyboard history."
@@ -92,6 +100,8 @@ final class KeyboardActionBarView: UIView {
         clipboardButton.accessibilityHint = "Shows SweetKeyboard clipboard history."
         settingsButton.accessibilityLabel = "Settings"
         settingsButton.accessibilityHint = "Shows SweetKeyboard settings."
+        hideKeyboardButton.accessibilityLabel = "Hide keyboard"
+        hideKeyboardButton.accessibilityHint = "Dismisses the keyboard from the screen."
     }
 
     private func applyTheme() {
@@ -121,6 +131,11 @@ final class KeyboardActionBarView: UIView {
             to: settingsButton,
             role: .utility,
             isActive: isSettingsActive,
+            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
+        )
+        KeyboardTheme.applyChrome(
+            to: hideKeyboardButton,
+            role: .utility,
             cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
         )
     }
@@ -159,5 +174,9 @@ final class KeyboardActionBarView: UIView {
 
     @objc private func settingsTapped() {
         onAction?(.settings)
+    }
+
+    @objc private func hideKeyboardTapped() {
+        onAction?(.hideKeyboard)
     }
 }

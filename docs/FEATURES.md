@@ -32,6 +32,7 @@ This document is the detailed functional reference for the current codebase. It 
 - `Import`
 - `Clipboard`
 - `Settings`
+- `Hide Keyboard`
 - Local clipboard history grid
 - Manual system clipboard import button for available plain text
 

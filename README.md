@@ -173,6 +173,7 @@ Behavior highlights:
 
 - Clipboard mode is user-controlled through shared settings
 - The top action bar appears only when Full Access is available and clipboard mode is enabled
+- A `Hide Keyboard` toolbar button dismisses the keyboard with `dismissKeyboard()`; this hides the keyboard UI only and does not force the host text field to lose focus
 - `Copy` uses `selectedText` when the host exposes it, or selected text inside a clipboard detail view; it writes plain text only and verifies the pasteboard round trip byte-for-byte before saving history
 - A toolbar import button appears when iOS reports that plain text is available; tapping it saves the current `UIPasteboard.general` text into local history
 - Clipboard history is local only
