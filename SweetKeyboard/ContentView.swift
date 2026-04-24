@@ -397,7 +397,7 @@ private struct FeaturesView: View {
             message: "Import available iOS clipboard text manually from the top toolbar."
         ),
         FeatureItem(
-            title: "Open after copy",
+            title: "Open clipboard after copy",
             message: "Choose whether Copy should automatically reveal the clipboard history after saving text."
         ),
         FeatureItem(

@@ -152,7 +152,7 @@ final class KeyboardSettingsPanelView: UIView {
         configureRow(
             openClipboardAfterCopyRow,
             titleLabel: openClipboardAfterCopyTitleLabel,
-            title: "Open after copy",
+            title: "Open clipboard after copy",
             toggle: openClipboardAfterCopySwitch,
             action: #selector(openClipboardAfterCopySwitchChanged)
         )
