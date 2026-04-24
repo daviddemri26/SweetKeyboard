@@ -277,7 +277,7 @@ enum KeyboardTheme {
 
 final class KeyboardPressableButton: UIButton {
     private enum TapSymbolEffect {
-        static let effect: BounceSymbolEffect = .bounce.up.byLayer
+        static let effect: BounceSymbolEffect = .bounce.up.wholeSymbol
         static let options = SymbolEffectOptions.speed(1.12).nonRepeating
     }
 
