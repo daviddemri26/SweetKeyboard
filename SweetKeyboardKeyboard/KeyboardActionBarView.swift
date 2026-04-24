@@ -116,7 +116,8 @@ final class KeyboardActionBarView: UIView {
             isActive: isClipboardActive,
             cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
         )
-        if isClipboardActive, let pressableButton = clipboardButton as? KeyboardPressableButton {
+        if isClipboardActive {
+            let pressableButton = clipboardButton
             pressableButton.setBorder(
                 width: 1.5,
                 colorProvider: { _ in KeyboardTheme.activeClipboardBorderColor }
@@ -133,7 +134,8 @@ final class KeyboardActionBarView: UIView {
             isActive: isSettingsActive,
             cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
         )
-        if isSettingsActive, let pressableButton = settingsButton as? KeyboardPressableButton {
+        if isSettingsActive {
+            let pressableButton = settingsButton
             pressableButton.setBorder(
                 width: 1.5,
                 colorProvider: { _ in KeyboardTheme.activeClipboardBorderColor }
@@ -161,7 +163,6 @@ final class KeyboardActionBarView: UIView {
             highlighted: KeyboardTheme.keyLabelColor
         )
         button.setSymbolImage(symbolNames.lazy.compactMap { UIImage(systemName: $0) }.first)
-        button.setTapBounceEnabled(true)
         button.widthAnchor.constraint(equalToConstant: KeyboardMetrics.iconButtonWidth).isActive = true
         button.heightAnchor.constraint(equalToConstant: KeyboardMetrics.utilityRowHeight).isActive = true
         return button

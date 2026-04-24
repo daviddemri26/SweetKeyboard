@@ -302,7 +302,6 @@ final class ClipboardPanelView: UIView {
             highlighted: KeyboardTheme.keyLabelColor
         )
         button.setSymbolImage(UIImage(systemName: symbolName))
-        button.setTapBounceEnabled(true)
         button.accessibilityLabel = accessibilityLabel
         button.addTarget(self, action: action, for: .touchUpInside)
     }
