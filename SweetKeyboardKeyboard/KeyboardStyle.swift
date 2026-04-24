@@ -1,3 +1,4 @@
+import Symbols
 import UIKit
 
 enum KeyboardMetrics {
@@ -278,6 +279,11 @@ enum KeyboardTheme {
 }
 
 final class KeyboardPressableButton: UIButton {
+    private enum TapSymbolEffect {
+        static let effect: BounceSymbolEffect = .bounce.up.byLayer
+        static let options = SymbolEffectOptions.speed(1.12).nonRepeating
+    }
+
     private var normalBackgroundColor: UIColor?
     private var highlightedBackgroundColor: UIColor?
     private var normalTitleFont: UIFont?
@@ -285,6 +291,7 @@ final class KeyboardPressableButton: UIButton {
     private var normalForegroundColor: UIColor?
     private var highlightedForegroundColor: UIColor?
     private var borderColorProvider: ((UITraitCollection) -> UIColor)?
+    private var isTapBounceEnabled = false
 
     override var isHighlighted: Bool {
         didSet {
@@ -343,6 +350,22 @@ final class KeyboardPressableButton: UIButton {
         updateBorderAppearance()
     }
 
+    func setTapBounceEnabled(_ enabled: Bool) {
+        guard isTapBounceEnabled != enabled else {
+            return
+        }
+
+        isTapBounceEnabled = enabled
+        if enabled {
+            addTarget(self, action: #selector(triggerTapSymbolBounce), for: .touchUpInside)
+        } else {
+            removeTarget(self, action: #selector(triggerTapSymbolBounce), for: .touchUpInside)
+            if #available(iOS 17.0, *), let imageView {
+                imageView.removeAllSymbolEffects(animated: false)
+            }
+        }
+    }
+
     private func updatePressedAppearance() {
         backgroundColor = (isHighlighted && isEnabled) ? highlightedBackgroundColor ?? normalBackgroundColor : normalBackgroundColor
 
@@ -365,6 +388,17 @@ final class KeyboardPressableButton: UIButton {
         }
 
         layer.borderColor = borderColorProvider(traitCollection).cgColor
+    }
+
+    @objc private func triggerTapSymbolBounce() {
+        guard isTapBounceEnabled,
+              #available(iOS 17.0, *),
+              let imageView,
+              imageView.image != nil else {
+            return
+        }
+
+        imageView.addSymbolEffect(TapSymbolEffect.effect, options: TapSymbolEffect.options, animated: true)
     }
 }
 

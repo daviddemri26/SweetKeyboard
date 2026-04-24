@@ -833,7 +833,7 @@ final class KeyboardViewController: UIInputViewController {
     }
 
     private func makeInlineSettingsKey() -> UIButton {
-        let key = makeActionSymbolKey(symbolName: "gearshape", action: #selector(inlineSettingsTapped))
+        let key = makeActionSymbolKey(symbolName: "gearshape.fill", action: #selector(inlineSettingsTapped))
         applyFunctionKeyBorder(to: key)
 
         let normalConfiguration = UIImage.SymbolConfiguration(

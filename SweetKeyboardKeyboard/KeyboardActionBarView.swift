@@ -11,11 +11,11 @@ final class KeyboardActionBarView: UIView {
 
     var onAction: ((Action) -> Void)?
 
-    private let settingsButton = KeyboardActionBarView.makeIconButton(symbolName: "gearshape")
+    private let settingsButton = KeyboardActionBarView.makeIconButton(symbolName: "gearshape.fill")
     private let hideKeyboardButton = KeyboardActionBarView.makeIconButton(symbolName: "chevron.down.2")
-    private let importClipboardButton = KeyboardActionBarView.makeIconButton(symbolName: "square.and.arrow.down")
-    private let copyButton = KeyboardActionBarView.makeIconButton(symbolName: "doc.on.doc")
-    private let clipboardButton = KeyboardActionBarView.makeIconButton(symbolNames: ["list.clipboard", "clipboard"])
+    private let importClipboardButton = KeyboardActionBarView.makeIconButton(symbolName: "square.and.arrow.down.on.square")
+    private let copyButton = KeyboardActionBarView.makeIconButton(symbolName: "square.on.square")
+    private let clipboardButton = KeyboardActionBarView.makeIconButton(symbolName: "list.clipboard.fill")
 
     private var isClipboardActive = false
     private var isSettingsActive = false
@@ -155,6 +155,7 @@ final class KeyboardActionBarView: UIView {
             highlighted: KeyboardTheme.keyLabelColor
         )
         button.setSymbolImage(symbolNames.lazy.compactMap { UIImage(systemName: $0) }.first)
+        button.setTapBounceEnabled(true)
         button.widthAnchor.constraint(equalToConstant: KeyboardMetrics.iconButtonWidth).isActive = true
         button.heightAnchor.constraint(equalToConstant: KeyboardMetrics.utilityRowHeight).isActive = true
         return button

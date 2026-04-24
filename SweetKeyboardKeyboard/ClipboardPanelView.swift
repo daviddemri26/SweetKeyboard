@@ -136,19 +136,19 @@ final class ClipboardPanelView: UIView {
         )
         configureDetailIconButton(
             detailPasteButton,
-            symbolName: "doc.on.clipboard",
+            symbolName: "square.filled.on.square",
             accessibilityLabel: "Paste",
             action: #selector(detailPasteTapped)
         )
         configureDetailIconButton(
             detailPinButton,
-            symbolName: "pin",
+            symbolName: "heart",
             accessibilityLabel: "Pin",
             action: #selector(detailPinTapped)
         )
         configureDetailIconButton(
             detailDeleteButton,
-            symbolName: "trash",
+            symbolName: "trash.fill",
             accessibilityLabel: "Delete",
             action: #selector(detailDeleteTapped)
         )
@@ -302,6 +302,7 @@ final class ClipboardPanelView: UIView {
             highlighted: KeyboardTheme.keyLabelColor
         )
         button.setSymbolImage(UIImage(systemName: symbolName))
+        button.setTapBounceEnabled(true)
         button.accessibilityLabel = accessibilityLabel
         button.addTarget(self, action: action, for: .touchUpInside)
     }
@@ -376,7 +377,7 @@ final class ClipboardPanelView: UIView {
 
     private func updateDetailPinButton() {
         let isPinned = detailItem?.isPinned == true
-        detailPinButton.setSymbolImage(UIImage(systemName: isPinned ? "pin.fill" : "pin"))
+        detailPinButton.setSymbolImage(UIImage(systemName: isPinned ? "heart.fill" : "heart"))
         detailPinButton.accessibilityLabel = isPinned ? "Unpin" : "Pin"
     }
 
@@ -394,7 +395,12 @@ private final class ClipboardItemButton: UIControl {
     let item: ClipboardItem
 
     private let label = UILabel()
-    private let pinImageView = UIImageView(image: UIImage(systemName: "pin.fill"))
+    private let pinImageView = UIImageView(
+        image: UIImage(
+            systemName: "heart.fill",
+            withConfiguration: UIImage.SymbolConfiguration(pointSize: 10, weight: .semibold)
+        )
+    )
     private let normalBackgroundColor = KeyboardTheme.panelItemBackground
     private let highlightedBackgroundColor = KeyboardTheme.pressedBackground(for: .character)
 
