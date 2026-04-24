@@ -1,6 +1,6 @@
 import UIKit
 
-final class KeyboardViewController: UIInputViewController {
+final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDelegate {
     private enum Mode {
         case keyboard
         case clipboard
@@ -32,9 +32,17 @@ final class KeyboardViewController: UIInputViewController {
     private let accentHoldDelay: TimeInterval = 0.25
     private let keyRepeatDelay: TimeInterval = 0.25
     private let keyRepeatInterval: TimeInterval = 0.1
+    private let cursorSwipeBasePointsPerCharacter: CGFloat = 18
+    private let cursorSwipeFastPointsPerCharacter: CGFloat = 13
+    private let cursorSwipeVeryFastPointsPerCharacter: CGFloat = 10
+    private let cursorSwipeFastVelocityThreshold: CGFloat = 900
+    private let cursorSwipeVeryFastVelocityThreshold: CGFloat = 1_600
+    private let cursorSwipeMaximumCharactersPerUpdate = 8
+    private let cursorSwipeHorizontalDominanceRatio: CGFloat = 1.4
     private var shiftState: KeyboardShiftState = .off
     private var lastShiftTapAt: Date?
     private var suppressedAutoCapitalizationContext: AutoCapitalizationContext?
+    private var cursorSwipeResidualTranslation: CGFloat = 0
     private var keyboardLayoutMode: KeyboardLayoutMode = .letters {
         didSet {
             refreshModeUI()
@@ -66,6 +74,17 @@ final class KeyboardViewController: UIInputViewController {
         delay: keyRepeatDelay,
         repeatInterval: keyRepeatInterval
     )
+    private lazy var cursorSwipeGestureRecognizer: UIPanGestureRecognizer = {
+        let gestureRecognizer = UIPanGestureRecognizer(
+            target: self,
+            action: #selector(cursorSwipeGestureChanged(_:))
+        )
+        gestureRecognizer.cancelsTouchesInView = false
+        gestureRecognizer.minimumNumberOfTouches = 1
+        gestureRecognizer.maximumNumberOfTouches = 1
+        gestureRecognizer.delegate = self
+        return gestureRecognizer
+    }()
     private var pressSequenceCoordinator = KeyboardPressSequenceCoordinator()
     private var sequencedKeyKindsByButtonID: [ObjectIdentifier: SequencedKeyKind] = [:]
     private var keyboardRebuildIsDeferred = false
@@ -184,6 +203,7 @@ final class KeyboardViewController: UIInputViewController {
         keyboardContainer.addSubview(keyboardRows)
         keyboardContainer.addSubview(clipboardPanel)
         keyboardContainer.addSubview(settingsPanel)
+        keyboardRows.addGestureRecognizer(cursorSwipeGestureRecognizer)
 
         keyboardRows.translatesAutoresizingMaskIntoConstraints = false
         clipboardPanel.translatesAutoresizingMaskIntoConstraints = false
@@ -312,6 +332,10 @@ final class KeyboardViewController: UIInputViewController {
             self?.handleAutoCapitalizationChanged(isEnabled)
         }
 
+        settingsPanel.onCursorSwipeEnabledChanged = { [weak self] isEnabled in
+            self?.handleCursorSwipeEnabledChanged(isEnabled)
+        }
+
         settingsPanel.onHapticsEnabledChanged = { [weak self] isEnabled in
             self?.handleKeyHapticsChanged(isEnabled)
         }
@@ -355,6 +379,7 @@ final class KeyboardViewController: UIInputViewController {
             isClipboardModeEnabled: desiredClipboardModeEnabled,
             isOpenClipboardAfterCopyEnabled: sharedSettings.openClipboardAfterCopyEnabled,
             isAutoCapitalizationEnabled: sharedSettings.autoCapitalizationEnabled,
+            isCursorSwipeEnabled: sharedSettings.cursorSwipeEnabled,
             isHapticsEnabled: sharedSettings.keyHapticsEnabled,
             fullAccessStatusText: KeyboardCapabilityStatusTextFormatter.keyboardSettingsSummary(
                 isFullAccessCurrentlyAvailable: hasFullAccess,
@@ -1290,6 +1315,14 @@ final class KeyboardViewController: UIInputViewController {
 
     }
 
+    private func handleCursorSwipeEnabledChanged(_ isEnabled: Bool) {
+        cancelSequencedInteractions()
+        sharedSettings.cursorSwipeEnabled = isEnabled
+        sharedSettingsStore.setCursorSwipeEnabled(isEnabled)
+        resetCursorSwipeState()
+
+    }
+
     private func handleSymbolLockTapped() {
         sharedSettings.symbolLockEnabled.toggle()
         sharedSettingsStore.setSymbolLockEnabled(sharedSettings.symbolLockEnabled)
@@ -1589,6 +1622,84 @@ final class KeyboardViewController: UIInputViewController {
         textDocumentProxy.adjustTextPosition(byCharacterOffset: offset)
         let didReturnToLetters = handleNonLetterPostAction(.cursorMovement, allowsImmediateRebuild: true)
         refreshInputContext(forceKeyboardRebuild: didReturnToLetters, allowsImmediateRebuild: true)
+    }
+
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard gestureRecognizer === cursorSwipeGestureRecognizer else {
+            return true
+        }
+
+        guard
+            sharedSettings.cursorSwipeEnabled,
+            mode == .keyboard,
+            !keyboardRows.isHidden
+        else {
+            return false
+        }
+
+        let velocity = cursorSwipeGestureRecognizer.velocity(in: keyboardRows)
+        return abs(velocity.x) > abs(velocity.y) * cursorSwipeHorizontalDominanceRatio
+    }
+
+    @objc private func cursorSwipeGestureChanged(_ gestureRecognizer: UIPanGestureRecognizer) {
+        switch gestureRecognizer.state {
+        case .began:
+            cancelSequencedInteractions()
+            stopKeyRepeats()
+            _ = clearAccentState(rebuild: true)
+            resetCursorSwipeState()
+            gestureRecognizer.setTranslation(.zero, in: keyboardRows)
+        case .changed:
+            handleCursorSwipeChanged(gestureRecognizer)
+        case .ended, .cancelled, .failed:
+            resetCursorSwipeState()
+        default:
+            break
+        }
+    }
+
+    private func handleCursorSwipeChanged(_ gestureRecognizer: UIPanGestureRecognizer) {
+        guard
+            sharedSettings.cursorSwipeEnabled,
+            mode == .keyboard,
+            !keyboardRows.isHidden
+        else {
+            resetCursorSwipeState()
+            return
+        }
+
+        let translation = gestureRecognizer.translation(in: keyboardRows)
+        cursorSwipeResidualTranslation += translation.x
+        gestureRecognizer.setTranslation(.zero, in: keyboardRows)
+
+        let pointsPerCharacter = cursorSwipePointsPerCharacter(
+            forVelocityX: gestureRecognizer.velocity(in: keyboardRows).x
+        )
+        var offset = Int(cursorSwipeResidualTranslation / pointsPerCharacter)
+        guard offset != 0 else {
+            return
+        }
+
+        offset = min(max(offset, -cursorSwipeMaximumCharactersPerUpdate), cursorSwipeMaximumCharactersPerUpdate)
+        cursorSwipeResidualTranslation -= CGFloat(offset) * pointsPerCharacter
+        moveCursor(by: offset)
+    }
+
+    private func cursorSwipePointsPerCharacter(forVelocityX velocityX: CGFloat) -> CGFloat {
+        let absoluteVelocity = abs(velocityX)
+        if absoluteVelocity >= cursorSwipeVeryFastVelocityThreshold {
+            return cursorSwipeVeryFastPointsPerCharacter
+        }
+
+        if absoluteVelocity >= cursorSwipeFastVelocityThreshold {
+            return cursorSwipeFastPointsPerCharacter
+        }
+
+        return cursorSwipeBasePointsPerCharacter
+    }
+
+    private func resetCursorSwipeState() {
+        cursorSwipeResidualTranslation = 0
     }
 
     private func stopKeyRepeats() {

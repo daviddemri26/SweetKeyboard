@@ -6,6 +6,7 @@ struct SharedKeyboardSettings: Codable, Equatable {
     var autoCapitalizationEnabled: Bool = true
     var symbolLockEnabled: Bool = false
     var openClipboardAfterCopyEnabled: Bool = false
+    var cursorSwipeEnabled: Bool = true
 
     private enum CodingKeys: String, CodingKey {
         case clipboardModeEnabled
@@ -13,6 +14,7 @@ struct SharedKeyboardSettings: Codable, Equatable {
         case autoCapitalizationEnabled
         case symbolLockEnabled
         case openClipboardAfterCopyEnabled
+        case cursorSwipeEnabled
     }
 
     init(
@@ -20,13 +22,15 @@ struct SharedKeyboardSettings: Codable, Equatable {
         keyHapticsEnabled: Bool = false,
         autoCapitalizationEnabled: Bool = true,
         symbolLockEnabled: Bool = false,
-        openClipboardAfterCopyEnabled: Bool = false
+        openClipboardAfterCopyEnabled: Bool = false,
+        cursorSwipeEnabled: Bool = true
     ) {
         self.clipboardModeEnabled = clipboardModeEnabled
         self.keyHapticsEnabled = keyHapticsEnabled
         self.autoCapitalizationEnabled = autoCapitalizationEnabled
         self.symbolLockEnabled = symbolLockEnabled
         self.openClipboardAfterCopyEnabled = openClipboardAfterCopyEnabled
+        self.cursorSwipeEnabled = cursorSwipeEnabled
     }
 
     init(from decoder: Decoder) throws {
@@ -39,6 +43,7 @@ struct SharedKeyboardSettings: Codable, Equatable {
             Bool.self,
             forKey: .openClipboardAfterCopyEnabled
         ) ?? false
+        cursorSwipeEnabled = try container.decodeIfPresent(Bool.self, forKey: .cursorSwipeEnabled) ?? true
     }
 }
 
@@ -92,6 +97,12 @@ final class SharedKeyboardSettingsStore {
     func setOpenClipboardAfterCopyEnabled(_ isEnabled: Bool) {
         var settings = load()
         settings.openClipboardAfterCopyEnabled = isEnabled
+        save(settings)
+    }
+
+    func setCursorSwipeEnabled(_ isEnabled: Bool) {
+        var settings = load()
+        settings.cursorSwipeEnabled = isEnabled
         save(settings)
     }
 

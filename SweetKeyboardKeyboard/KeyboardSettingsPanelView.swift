@@ -4,6 +4,7 @@ final class KeyboardSettingsPanelView: UIView {
     var onClipboardModeChanged: ((Bool) -> Void)?
     var onOpenClipboardAfterCopyChanged: ((Bool) -> Void)?
     var onAutoCapitalizationEnabledChanged: ((Bool) -> Void)?
+    var onCursorSwipeEnabledChanged: ((Bool) -> Void)?
     var onHapticsEnabledChanged: ((Bool) -> Void)?
     var onClose: (() -> Void)?
     var onPressDown: (() -> Void)?
@@ -48,10 +49,16 @@ final class KeyboardSettingsPanelView: UIView {
     private let autoCapitalizationRow = UIStackView()
     private let autoCapitalizationTitleLabel = UILabel()
     private let autoCapitalizationSwitch = UISwitch()
+    private let autoCapitalizationSeparator = UIView()
+
+    private let cursorSwipeRow = UIStackView()
+    private let cursorSwipeTitleLabel = UILabel()
+    private let cursorSwipeSwitch = UISwitch()
 
     private var clipboardSeparatorHeightConstraint: NSLayoutConstraint?
     private var openClipboardAfterCopySeparatorHeightConstraint: NSLayoutConstraint?
     private var hapticsSeparatorHeightConstraint: NSLayoutConstraint?
+    private var autoCapitalizationSeparatorHeightConstraint: NSLayoutConstraint?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -68,6 +75,7 @@ final class KeyboardSettingsPanelView: UIView {
         isClipboardModeEnabled: Bool,
         isOpenClipboardAfterCopyEnabled: Bool,
         isAutoCapitalizationEnabled: Bool,
+        isCursorSwipeEnabled: Bool,
         isHapticsEnabled: Bool,
         fullAccessStatusText: String?
     ) {
@@ -75,6 +83,7 @@ final class KeyboardSettingsPanelView: UIView {
         openClipboardAfterCopySwitch.isOn = isOpenClipboardAfterCopyEnabled
         hapticsSwitch.isOn = isHapticsEnabled
         autoCapitalizationSwitch.isOn = isAutoCapitalizationEnabled
+        cursorSwipeSwitch.isOn = isCursorSwipeEnabled
 
         clipboardSwitch.isEnabled = true
         clipboardInfoRow.isHidden = fullAccessStatusText?.isEmpty ?? true
@@ -84,6 +93,7 @@ final class KeyboardSettingsPanelView: UIView {
         openClipboardAfterCopyTitleLabel.textColor = KeyboardTheme.keyLabelColor
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
+        cursorSwipeTitleLabel.textColor = KeyboardTheme.keyLabelColor
     }
 
     private func setup() {
@@ -172,6 +182,13 @@ final class KeyboardSettingsPanelView: UIView {
             toggle: autoCapitalizationSwitch,
             action: #selector(autoCapitalizationSwitchChanged)
         )
+        configureRow(
+            cursorSwipeRow,
+            titleLabel: cursorSwipeTitleLabel,
+            title: "Swipe cursor",
+            toggle: cursorSwipeSwitch,
+            action: #selector(cursorSwipeSwitchChanged)
+        )
 
         clipboardInfoLabel.font = .preferredFont(forTextStyle: .footnote)
         clipboardInfoLabel.numberOfLines = 0
@@ -201,6 +218,8 @@ final class KeyboardSettingsPanelView: UIView {
         togglesCardStack.addArrangedSubview(hapticsRow)
         togglesCardStack.addArrangedSubview(hapticsSeparator)
         togglesCardStack.addArrangedSubview(autoCapitalizationRow)
+        togglesCardStack.addArrangedSubview(autoCapitalizationSeparator)
+        togglesCardStack.addArrangedSubview(cursorSwipeRow)
 
         togglesCard.addSubview(togglesCardStack)
         togglesCardStack.translatesAutoresizingMaskIntoConstraints = false
@@ -210,6 +229,9 @@ final class KeyboardSettingsPanelView: UIView {
             equalToConstant: separatorThickness
         )
         hapticsSeparatorHeightConstraint = hapticsSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
+        autoCapitalizationSeparatorHeightConstraint = autoCapitalizationSeparator.heightAnchor.constraint(
+            equalToConstant: separatorThickness
+        )
 
         NSLayoutConstraint.activate([
             togglesCardStack.topAnchor.constraint(equalTo: togglesCard.topAnchor),
@@ -218,7 +240,8 @@ final class KeyboardSettingsPanelView: UIView {
             togglesCardStack.bottomAnchor.constraint(equalTo: togglesCard.bottomAnchor),
             clipboardSeparatorHeightConstraint!,
             openClipboardAfterCopySeparatorHeightConstraint!,
-            hapticsSeparatorHeightConstraint!
+            hapticsSeparatorHeightConstraint!,
+            autoCapitalizationSeparatorHeightConstraint!
         ])
 
         scrollContentStack.addArrangedSubview(togglesCard)
@@ -281,12 +304,14 @@ final class KeyboardSettingsPanelView: UIView {
         clipboardSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
         openClipboardAfterCopySeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
         hapticsSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
+        autoCapitalizationSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
 
         clipboardTitleLabel.textColor = KeyboardTheme.keyLabelColor
         clipboardInfoLabel.textColor = KeyboardTheme.secondaryLabelColor
         openClipboardAfterCopyTitleLabel.textColor = KeyboardTheme.keyLabelColor
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
+        cursorSwipeTitleLabel.textColor = KeyboardTheme.keyLabelColor
     }
 
     override func didMoveToWindow() {
@@ -310,6 +335,10 @@ final class KeyboardSettingsPanelView: UIView {
         onAutoCapitalizationEnabledChanged?(autoCapitalizationSwitch.isOn)
     }
 
+    @objc private func cursorSwipeSwitchChanged() {
+        onCursorSwipeEnabledChanged?(cursorSwipeSwitch.isOn)
+    }
+
     @objc private func closeTapped() {
         onClose?()
     }
@@ -326,5 +355,6 @@ final class KeyboardSettingsPanelView: UIView {
         clipboardSeparatorHeightConstraint?.constant = separatorThickness
         openClipboardAfterCopySeparatorHeightConstraint?.constant = separatorThickness
         hapticsSeparatorHeightConstraint?.constant = separatorThickness
+        autoCapitalizationSeparatorHeightConstraint?.constant = separatorThickness
     }
 }

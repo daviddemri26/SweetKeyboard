@@ -170,6 +170,7 @@ final class SharedStoreTests: XCTestCase {
         XCTAssertTrue(store.load().autoCapitalizationEnabled)
         XCTAssertFalse(store.load().symbolLockEnabled)
         XCTAssertFalse(store.load().openClipboardAfterCopyEnabled)
+        XCTAssertTrue(store.load().cursorSwipeEnabled)
     }
 
     func testSharedKeyboardSettingsStorePersistsClipboardMode() {
@@ -217,6 +218,15 @@ final class SharedStoreTests: XCTestCase {
         XCTAssertTrue(store.load().openClipboardAfterCopyEnabled)
     }
 
+    func testSharedKeyboardSettingsStorePersistsCursorSwipeMode() {
+        let defaults = makeDefaults()
+        let store = SharedKeyboardSettingsStore(defaults: defaults)
+
+        store.setCursorSwipeEnabled(false)
+
+        XCTAssertFalse(store.load().cursorSwipeEnabled)
+    }
+
     func testSharedKeyboardSettingsStoreLoadsLegacyPayloadWithoutKeyHaptics() throws {
         let defaults = makeDefaults()
         let legacySettings = """
@@ -233,7 +243,8 @@ final class SharedStoreTests: XCTestCase {
                 keyHapticsEnabled: false,
                 autoCapitalizationEnabled: true,
                 symbolLockEnabled: false,
-                openClipboardAfterCopyEnabled: false
+                openClipboardAfterCopyEnabled: false,
+                cursorSwipeEnabled: true
             )
         )
     }
@@ -254,7 +265,8 @@ final class SharedStoreTests: XCTestCase {
                 keyHapticsEnabled: true,
                 autoCapitalizationEnabled: false,
                 symbolLockEnabled: false,
-                openClipboardAfterCopyEnabled: false
+                openClipboardAfterCopyEnabled: false,
+                cursorSwipeEnabled: true
             )
         )
     }
@@ -275,7 +287,8 @@ final class SharedStoreTests: XCTestCase {
                 keyHapticsEnabled: false,
                 autoCapitalizationEnabled: true,
                 symbolLockEnabled: false,
-                openClipboardAfterCopyEnabled: true
+                openClipboardAfterCopyEnabled: true,
+                cursorSwipeEnabled: true
             )
         )
     }

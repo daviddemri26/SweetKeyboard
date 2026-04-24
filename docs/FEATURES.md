@@ -18,6 +18,7 @@ This document is the detailed functional reference for the current codebase. It 
 - Emoji sub-view available only from symbols mode
 - Punctuation row with `.`, `,`, `?`, `!`, and `'`
 - Cursor left and cursor right keys
+- Optional horizontal swipe cursor movement across the keyboard
 - Backspace in symbols mode
 - `ABC` key to return to letters
 - Emoji toggle key between `ABC` and space in symbols mode
@@ -231,6 +232,7 @@ Shared settings currently stored:
 - `autoCapitalizationEnabled`
 - `symbolLockEnabled`
 - `openClipboardAfterCopyEnabled`
+- `cursorSwipeEnabled`
 
 Default values:
 
@@ -239,6 +241,7 @@ Default values:
 - Auto-capitalization on
 - Symbol lock off
 - Open clipboard after copy off
+- Swipe cursor on
 
 ## Privacy And Permissions
 

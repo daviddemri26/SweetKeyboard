@@ -67,6 +67,11 @@ final class AppScreenModel: ObservableObject {
         sharedSettings.keyHapticsEnabled = isEnabled
         sharedSettingsStore.setKeyHapticsEnabled(isEnabled)
     }
+
+    func setCursorSwipeEnabled(_ isEnabled: Bool) {
+        sharedSettings.cursorSwipeEnabled = isEnabled
+        sharedSettingsStore.setCursorSwipeEnabled(isEnabled)
+    }
 }
 
 struct ContentView: View {
@@ -207,6 +212,15 @@ private struct SettingsView: View {
                 isOn: Binding(
                     get: { model.sharedSettings.autoCapitalizationEnabled },
                     set: model.setAutoCapitalizationEnabled
+                )
+            )
+
+            SettingsToggleCard(
+                title: "Swipe cursor",
+                message: "Swipe horizontally on the keyboard to move the cursor through text.",
+                isOn: Binding(
+                    get: { model.sharedSettings.cursorSwipeEnabled },
+                    set: model.setCursorSwipeEnabled
                 )
             )
 

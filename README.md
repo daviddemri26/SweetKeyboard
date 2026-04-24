@@ -55,6 +55,7 @@ SweetKeyboard is intentionally optimized around practical typing flows rather th
 - Automatic return from symbols to letters after one symbol when symbol lock is off
 - Automatic return from emoji to letters after one emoji when symbol lock is off
 - Left and right cursor movement keys in symbols mode
+- Optional horizontal swipe cursor movement across the keyboard
 - Long-press accent variants for `a`, `c`, `e`, `i`, `n`, `o`, `u`, and `y`
 - Long-press period variants: `…`, `:`, `•`, `@`, `!`, `?`, `,`
 - Contextual action key for `return`, `search`, `go`, `next`, `send`, `done`, and related host return-key types
@@ -62,7 +63,7 @@ SweetKeyboard is intentionally optimized around practical typing flows rather th
 - Local clipboard history grid inside the keyboard
 - Optional auto-open clipboard history after `Copy`
 - Manual plain-text import from the iOS clipboard when the toolbar shows available text
-- In-keyboard settings panel for clipboard mode, copy behavior, auto-capitalization, and key haptics
+- In-keyboard settings panel for clipboard mode, copy behavior, auto-capitalization, swipe cursor, and key haptics
 - Optional key haptics
 
 ### Privacy Promise
@@ -111,6 +112,7 @@ The project contains two Apple targets plus shared logic:
 - Deferred keyboard rebuilds to avoid visual churn during fast interactions
 - Long-press accent replacement logic through `AccentCatalog`
 - Repeating backspace and repeating cursor controls
+- Horizontal cursor swipe gesture through `UIPanGestureRecognizer`
 - Optional haptic feedback controller
 ### Recent Additions Reflected In This Documentation
 
@@ -208,6 +210,7 @@ The current settings are:
 - Auto-capitalization
 - Clipboard toolbar
 - Open clipboard after copy
+- Swipe cursor
 - Key haptics
 
 Symbol lock is persisted as shared state and controlled directly from the symbols and emoji keyboard row.
