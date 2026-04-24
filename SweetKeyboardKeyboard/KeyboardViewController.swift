@@ -56,8 +56,6 @@ final class KeyboardViewController: UIInputViewController {
     private let keyboardRows = UIStackView()
     private let clipboardPanel = ClipboardPanelView()
     private let settingsPanel = KeyboardSettingsPanelView()
-    private let feedbackLabel = UILabel()
-    private lazy var feedbackPresenter = KeyboardFeedbackPresenter(label: feedbackLabel)
     private let hapticFeedbackController = KeyboardHapticFeedbackController()
     private lazy var backspaceRepeatController = KeyboardKeyRepeatController(
         delay: keyRepeatDelay,
@@ -183,24 +181,13 @@ final class KeyboardViewController: UIInputViewController {
         keyboardContainer.setContentHuggingPriority(.required, for: .vertical)
         keyboardContainer.setContentCompressionResistancePriority(.required, for: .vertical)
 
-        feedbackLabel.alpha = 0
-        feedbackLabel.font = .preferredFont(forTextStyle: .caption1)
-        feedbackLabel.textAlignment = .center
-        feedbackLabel.backgroundColor = KeyboardTheme.feedbackBackground
-        feedbackLabel.textColor = KeyboardTheme.keyLabelColor
-        feedbackLabel.layer.cornerRadius = KeyboardMetrics.feedbackCornerRadius
-        feedbackLabel.layer.cornerCurve = .continuous
-        feedbackLabel.clipsToBounds = true
-
         keyboardContainer.addSubview(keyboardRows)
         keyboardContainer.addSubview(clipboardPanel)
         keyboardContainer.addSubview(settingsPanel)
-        view.addSubview(feedbackLabel)
 
         keyboardRows.translatesAutoresizingMaskIntoConstraints = false
         clipboardPanel.translatesAutoresizingMaskIntoConstraints = false
         settingsPanel.translatesAutoresizingMaskIntoConstraints = false
-        feedbackLabel.translatesAutoresizingMaskIntoConstraints = false
 
         keyboardRowsBottomConstraint = keyboardRows.bottomAnchor.constraint(
             equalTo: keyboardContainer.bottomAnchor,
@@ -226,12 +213,6 @@ final class KeyboardViewController: UIInputViewController {
             settingsPanel.trailingAnchor.constraint(equalTo: keyboardContainer.trailingAnchor),
             settingsPanel.topAnchor.constraint(equalTo: keyboardContainer.topAnchor),
             settingsPanel.bottomAnchor.constraint(equalTo: keyboardContainer.bottomAnchor),
-
-            feedbackLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            feedbackLabel.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -KeyboardMetrics.feedbackBottomInset),
-            feedbackLabel.heightAnchor.constraint(equalToConstant: KeyboardMetrics.feedbackHeight),
-            feedbackLabel.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: 48),
-            feedbackLabel.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -48),
             keyboardRowsBottomConstraint!
         ])
 
@@ -278,7 +259,6 @@ final class KeyboardViewController: UIInputViewController {
             self.cancelSequencedInteractions()
             self.triggerKeyPressHaptic()
             self.textDocumentProxy.insertText(text)
-            self.feedbackPresenter.show("Inserted")
             self.mode = .keyboard
             self.refreshInputContext(forceKeyboardRebuild: self.keyboardLayoutMode == .letters)
         }
@@ -304,7 +284,6 @@ final class KeyboardViewController: UIInputViewController {
                 return item
             }
 
-            self.feedbackPresenter.show(shouldPin ? "Pinned" : "Unpinned")
             return updatedItem
         }
 
@@ -313,9 +292,7 @@ final class KeyboardViewController: UIInputViewController {
             self.cancelSequencedInteractions()
             self.triggerKeyPressHaptic()
 
-            if self.clipboardStore.delete(id: item.id) {
-                self.feedbackPresenter.show("Deleted")
-            }
+            _ = self.clipboardStore.delete(id: item.id)
 
             self.showClipboardPanel()
         }
@@ -384,8 +361,6 @@ final class KeyboardViewController: UIInputViewController {
     private func applyTheme() {
         view.backgroundColor = KeyboardTheme.keyboardBackground
         keyboardContainer.backgroundColor = .clear
-        feedbackLabel.backgroundColor = KeyboardTheme.feedbackBackground
-        feedbackLabel.textColor = KeyboardTheme.keyLabelColor
     }
 
     private func toggleMode(_ targetMode: Mode) {
@@ -1089,7 +1064,6 @@ final class KeyboardViewController: UIInputViewController {
 
     private func copySelectedText() {
         guard displayMode == .clipboard else {
-            feedbackPresenter.show("Clipboard mode is off")
             return
         }
 
@@ -1101,12 +1075,10 @@ final class KeyboardViewController: UIInputViewController {
         }
 
         guard let selectedText, !selectedText.isEmpty else {
-            feedbackPresenter.show("No selection")
             return
         }
 
         guard clipboardCopyService.copySelectedText(selectedText, to: UIPasteboard.general) else {
-            feedbackPresenter.show("Copy failed")
             return
         }
 
@@ -1120,7 +1092,6 @@ final class KeyboardViewController: UIInputViewController {
             refreshClipboardPanelIfVisible()
         }
 
-        feedbackPresenter.show("Copied")
     }
 
     private func beginClipboardImportAvailabilitySessionIfAllowed() {
@@ -1221,14 +1192,12 @@ final class KeyboardViewController: UIInputViewController {
         switch result {
         case .stored:
             showClipboardPanel()
-            feedbackPresenter.show("Imported")
         case .duplicate:
             showClipboardPanel()
-            feedbackPresenter.show("Already saved")
         case .unavailable:
-            feedbackPresenter.show("Clipboard mode is off")
+            break
         case .alreadyProcessed, .noText, .emptyText:
-            feedbackPresenter.show("Nothing to import")
+            break
         }
     }
 
@@ -1288,15 +1257,6 @@ final class KeyboardViewController: UIInputViewController {
             startClipboardImportAvailabilityPollingWindowIfAllowed()
         }
 
-        if isEnabled {
-            if hasFullAccess {
-                feedbackPresenter.show("Clipboard toolbar turned on")
-            } else {
-                feedbackPresenter.show("Clipboard toolbar saved. It becomes available when Full Access is on")
-            }
-        } else {
-            feedbackPresenter.show("Clipboard toolbar turned off")
-        }
     }
 
     private func handleKeyHapticsChanged(_ isEnabled: Bool) {
@@ -1305,11 +1265,6 @@ final class KeyboardViewController: UIInputViewController {
         sharedSettingsStore.setKeyHapticsEnabled(isEnabled)
         hapticFeedbackController.setEnabled(isEnabled)
 
-        if isEnabled {
-            feedbackPresenter.show("Key haptics turned on")
-        } else {
-            feedbackPresenter.show("Key haptics turned off")
-        }
     }
 
     private func handleOpenClipboardAfterCopyChanged(_ isEnabled: Bool) {
@@ -1317,11 +1272,6 @@ final class KeyboardViewController: UIInputViewController {
         sharedSettings.openClipboardAfterCopyEnabled = isEnabled
         sharedSettingsStore.setOpenClipboardAfterCopyEnabled(isEnabled)
 
-        if isEnabled {
-            feedbackPresenter.show("Clipboard opens after copy")
-        } else {
-            feedbackPresenter.show("Clipboard stays closed after copy")
-        }
     }
 
     private func handleAutoCapitalizationChanged(_ isEnabled: Bool) {
@@ -1330,11 +1280,6 @@ final class KeyboardViewController: UIInputViewController {
         sharedSettingsStore.setAutoCapitalizationEnabled(isEnabled)
         refreshInputContext(forceKeyboardRebuild: true)
 
-        if isEnabled {
-            feedbackPresenter.show("Auto-capitalization turned on")
-        } else {
-            feedbackPresenter.show("Auto-capitalization turned off")
-        }
     }
 
     private func handleSymbolLockTapped() {

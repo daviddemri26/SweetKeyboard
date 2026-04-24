@@ -26,7 +26,6 @@ enum KeyboardMetrics {
     static let keyCornerRadius: CGFloat = 9
     static let utilityCornerRadius: CGFloat = 9
     static let actionBarButtonCornerRadius: CGFloat = 17
-    static let feedbackCornerRadius: CGFloat = 11
 
     static let iconButtonWidth: CGFloat = 34
     static let iconPointSize: CGFloat = 16
@@ -41,8 +40,6 @@ enum KeyboardMetrics {
     static let utilityButtonFontSize: CGFloat = 17
 
     static let settingsPanelCornerRadius: CGFloat = 14
-    static let feedbackHeight: CGFloat = 28
-    static let feedbackBottomInset: CGFloat = 14
 
     static func keyboardBottomInset(for safeAreaInsets: UIEdgeInsets) -> CGFloat {
         max(minimumKeyboardBottomInset, safeAreaInsets.bottom)
@@ -197,16 +194,6 @@ enum KeyboardTheme {
             }
 
             return UIColor(hex: 0xDCE9FF, alpha: 0.95)
-        }
-    }
-
-    static var feedbackBackground: UIColor {
-        UIColor { traits in
-            if traits.userInterfaceStyle == .dark {
-                return UIColor(hex: 0x3A3A3C, alpha: 0.94)
-            }
-
-            return UIColor(hex: 0xF7F8FA, alpha: 0.96)
         }
     }
 

@@ -251,7 +251,6 @@ SweetKeyboard/
 │   ├── ClipboardPanelView.swift
 │   ├── KeyboardActionBarView.swift
 │   ├── KeyboardActionKeyRenderer.swift
-│   ├── KeyboardFeedbackPresenter.swift
 │   ├── KeyboardHapticFeedbackController.swift
 │   ├── KeyboardKeyRepeatController.swift
 │   ├── KeyboardLongPressController.swift
