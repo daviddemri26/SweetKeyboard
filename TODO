@@ -1,7 +1,2 @@
 Supprimer vers l'avant. Quand on appuie sur Shift, ça change le bouton supprimer. 
 
-ameliorer interface app
-Remplacer le boutons "Features" par l'icône clavier. 
-Remplacer tous les boutons de la bottomtoolbar par leur version non remplie quand ils ne sont pas activés et remplie quand ils sont actifs. 
-Réparer le visuel qui change la couleur de la barre de menu en bas à chaque fois qu'on clique sur un icône. 
-Je change la couleur globale de l'application par le bleu au lieu du orange. 

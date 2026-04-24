@@ -75,39 +75,57 @@ final class AppScreenModel: ObservableObject {
     }
 }
 
+private enum AppTab: CaseIterable, Identifiable {
+    case home
+    case settings
+    case features
+    case info
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .home:
+            return "Home"
+        case .settings:
+            return "Settings"
+        case .features:
+            return "Features"
+        case .info:
+            return "Info"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .home:
+            return "house"
+        case .settings:
+            return "gearshape"
+        case .features:
+            return "keyboard"
+        case .info:
+            return "info.circle"
+        }
+    }
+
+    var selectedSystemImage: String {
+        "\(systemImage).fill"
+    }
+}
+
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = AppScreenModel()
+    @State private var selectedTab: AppTab = .home
 
     var body: some View {
-        TabView {
-            tabContainer {
-                HomeView()
-            }
-            .tabItem {
-                Label("Home", systemImage: "house")
-            }
+        ZStack(alignment: .bottom) {
+            selectedTabContent
 
-            tabContainer(title: "Settings") {
-                SettingsView()
-            }
-            .tabItem {
-                Label("Settings", systemImage: "switch.2")
-            }
-
-            tabContainer(title: "Features") {
-                FeaturesView()
-            }
-            .tabItem {
-                Label("Features", systemImage: "keyboard")
-            }
-
-            tabContainer(title: "Info") {
-                InfoView()
-            }
-            .tabItem {
-                Label("Info", systemImage: "info.circle")
-            }
+            AppBottomToolbar(selectedTab: $selectedTab)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 8)
         }
         .tint(AppTheme.accent)
         .environmentObject(model)
@@ -120,6 +138,28 @@ struct ContentView: View {
             }
 
             model.reload()
+        }
+    }
+
+    @ViewBuilder
+    private var selectedTabContent: some View {
+        switch selectedTab {
+        case .home:
+            tabContainer {
+                HomeView()
+            }
+        case .settings:
+            tabContainer(title: "Settings") {
+                SettingsView()
+            }
+        case .features:
+            tabContainer(title: "Features") {
+                FeaturesView()
+            }
+        case .info:
+            tabContainer(title: "Info") {
+                InfoView()
+            }
         }
     }
 
@@ -354,10 +394,6 @@ private struct FeaturesView: View {
             message: "Optional light feedback helps supported keys feel more responsive."
         ),
         FeatureItem(
-            title: "Shared settings",
-            message: "The app and keyboard stay synchronized through shared local settings."
-        ),
-        FeatureItem(
             title: "Local privacy",
             message: "Clipboard data stays on device, with no analytics, cloud sync, or remote processing."
         )
@@ -406,13 +442,11 @@ private struct FeaturesView: View {
                 ]
             ) {
                 CapabilityBadge(
-                    title: model.canEnableClipboardMode
-                        ? "Full Access is enabled"
-                        : "Full Access is required for clipboard tools",
-                    systemImage: model.canEnableClipboardMode
+                    title: model.fullAccessHistorySummary,
+                    systemImage: model.hasConfirmedFullAccess
                         ? "checkmark.circle.fill"
                         : "exclamationmark.circle.fill",
-                    color: model.canEnableClipboardMode ? AppTheme.success : AppTheme.accent
+                    color: model.hasConfirmedFullAccess ? AppTheme.success : AppTheme.accent
                 )
             }
 
@@ -446,10 +480,61 @@ private struct AppScreen<Content: View>: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 20)
-            .padding(.bottom, 32)
+            .padding(.bottom, 124)
         }
         .scrollIndicators(.hidden)
         .background(AppBackground().ignoresSafeArea())
+    }
+}
+
+private struct AppBottomToolbar: View {
+    @Binding var selectedTab: AppTab
+
+    var body: some View {
+        HStack(spacing: 8) {
+            ForEach(AppTab.allCases) { tab in
+                tabButton(for: tab)
+            }
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 36, style: .continuous)
+                .fill(AppTheme.tabBarBackground)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 36, style: .continuous)
+                .stroke(AppTheme.tabBarBorder, lineWidth: 1)
+        )
+        .shadow(color: AppTheme.shadow, radius: 24, y: 10)
+    }
+
+    private func tabButton(for tab: AppTab) -> some View {
+        let isSelected = selectedTab == tab
+
+        return Button {
+            selectedTab = tab
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: isSelected ? tab.selectedSystemImage : tab.systemImage)
+                    .font(.system(size: 24, weight: .semibold))
+
+                Text(tab.title)
+                    .font(.system(.caption, design: .rounded).weight(.semibold))
+            }
+            .foregroundStyle(isSelected ? AppTheme.accent : AppTheme.primaryText)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background {
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        .fill(AppTheme.tabSelectionBackground)
+                }
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(tab.title)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }
 
@@ -913,14 +998,17 @@ private enum AppTheme {
     static let cardBackground = adaptiveColor(light: 0xFFFFFF, dark: 0x1B1D22, lightAlpha: 0.90, darkAlpha: 0.94)
     static let innerCardBackground = adaptiveColor(light: 0xF6F7FA, dark: 0x24272D, lightAlpha: 0.98, darkAlpha: 0.90)
     static let fieldBackground = adaptiveColor(light: 0xFFFFFF, dark: 0x22252B, lightAlpha: 0.96, darkAlpha: 0.96)
-    static let accent = adaptiveColor(light: 0xF56E4A, dark: 0xFF8A66)
+    static let accent = adaptiveColor(light: 0x00A9C7, dark: 0x40D9F2)
     static let success = adaptiveColor(light: 0x339C6B, dark: 0x52C991)
     static let primaryText = adaptiveColor(light: 0x1A263A, dark: 0xF4F5F7)
     static let secondaryText = adaptiveColor(light: 0x59667D, dark: 0xB9C0CC)
     static let tertiaryText = adaptiveColor(light: 0x8C99AD, dark: 0x737B89)
     static let cardBorder = adaptiveColor(light: 0xFFFFFF, dark: 0x30343B, lightAlpha: 0.78, darkAlpha: 0.92)
     static let innerCardBorder = adaptiveColor(light: 0xE6EAF1, dark: 0x343942, lightAlpha: 0.95, darkAlpha: 0.9)
-    static let accentSoftBackground = adaptiveColor(light: 0xF56E4A, dark: 0xFF8A66, lightAlpha: 0.11, darkAlpha: 0.18)
+    static let accentSoftBackground = adaptiveColor(light: 0x00A9C7, dark: 0x40D9F2, lightAlpha: 0.11, darkAlpha: 0.18)
+    static let tabBarBackground = adaptiveColor(light: 0xFFFFFF, dark: 0x1B1D22, lightAlpha: 0.90, darkAlpha: 0.96)
+    static let tabBarBorder = adaptiveColor(light: 0xFFFFFF, dark: 0x343942, lightAlpha: 0.78, darkAlpha: 0.92)
+    static let tabSelectionBackground = adaptiveColor(light: 0x00A9C7, dark: 0x40D9F2, lightAlpha: 0.12, darkAlpha: 0.18)
     static let shadow = adaptiveColor(light: 0x000000, dark: 0x000000, lightAlpha: 0.08, darkAlpha: 0.28)
 
     private static func adaptiveColor(
