@@ -200,22 +200,22 @@ final class ClipboardPanelView: UIView {
         KeyboardTheme.applyChrome(
             to: detailBackButton,
             role: .utility,
-            cornerRadius: KeyboardMetrics.utilityCornerRadius
+            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
         )
         KeyboardTheme.applyChrome(
             to: detailPasteButton,
             role: .utility,
-            cornerRadius: KeyboardMetrics.utilityCornerRadius
+            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
         )
         KeyboardTheme.applyChrome(
             to: detailPinButton,
             role: .utility,
-            cornerRadius: KeyboardMetrics.utilityCornerRadius
+            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
         )
         KeyboardTheme.applyChrome(
             to: detailDeleteButton,
             role: .utility,
-            cornerRadius: KeyboardMetrics.utilityCornerRadius
+            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
         )
         updateDetailPinButton()
     }

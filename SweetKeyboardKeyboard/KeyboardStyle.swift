@@ -122,6 +122,16 @@ enum KeyboardTheme {
         }
     }
 
+    static var activeClipboardBorderColor: UIColor {
+        UIColor { traits in
+            if traits.userInterfaceStyle == .dark {
+                return UIColor(hex: 0xA6ABB5, alpha: 0.96)
+            }
+
+            return UIColor(hex: 0x7B8493, alpha: 0.98)
+        }
+    }
+
     static var goActionPressedForegroundColor: UIColor {
         UIColor { traits in
             if traits.userInterfaceStyle == .dark {
