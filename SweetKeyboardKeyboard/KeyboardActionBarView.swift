@@ -10,6 +10,7 @@ final class KeyboardActionBarView: UIView {
     }
 
     var onAction: ((Action) -> Void)?
+    var onPressDown: (() -> Void)?
 
     private let settingsButton = KeyboardActionBarView.makeIconButton(symbolName: "gearshape.fill")
     private let hideKeyboardButton = KeyboardActionBarView.makeIconButton(symbolName: "chevron.down.2")
@@ -90,6 +91,9 @@ final class KeyboardActionBarView: UIView {
         clipboardButton.addTarget(self, action: #selector(clipboardTapped), for: .touchUpInside)
         settingsButton.addTarget(self, action: #selector(settingsTapped), for: .touchUpInside)
         hideKeyboardButton.addTarget(self, action: #selector(hideKeyboardTapped), for: .touchUpInside)
+        [copyButton, importClipboardButton, clipboardButton, settingsButton, hideKeyboardButton].forEach {
+            $0.addTarget(self, action: #selector(buttonTouchDown), for: .touchDown)
+        }
 
         copyButton.accessibilityLabel = "Copy"
         copyButton.accessibilityHint = "Copies selected text into SweetKeyboard history."
@@ -166,6 +170,10 @@ final class KeyboardActionBarView: UIView {
         button.widthAnchor.constraint(equalToConstant: KeyboardMetrics.iconButtonWidth).isActive = true
         button.heightAnchor.constraint(equalToConstant: KeyboardMetrics.utilityRowHeight).isActive = true
         return button
+    }
+
+    @objc private func buttonTouchDown() {
+        onPressDown?()
     }
 
     @objc private func copyTapped() {

@@ -6,6 +6,7 @@ final class KeyboardSettingsPanelView: UIView {
     var onAutoCapitalizationEnabledChanged: ((Bool) -> Void)?
     var onHapticsEnabledChanged: ((Bool) -> Void)?
     var onClose: (() -> Void)?
+    var onPressDown: (() -> Void)?
 
     private enum Constants {
         static let chromeSpacing: CGFloat = 8
@@ -131,6 +132,7 @@ final class KeyboardSettingsPanelView: UIView {
         closeButton.layer.cornerRadius = 10
         closeButton.layer.cornerCurve = .continuous
         closeButton.accessibilityLabel = "Close settings"
+        closeButton.addTarget(self, action: #selector(closeTouchDown), for: .touchDown)
         closeButton.addTarget(self, action: #selector(closeTapped), for: .touchUpInside)
 
         chromeStack.axis = .horizontal
@@ -310,6 +312,10 @@ final class KeyboardSettingsPanelView: UIView {
 
     @objc private func closeTapped() {
         onClose?()
+    }
+
+    @objc private func closeTouchDown() {
+        onPressDown?()
     }
 
     private var separatorThickness: CGFloat {

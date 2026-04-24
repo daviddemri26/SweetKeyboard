@@ -6,6 +6,7 @@ final class ClipboardPanelView: UIView {
     var onCloseDetail: (() -> Void)?
     var onTogglePin: ((ClipboardItem) -> ClipboardItem?)?
     var onDeleteItem: ((ClipboardItem) -> Void)?
+    var onPressDown: (() -> Void)?
 
     private enum Constants {
         static let columnCount = 3
@@ -253,6 +254,12 @@ final class ClipboardPanelView: UIView {
         button.heightAnchor.constraint(equalToConstant: itemCellHeight(for: font)).isActive = true
         button.addAction(
             UIAction { [weak self] _ in
+                self?.onPressDown?()
+            },
+            for: .touchDown
+        )
+        button.addAction(
+            UIAction { [weak self] _ in
                 self?.onSelectText?(item.text)
             },
             for: .touchUpInside
@@ -303,12 +310,17 @@ final class ClipboardPanelView: UIView {
         )
         button.setSymbolImage(UIImage(systemName: symbolName))
         button.accessibilityLabel = accessibilityLabel
+        button.addTarget(self, action: #selector(buttonTouchDown), for: .touchDown)
         button.addTarget(self, action: action, for: .touchUpInside)
     }
 
     private func itemCellHeight(for font: UIFont) -> CGFloat {
         let lineHeight = ceil(font.lineHeight)
         return (lineHeight * CGFloat(Constants.itemLineLimit)) + (Constants.itemVerticalPadding * 2)
+    }
+
+    @objc private func buttonTouchDown() {
+        onPressDown?()
     }
 
     @objc private func itemLongPressed(_ recognizer: UILongPressGestureRecognizer) {
