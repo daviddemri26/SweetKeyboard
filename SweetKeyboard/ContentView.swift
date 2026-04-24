@@ -89,37 +89,37 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            tabContainer {
-                HomeView()
+            Tab(value: AppTab.home) {
+                tabContainer {
+                    HomeView()
+                }
+            } label: {
+                tabLabel("Home", tab: .home, inactiveIcon: "house", activeIcon: "house.fill")
             }
-            .tabItem {
-                Label("Home", systemImage: tabIcon(for: .home))
-            }
-            .tag(AppTab.home)
 
-            tabContainer(title: "Settings") {
-                SettingsView()
+            Tab(value: AppTab.settings) {
+                tabContainer(title: "Settings") {
+                    SettingsView()
+                }
+            } label: {
+                tabLabel("Settings", tab: .settings, inactiveIcon: "gearshape", activeIcon: "gearshape.fill")
             }
-            .tabItem {
-                Label("Settings", systemImage: tabIcon(for: .settings))
-            }
-            .tag(AppTab.settings)
 
-            tabContainer(title: "Features") {
-                FeaturesView()
+            Tab(value: AppTab.features) {
+                tabContainer(title: "Features") {
+                    FeaturesView()
+                }
+            } label: {
+                tabLabel("Features", tab: .features, inactiveIcon: "keyboard", activeIcon: "keyboard.fill")
             }
-            .tabItem {
-                Label("Features", systemImage: tabIcon(for: .features))
-            }
-            .tag(AppTab.features)
 
-            tabContainer(title: "Info") {
-                InfoView()
+            Tab(value: AppTab.info) {
+                tabContainer(title: "Info") {
+                    InfoView()
+                }
+            } label: {
+                tabLabel("Info", tab: .info, inactiveIcon: "info.circle", activeIcon: "info.circle.fill")
             }
-            .tabItem {
-                Label("Info", systemImage: tabIcon(for: .info))
-            }
-            .tag(AppTab.info)
         }
         .tint(AppTheme.accent)
         .environmentObject(model)
@@ -135,19 +135,25 @@ struct ContentView: View {
         }
     }
 
-    private func tabIcon(for tab: AppTab) -> String {
-        let isSelected = selectedTab == tab
-
-        switch tab {
-        case .home:
-            return isSelected ? "house.fill" : "house"
-        case .settings:
-            return isSelected ? "gearshape.fill" : "gearshape"
-        case .features:
-            return isSelected ? "keyboard.fill" : "keyboard"
-        case .info:
-            return isSelected ? "info.circle.fill" : "info.circle"
+    private func tabLabel(
+        _ title: String,
+        tab: AppTab,
+        inactiveIcon: String,
+        activeIcon: String
+    ) -> some View {
+        Label {
+            Text(title)
+        } icon: {
+            tabImage(named: selectedTab == tab ? activeIcon : inactiveIcon)
         }
+    }
+
+    private func tabImage(named systemName: String) -> Image {
+        guard let image = UIImage(systemName: systemName) else {
+            return Image(systemName: systemName)
+        }
+
+        return Image(uiImage: image.withRenderingMode(.alwaysTemplate))
     }
 
     private func tabContainer<Content: View>(
