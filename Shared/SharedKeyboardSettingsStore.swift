@@ -7,6 +7,7 @@ struct SharedKeyboardSettings: Codable, Equatable {
     var symbolLockEnabled: Bool = false
     var openClipboardAfterCopyEnabled: Bool = false
     var cursorSwipeEnabled: Bool = true
+    var forwardDeleteWithShiftEnabled: Bool = false
 
     private enum CodingKeys: String, CodingKey {
         case clipboardModeEnabled
@@ -15,6 +16,7 @@ struct SharedKeyboardSettings: Codable, Equatable {
         case symbolLockEnabled
         case openClipboardAfterCopyEnabled
         case cursorSwipeEnabled
+        case forwardDeleteWithShiftEnabled
     }
 
     init(
@@ -23,7 +25,8 @@ struct SharedKeyboardSettings: Codable, Equatable {
         autoCapitalizationEnabled: Bool = true,
         symbolLockEnabled: Bool = false,
         openClipboardAfterCopyEnabled: Bool = false,
-        cursorSwipeEnabled: Bool = true
+        cursorSwipeEnabled: Bool = true,
+        forwardDeleteWithShiftEnabled: Bool = false
     ) {
         self.clipboardModeEnabled = clipboardModeEnabled
         self.keyHapticsEnabled = keyHapticsEnabled
@@ -31,6 +34,7 @@ struct SharedKeyboardSettings: Codable, Equatable {
         self.symbolLockEnabled = symbolLockEnabled
         self.openClipboardAfterCopyEnabled = openClipboardAfterCopyEnabled
         self.cursorSwipeEnabled = cursorSwipeEnabled
+        self.forwardDeleteWithShiftEnabled = forwardDeleteWithShiftEnabled
     }
 
     init(from decoder: Decoder) throws {
@@ -44,6 +48,10 @@ struct SharedKeyboardSettings: Codable, Equatable {
             forKey: .openClipboardAfterCopyEnabled
         ) ?? false
         cursorSwipeEnabled = try container.decodeIfPresent(Bool.self, forKey: .cursorSwipeEnabled) ?? true
+        forwardDeleteWithShiftEnabled = try container.decodeIfPresent(
+            Bool.self,
+            forKey: .forwardDeleteWithShiftEnabled
+        ) ?? false
     }
 }
 
@@ -103,6 +111,12 @@ final class SharedKeyboardSettingsStore {
     func setCursorSwipeEnabled(_ isEnabled: Bool) {
         var settings = load()
         settings.cursorSwipeEnabled = isEnabled
+        save(settings)
+    }
+
+    func setForwardDeleteWithShiftEnabled(_ isEnabled: Bool) {
+        var settings = load()
+        settings.forwardDeleteWithShiftEnabled = isEnabled
         save(settings)
     }
 

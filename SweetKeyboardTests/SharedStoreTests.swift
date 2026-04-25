@@ -171,6 +171,7 @@ final class SharedStoreTests: XCTestCase {
         XCTAssertFalse(store.load().symbolLockEnabled)
         XCTAssertFalse(store.load().openClipboardAfterCopyEnabled)
         XCTAssertTrue(store.load().cursorSwipeEnabled)
+        XCTAssertFalse(store.load().forwardDeleteWithShiftEnabled)
     }
 
     func testSharedKeyboardSettingsStorePersistsClipboardMode() {
@@ -225,6 +226,15 @@ final class SharedStoreTests: XCTestCase {
         store.setCursorSwipeEnabled(false)
 
         XCTAssertFalse(store.load().cursorSwipeEnabled)
+    }
+
+    func testSharedKeyboardSettingsStorePersistsForwardDeleteWithShiftMode() {
+        let defaults = makeDefaults()
+        let store = SharedKeyboardSettingsStore(defaults: defaults)
+
+        store.setForwardDeleteWithShiftEnabled(true)
+
+        XCTAssertTrue(store.load().forwardDeleteWithShiftEnabled)
     }
 
     func testSharedKeyboardSettingsStoreLoadsLegacyPayloadWithoutKeyHaptics() throws {

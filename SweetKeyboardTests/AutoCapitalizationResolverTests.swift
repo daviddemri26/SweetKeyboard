@@ -166,6 +166,45 @@ final class AutoCapitalizationResolverTests: XCTestCase {
         XCTAssertEqual(newState, .off)
     }
 
+    func testForwardDeleteOnlyActivatesForManualSingleShiftWhenEnabled() {
+        XCTAssertTrue(
+            shiftStateMachine.shouldUseForwardDelete(
+                shiftState: .manualSingle,
+                isForwardDeleteWithShiftEnabled: true
+            )
+        )
+        XCTAssertFalse(
+            shiftStateMachine.shouldUseForwardDelete(
+                shiftState: .manualSingle,
+                isForwardDeleteWithShiftEnabled: false
+            )
+        )
+        XCTAssertFalse(
+            shiftStateMachine.shouldUseForwardDelete(
+                shiftState: .autoSingle,
+                isForwardDeleteWithShiftEnabled: true
+            )
+        )
+        XCTAssertFalse(
+            shiftStateMachine.shouldUseForwardDelete(
+                shiftState: .autoPersistent,
+                isForwardDeleteWithShiftEnabled: true
+            )
+        )
+        XCTAssertFalse(
+            shiftStateMachine.shouldUseForwardDelete(
+                shiftState: .manualLocked,
+                isForwardDeleteWithShiftEnabled: true
+            )
+        )
+        XCTAssertFalse(
+            shiftStateMachine.shouldUseForwardDelete(
+                shiftState: .off,
+                isForwardDeleteWithShiftEnabled: true
+            )
+        )
+    }
+
     private func makeContext(
         isEnabled: Bool = true,
         autocapitalizationType: UITextAutocapitalizationType? = .sentences,

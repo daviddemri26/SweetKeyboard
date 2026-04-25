@@ -333,6 +333,10 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
             self?.handleAutoCapitalizationChanged(isEnabled)
         }
 
+        settingsPanel.onForwardDeleteWithShiftChanged = { [weak self] isEnabled in
+            self?.handleForwardDeleteWithShiftChanged(isEnabled)
+        }
+
         settingsPanel.onCursorSwipeEnabledChanged = { [weak self] isEnabled in
             self?.handleCursorSwipeEnabledChanged(isEnabled)
         }
@@ -381,6 +385,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
             isOpenClipboardAfterCopyEnabled: sharedSettings.openClipboardAfterCopyEnabled,
             isAutoCapitalizationEnabled: sharedSettings.autoCapitalizationEnabled,
             isCursorSwipeEnabled: sharedSettings.cursorSwipeEnabled,
+            isForwardDeleteWithShiftEnabled: sharedSettings.forwardDeleteWithShiftEnabled,
             isHapticsEnabled: sharedSettings.keyHapticsEnabled,
             fullAccessStatusText: KeyboardCapabilityStatusTextFormatter.keyboardSettingsSummary(
                 isFullAccessCurrentlyAvailable: hasFullAccess,
@@ -614,7 +619,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         case .shift:
             return makeShiftKey()
         case .backspace:
-            return makeActionKey(title: "⌫")
+            return makeDeleteKey()
         case .space:
             return makeSpaceKey()
         case .symbolToggle:
@@ -642,24 +647,32 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
 
     private func makeActionKey(title: String, action: Selector? = nil) -> UIButton {
         let key = makeBaseKey(title: title, role: .system)
-        if title == "⌫" {
-            applyFunctionKeyBorder(to: key)
-            if let pressableKey = key as? KeyboardPressableButton {
-                pressableKey.setTitleFonts(
-                    normal: UIFont.systemFont(ofSize: KeyboardMetrics.backspaceKeyFontSize, weight: .regular),
-                    highlighted: UIFont.systemFont(ofSize: KeyboardMetrics.backspaceKeyFontSize, weight: .semibold)
-                )
-            } else {
-                key.titleLabel?.font = UIFont.systemFont(ofSize: KeyboardMetrics.backspaceKeyFontSize, weight: .regular)
-            }
-            key.addTarget(self, action: #selector(backspaceTouchDown(_:)), for: .touchDown)
-            key.addTarget(self, action: #selector(backspaceKeyTapped(_:)), for: .touchUpInside)
-            key.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchUpOutside)
-            key.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchCancel)
-            key.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchDragExit)
-        } else if let action {
+        if let action {
             key.addTarget(self, action: action, for: .touchUpInside)
         }
+        return key
+    }
+
+    private func makeDeleteKey() -> UIButton {
+        let usesForwardDelete = isForwardDeleteActive
+        let key = makeBaseKey(title: usesForwardDelete ? "⌦" : "⌫", role: .system)
+        applyFunctionKeyBorder(to: key)
+        key.accessibilityLabel = usesForwardDelete ? "Forward Delete" : "Delete"
+
+        if let pressableKey = key as? KeyboardPressableButton {
+            pressableKey.setTitleFonts(
+                normal: UIFont.systemFont(ofSize: KeyboardMetrics.backspaceKeyFontSize, weight: .regular),
+                highlighted: UIFont.systemFont(ofSize: KeyboardMetrics.backspaceKeyFontSize, weight: .semibold)
+            )
+        } else {
+            key.titleLabel?.font = UIFont.systemFont(ofSize: KeyboardMetrics.backspaceKeyFontSize, weight: .regular)
+        }
+
+        key.addTarget(self, action: #selector(backspaceTouchDown(_:)), for: .touchDown)
+        key.addTarget(self, action: #selector(backspaceKeyTapped(_:)), for: .touchUpInside)
+        key.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchUpOutside)
+        key.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchCancel)
+        key.addTarget(self, action: #selector(backspaceTouchEnded(_:)), for: .touchDragExit)
         return key
     }
 
@@ -1316,6 +1329,18 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
 
     }
 
+    private func handleForwardDeleteWithShiftChanged(_ isEnabled: Bool) {
+        cancelSequencedInteractions()
+        let wasForwardDeleteActive = isForwardDeleteActive
+        sharedSettings.forwardDeleteWithShiftEnabled = isEnabled
+        sharedSettingsStore.setForwardDeleteWithShiftEnabled(isEnabled)
+
+        if wasForwardDeleteActive != isForwardDeleteActive {
+            requestKeyboardRebuild(allowsImmediateRebuild: true)
+        }
+
+    }
+
     private func handleCursorSwipeEnabledChanged(_ isEnabled: Bool) {
         cancelSequencedInteractions()
         sharedSettings.cursorSwipeEnabled = isEnabled
@@ -1522,13 +1547,41 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
             triggerKeyPressHaptic()
         }
 
+        let usesForwardDelete = isForwardDeleteActive
+        guard !usesForwardDelete || canPerformForwardDelete else {
+            return
+        }
+
         let didClearAccentState = clearAccentState(rebuild: false)
-        textDocumentProxy.deleteBackward()
+        performDelete(isForwardDeleteActive: usesForwardDelete)
         let didReturnToLetters = handleNonLetterPostAction(.backspace, allowsImmediateRebuild: true)
         refreshInputContext(
             forceKeyboardRebuild: didClearAccentState || didReturnToLetters,
             allowsImmediateRebuild: true
         )
+    }
+
+    private var canPerformForwardDelete: Bool {
+        if let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty {
+            return true
+        }
+
+        return !(textDocumentProxy.documentContextAfterInput?.isEmpty ?? true)
+    }
+
+    private func performDelete(isForwardDeleteActive: Bool) {
+        if !isForwardDeleteActive {
+            textDocumentProxy.deleteBackward()
+            return
+        }
+
+        if let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty {
+            textDocumentProxy.deleteBackward()
+            return
+        }
+
+        textDocumentProxy.adjustTextPosition(byCharacterOffset: 1)
+        textDocumentProxy.deleteBackward()
     }
 
     @objc private func backspaceTouchDown(_ sender: UIButton) {
@@ -1719,6 +1772,13 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
 
     private var isShiftActive: Bool {
         shiftState.isActive
+    }
+
+    private var isForwardDeleteActive: Bool {
+        shiftStateMachine.shouldUseForwardDelete(
+            shiftState: shiftState,
+            isForwardDeleteWithShiftEnabled: sharedSettings.forwardDeleteWithShiftEnabled
+        )
     }
 
     private func revealAccentVariants(for displayedLetter: String) {

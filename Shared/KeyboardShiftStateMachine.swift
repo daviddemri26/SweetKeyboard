@@ -117,4 +117,11 @@ struct KeyboardShiftStateMachine {
             )
         }
     }
+
+    func shouldUseForwardDelete(
+        shiftState: KeyboardShiftState,
+        isForwardDeleteWithShiftEnabled: Bool
+    ) -> Bool {
+        isForwardDeleteWithShiftEnabled && shiftState == .manualSingle
+    }
 }

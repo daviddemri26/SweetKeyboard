@@ -73,6 +73,11 @@ final class AppScreenModel: ObservableObject {
         sharedSettings.cursorSwipeEnabled = isEnabled
         sharedSettingsStore.setCursorSwipeEnabled(isEnabled)
     }
+
+    func setForwardDeleteWithShiftEnabled(_ isEnabled: Bool) {
+        sharedSettings.forwardDeleteWithShiftEnabled = isEnabled
+        sharedSettingsStore.setForwardDeleteWithShiftEnabled(isEnabled)
+    }
 }
 
 struct ContentView: View {
@@ -250,6 +255,15 @@ private struct SettingsView: View {
             )
 
             SettingsToggleCard(
+                title: "Forward delete with Shift",
+                message: "When Shift is manually enabled, Delete removes the character after the cursor.",
+                isOn: Binding(
+                    get: { model.sharedSettings.forwardDeleteWithShiftEnabled },
+                    set: model.setForwardDeleteWithShiftEnabled
+                )
+            )
+
+            SettingsToggleCard(
                 title: "Swipe cursor",
                 message: "Swipe horizontally on the keyboard to move the cursor through text.",
                 isOn: Binding(
@@ -348,6 +362,12 @@ private struct FeaturesView: View {
             message: "Swipe horizontally anywhere across the keyboard to move the cursor. Faster swipes travel farther, making long edits quicker.",
             systemImage: "hand.draw",
             callout: "Speed-aware"
+        ),
+        EssentialFeature(
+            title: "Forward delete with Shift",
+            message: "Turn on the setting, then tap Shift once to make Delete remove the character after the cursor while Shift stays active.",
+            systemImage: "delete.forward",
+            callout: "Manual Shift"
         ),
         EssentialFeature(
             title: "Clipboard history and favorites",

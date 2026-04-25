@@ -72,7 +72,7 @@ SweetKeyboard is intentionally optimized around practical typing flows rather th
 - Pinned clipboard favorites shown before unpinned history
 - Optional auto-open clipboard history after `Copy`
 - Manual plain-text import from the iOS clipboard when the toolbar shows available text
-- In-keyboard settings panel for clipboard mode, copy behavior, auto-capitalization, swipe cursor, and key haptics
+- In-keyboard settings panel for clipboard mode, copy behavior, auto-capitalization, forward delete, swipe cursor, and key haptics
 - Optional key haptics
 - Containing app interface with adaptive light and dark appearance
 
@@ -165,6 +165,8 @@ Behavior highlights:
 - Email, URL, and username contexts suppress auto-capitalization
 - Double-tapping Shift enables manual caps lock
 - Tapping Shift while auto-capitalization is active suppresses the current automatic state until the text context changes
+- With the optional forward-delete setting enabled, one-shot manual Shift changes Delete from `⌫` to `⌦`
+- Caps Lock and automatic Shift keep normal backward Delete behavior
 
 #### Symbols Flow
 
@@ -228,6 +230,7 @@ The current settings are:
 
 - Auto-capitalization
 - Clipboard toolbar
+- Forward delete with Shift
 - Open clipboard after copy
 - Swipe cursor
 - Key haptics
@@ -329,6 +332,7 @@ The shared behavior is covered by `SweetKeyboardTests`, including:
 - symbol and emoji return rules
 - overlapping-touch sequencing
 - auto-capitalization decisions
+- delete direction decisions
 - shared settings persistence
 - clipboard preservation rules
 - clipboard pinning and ordering rules

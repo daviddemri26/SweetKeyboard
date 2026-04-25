@@ -45,6 +45,7 @@ This document is the detailed functional reference for the current codebase. It 
 - Auto-capitalization toggle
 - Clipboard toolbar toggle
 - Open clipboard after copy toggle
+- Forward delete with Shift toggle
 - Swipe cursor toggle
 - Key haptics toggle
 
@@ -88,6 +89,7 @@ User-visible implications:
 - A single manual Shift press affects one letter
 - Double-tap Shift enables caps lock
 - Tapping Shift while auto-capitalization is active turns the automatic behavior off for the current context
+- With the optional forward-delete setting enabled, one-shot manual Shift changes Delete from `⌫` to `⌦`
 
 ### Sequenced Key Handling
 
@@ -268,6 +270,7 @@ Shared settings currently stored:
 - `symbolLockEnabled`
 - `openClipboardAfterCopyEnabled`
 - `cursorSwipeEnabled`
+- `forwardDeleteWithShiftEnabled`
 
 Default values:
 
@@ -277,6 +280,7 @@ Default values:
 - Symbol lock off
 - Open clipboard after copy off
 - Swipe cursor on
+- Forward delete with Shift off
 
 ## Privacy And Permissions
 
@@ -310,7 +314,7 @@ The app target is a setup and product-education surface, separate from the keybo
 Current tabs:
 
 - Home: setup steps for adding the keyboard and enabling Full Access when needed
-- Settings: shared toggles for clipboard mode, copy behavior, auto-capitalization, swipe cursor, and haptics
+- Settings: shared toggles for clipboard mode, copy behavior, auto-capitalization, forward delete, swipe cursor, and haptics
 - Features: marketing-oriented feature page focused on SweetKeyboard's differentiators
 - Info: privacy, Full Access explanation, iOS limits, and app version
 

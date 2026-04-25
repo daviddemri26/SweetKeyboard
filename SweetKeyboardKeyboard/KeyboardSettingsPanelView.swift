@@ -5,6 +5,7 @@ final class KeyboardSettingsPanelView: UIView {
     var onOpenClipboardAfterCopyChanged: ((Bool) -> Void)?
     var onAutoCapitalizationEnabledChanged: ((Bool) -> Void)?
     var onCursorSwipeEnabledChanged: ((Bool) -> Void)?
+    var onForwardDeleteWithShiftChanged: ((Bool) -> Void)?
     var onHapticsEnabledChanged: ((Bool) -> Void)?
     var onClose: (() -> Void)?
     var onPressDown: (() -> Void)?
@@ -51,6 +52,12 @@ final class KeyboardSettingsPanelView: UIView {
     private let autoCapitalizationSwitch = UISwitch()
     private let autoCapitalizationSeparator = UIView()
 
+    private let forwardDeleteWithShiftRow = UIStackView()
+    private let forwardDeleteWithShiftTitleLabel = UILabel()
+    private let forwardDeleteWithShiftMessageLabel = UILabel()
+    private let forwardDeleteWithShiftSwitch = UISwitch()
+    private let forwardDeleteWithShiftSeparator = UIView()
+
     private let cursorSwipeRow = UIStackView()
     private let cursorSwipeTitleLabel = UILabel()
     private let cursorSwipeSwitch = UISwitch()
@@ -59,6 +66,7 @@ final class KeyboardSettingsPanelView: UIView {
     private var openClipboardAfterCopySeparatorHeightConstraint: NSLayoutConstraint?
     private var hapticsSeparatorHeightConstraint: NSLayoutConstraint?
     private var autoCapitalizationSeparatorHeightConstraint: NSLayoutConstraint?
+    private var forwardDeleteWithShiftSeparatorHeightConstraint: NSLayoutConstraint?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -76,6 +84,7 @@ final class KeyboardSettingsPanelView: UIView {
         isOpenClipboardAfterCopyEnabled: Bool,
         isAutoCapitalizationEnabled: Bool,
         isCursorSwipeEnabled: Bool,
+        isForwardDeleteWithShiftEnabled: Bool,
         isHapticsEnabled: Bool,
         fullAccessStatusText: String?
     ) {
@@ -84,6 +93,7 @@ final class KeyboardSettingsPanelView: UIView {
         hapticsSwitch.isOn = isHapticsEnabled
         autoCapitalizationSwitch.isOn = isAutoCapitalizationEnabled
         cursorSwipeSwitch.isOn = isCursorSwipeEnabled
+        forwardDeleteWithShiftSwitch.isOn = isForwardDeleteWithShiftEnabled
 
         clipboardSwitch.isEnabled = true
         clipboardInfoRow.isHidden = fullAccessStatusText?.isEmpty ?? true
@@ -93,6 +103,8 @@ final class KeyboardSettingsPanelView: UIView {
         openClipboardAfterCopyTitleLabel.textColor = KeyboardTheme.keyLabelColor
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
+        forwardDeleteWithShiftTitleLabel.textColor = KeyboardTheme.keyLabelColor
+        forwardDeleteWithShiftMessageLabel.textColor = KeyboardTheme.secondaryLabelColor
         cursorSwipeTitleLabel.textColor = KeyboardTheme.keyLabelColor
     }
 
@@ -183,6 +195,15 @@ final class KeyboardSettingsPanelView: UIView {
             action: #selector(autoCapitalizationSwitchChanged)
         )
         configureRow(
+            forwardDeleteWithShiftRow,
+            titleLabel: forwardDeleteWithShiftTitleLabel,
+            title: "Forward delete with Shift",
+            messageLabel: forwardDeleteWithShiftMessageLabel,
+            message: "When Shift is manually enabled, Delete removes the character after the cursor.",
+            toggle: forwardDeleteWithShiftSwitch,
+            action: #selector(forwardDeleteWithShiftSwitchChanged)
+        )
+        configureRow(
             cursorSwipeRow,
             titleLabel: cursorSwipeTitleLabel,
             title: "Swipe cursor",
@@ -219,6 +240,8 @@ final class KeyboardSettingsPanelView: UIView {
         togglesCardStack.addArrangedSubview(hapticsSeparator)
         togglesCardStack.addArrangedSubview(autoCapitalizationRow)
         togglesCardStack.addArrangedSubview(autoCapitalizationSeparator)
+        togglesCardStack.addArrangedSubview(forwardDeleteWithShiftRow)
+        togglesCardStack.addArrangedSubview(forwardDeleteWithShiftSeparator)
         togglesCardStack.addArrangedSubview(cursorSwipeRow)
 
         togglesCard.addSubview(togglesCardStack)
@@ -232,6 +255,9 @@ final class KeyboardSettingsPanelView: UIView {
         autoCapitalizationSeparatorHeightConstraint = autoCapitalizationSeparator.heightAnchor.constraint(
             equalToConstant: separatorThickness
         )
+        forwardDeleteWithShiftSeparatorHeightConstraint = forwardDeleteWithShiftSeparator.heightAnchor.constraint(
+            equalToConstant: separatorThickness
+        )
 
         NSLayoutConstraint.activate([
             togglesCardStack.topAnchor.constraint(equalTo: togglesCard.topAnchor),
@@ -241,7 +267,8 @@ final class KeyboardSettingsPanelView: UIView {
             clipboardSeparatorHeightConstraint!,
             openClipboardAfterCopySeparatorHeightConstraint!,
             hapticsSeparatorHeightConstraint!,
-            autoCapitalizationSeparatorHeightConstraint!
+            autoCapitalizationSeparatorHeightConstraint!,
+            forwardDeleteWithShiftSeparatorHeightConstraint!
         ])
 
         scrollContentStack.addArrangedSubview(togglesCard)
@@ -265,12 +292,21 @@ final class KeyboardSettingsPanelView: UIView {
         _ row: UIStackView,
         titleLabel: UILabel,
         title: String,
+        messageLabel: UILabel? = nil,
+        message: String? = nil,
         toggle: UISwitch,
         action: Selector
     ) {
         titleLabel.font = .preferredFont(forTextStyle: .body)
         titleLabel.numberOfLines = 1
         titleLabel.text = title
+
+        if let messageLabel {
+            titleLabel.numberOfLines = 0
+            messageLabel.font = .preferredFont(forTextStyle: .footnote)
+            messageLabel.numberOfLines = 0
+            messageLabel.text = message
+        }
 
         toggle.addTarget(self, action: action, for: .valueChanged)
 
@@ -284,7 +320,17 @@ final class KeyboardSettingsPanelView: UIView {
             bottom: 0,
             trailing: Constants.rowHorizontalInset
         )
-        row.addArrangedSubview(titleLabel)
+
+        if let messageLabel {
+            let textStack = UIStackView(arrangedSubviews: [titleLabel, messageLabel])
+            textStack.axis = .vertical
+            textStack.alignment = .fill
+            textStack.spacing = 2
+            row.addArrangedSubview(textStack)
+        } else {
+            row.addArrangedSubview(titleLabel)
+        }
+
         row.addArrangedSubview(UIView())
         row.addArrangedSubview(toggle)
         row.heightAnchor.constraint(greaterThanOrEqualToConstant: Constants.rowMinHeight).isActive = true
@@ -305,12 +351,15 @@ final class KeyboardSettingsPanelView: UIView {
         openClipboardAfterCopySeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
         hapticsSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
         autoCapitalizationSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
+        forwardDeleteWithShiftSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
 
         clipboardTitleLabel.textColor = KeyboardTheme.keyLabelColor
         clipboardInfoLabel.textColor = KeyboardTheme.secondaryLabelColor
         openClipboardAfterCopyTitleLabel.textColor = KeyboardTheme.keyLabelColor
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
+        forwardDeleteWithShiftTitleLabel.textColor = KeyboardTheme.keyLabelColor
+        forwardDeleteWithShiftMessageLabel.textColor = KeyboardTheme.secondaryLabelColor
         cursorSwipeTitleLabel.textColor = KeyboardTheme.keyLabelColor
     }
 
@@ -335,6 +384,10 @@ final class KeyboardSettingsPanelView: UIView {
         onAutoCapitalizationEnabledChanged?(autoCapitalizationSwitch.isOn)
     }
 
+    @objc private func forwardDeleteWithShiftSwitchChanged() {
+        onForwardDeleteWithShiftChanged?(forwardDeleteWithShiftSwitch.isOn)
+    }
+
     @objc private func cursorSwipeSwitchChanged() {
         onCursorSwipeEnabledChanged?(cursorSwipeSwitch.isOn)
     }
@@ -356,5 +409,6 @@ final class KeyboardSettingsPanelView: UIView {
         openClipboardAfterCopySeparatorHeightConstraint?.constant = separatorThickness
         hapticsSeparatorHeightConstraint?.constant = separatorThickness
         autoCapitalizationSeparatorHeightConstraint?.constant = separatorThickness
+        forwardDeleteWithShiftSeparatorHeightConstraint?.constant = separatorThickness
     }
 }
