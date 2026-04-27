@@ -18,6 +18,11 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         case clipboard
     }
 
+    private enum DeleteDirection {
+        case backward
+        case forward
+    }
+
     private let layoutEngine = KeyboardLayoutEngine()
     private let clipboardStore = ClipboardStore()
     private let clipboardCopyService = ClipboardCopyService()
@@ -89,6 +94,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
     private var pressSequenceCoordinator = KeyboardPressSequenceCoordinator()
     private var sequencedKeyKindsByButtonID: [ObjectIdentifier: SequencedKeyKind] = [:]
     private var keyboardRebuildIsDeferred = false
+    private var activeDeleteDirection: DeleteDirection?
     private var pasteboardChangeObserver: NSObjectProtocol?
     private var clipboardImportPollTimer: Timer?
     private var clipboardImportPollsRemaining = 0
@@ -164,12 +170,12 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
 
     override func textDidChange(_ textInput: UITextInput?) {
         super.textDidChange(textInput)
-        refreshInputContext()
+        refreshInputContext(allowsImmediateRebuild: activeDeleteDirection == nil)
     }
 
     override func selectionDidChange(_ textInput: UITextInput?) {
         super.selectionDidChange(textInput)
-        refreshInputContext()
+        refreshInputContext(allowsImmediateRebuild: activeDeleteDirection == nil)
     }
 
     private func registerTraitObservers() {
@@ -1542,23 +1548,31 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         }
     }
 
-    private func backspaceTapped(triggerHaptic: Bool) {
+    @discardableResult
+    private func backspaceTapped(
+        direction: DeleteDirection,
+        triggerHaptic: Bool,
+        allowsImmediateRebuild: Bool
+    ) -> Bool {
+        guard direction == .backward || canPerformForwardDelete else {
+            return false
+        }
+
         if triggerHaptic {
             triggerKeyPressHaptic()
         }
 
-        let usesForwardDelete = isForwardDeleteActive
-        guard !usesForwardDelete || canPerformForwardDelete else {
-            return
-        }
-
         let didClearAccentState = clearAccentState(rebuild: false)
-        performDelete(isForwardDeleteActive: usesForwardDelete)
-        let didReturnToLetters = handleNonLetterPostAction(.backspace, allowsImmediateRebuild: true)
+        performDelete(direction: direction)
+        let didReturnToLetters = handleNonLetterPostAction(
+            .backspace,
+            allowsImmediateRebuild: allowsImmediateRebuild
+        )
         refreshInputContext(
             forceKeyboardRebuild: didClearAccentState || didReturnToLetters,
-            allowsImmediateRebuild: true
+            allowsImmediateRebuild: allowsImmediateRebuild
         )
+        return true
     }
 
     private var canPerformForwardDelete: Bool {
@@ -1569,37 +1583,65 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         return !(textDocumentProxy.documentContextAfterInput?.isEmpty ?? true)
     }
 
-    private func performDelete(isForwardDeleteActive: Bool) {
-        if !isForwardDeleteActive {
+    private func performDelete(direction: DeleteDirection) {
+        switch direction {
+        case .backward:
             textDocumentProxy.deleteBackward()
             return
-        }
+        case .forward:
+            if let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty {
+                textDocumentProxy.deleteBackward()
+                return
+            }
 
-        if let selectedText = textDocumentProxy.selectedText, !selectedText.isEmpty {
+            textDocumentProxy.adjustTextPosition(byCharacterOffset: 1)
             textDocumentProxy.deleteBackward()
-            return
         }
-
-        textDocumentProxy.adjustTextPosition(byCharacterOffset: 1)
-        textDocumentProxy.deleteBackward()
     }
 
     @objc private func backspaceTouchDown(_ sender: UIButton) {
         cancelSequencedInteractions()
+        let direction: DeleteDirection = isForwardDeleteActive ? .forward : .backward
+        activeDeleteDirection = direction
         backspaceRepeatController.begin(on: sender) { [weak self] in
-            self?.backspaceTapped(triggerHaptic: true)
+            guard let self else {
+                return
+            }
+
+            guard self.backspaceTapped(
+                direction: direction,
+                triggerHaptic: true,
+                allowsImmediateRebuild: false
+            ) else {
+                self.finishBackspacePress()
+                return
+            }
         }
-        backspaceTapped(triggerHaptic: true)
+
+        guard backspaceTapped(
+            direction: direction,
+            triggerHaptic: true,
+            allowsImmediateRebuild: false
+        ) else {
+            finishBackspacePress()
+            return
+        }
     }
 
     @objc private func backspaceKeyTapped(_ sender: UIButton) {
         _ = sender
-        backspaceRepeatController.stop()
+        finishBackspacePress()
     }
 
     @objc private func backspaceTouchEnded(_ sender: UIButton) {
         _ = sender
+        finishBackspacePress()
+    }
+
+    private func finishBackspacePress() {
         backspaceRepeatController.stop()
+        activeDeleteDirection = nil
+        performDeferredKeyboardRebuildIfNeeded()
     }
 
     @objc private func cursorMovementTouchDown(_ sender: UIButton) {
@@ -1768,6 +1810,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         characterHoldController.stop()
         cursorRepeatController.stop()
         backspaceRepeatController.stop()
+        activeDeleteDirection = nil
     }
 
     private var isShiftActive: Bool {
