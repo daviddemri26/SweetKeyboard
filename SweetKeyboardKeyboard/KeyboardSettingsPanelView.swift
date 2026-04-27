@@ -54,7 +54,6 @@ final class KeyboardSettingsPanelView: UIView {
 
     private let forwardDeleteWithShiftRow = UIStackView()
     private let forwardDeleteWithShiftTitleLabel = UILabel()
-    private let forwardDeleteWithShiftMessageLabel = UILabel()
     private let forwardDeleteWithShiftSwitch = UISwitch()
     private let forwardDeleteWithShiftSeparator = UIView()
 
@@ -104,7 +103,6 @@ final class KeyboardSettingsPanelView: UIView {
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
         forwardDeleteWithShiftTitleLabel.textColor = KeyboardTheme.keyLabelColor
-        forwardDeleteWithShiftMessageLabel.textColor = KeyboardTheme.secondaryLabelColor
         cursorSwipeTitleLabel.textColor = KeyboardTheme.keyLabelColor
     }
 
@@ -198,8 +196,6 @@ final class KeyboardSettingsPanelView: UIView {
             forwardDeleteWithShiftRow,
             titleLabel: forwardDeleteWithShiftTitleLabel,
             title: "Forward delete with Shift",
-            messageLabel: forwardDeleteWithShiftMessageLabel,
-            message: "When Shift is manually enabled, Delete removes the character after the cursor.",
             toggle: forwardDeleteWithShiftSwitch,
             action: #selector(forwardDeleteWithShiftSwitchChanged)
         )
@@ -292,21 +288,12 @@ final class KeyboardSettingsPanelView: UIView {
         _ row: UIStackView,
         titleLabel: UILabel,
         title: String,
-        messageLabel: UILabel? = nil,
-        message: String? = nil,
         toggle: UISwitch,
         action: Selector
     ) {
         titleLabel.font = .preferredFont(forTextStyle: .body)
         titleLabel.numberOfLines = 1
         titleLabel.text = title
-
-        if let messageLabel {
-            titleLabel.numberOfLines = 0
-            messageLabel.font = .preferredFont(forTextStyle: .footnote)
-            messageLabel.numberOfLines = 0
-            messageLabel.text = message
-        }
 
         toggle.addTarget(self, action: action, for: .valueChanged)
 
@@ -321,16 +308,7 @@ final class KeyboardSettingsPanelView: UIView {
             trailing: Constants.rowHorizontalInset
         )
 
-        if let messageLabel {
-            let textStack = UIStackView(arrangedSubviews: [titleLabel, messageLabel])
-            textStack.axis = .vertical
-            textStack.alignment = .fill
-            textStack.spacing = 2
-            row.addArrangedSubview(textStack)
-        } else {
-            row.addArrangedSubview(titleLabel)
-        }
-
+        row.addArrangedSubview(titleLabel)
         row.addArrangedSubview(UIView())
         row.addArrangedSubview(toggle)
         row.heightAnchor.constraint(greaterThanOrEqualToConstant: Constants.rowMinHeight).isActive = true
@@ -359,7 +337,6 @@ final class KeyboardSettingsPanelView: UIView {
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
         forwardDeleteWithShiftTitleLabel.textColor = KeyboardTheme.keyLabelColor
-        forwardDeleteWithShiftMessageLabel.textColor = KeyboardTheme.secondaryLabelColor
         cursorSwipeTitleLabel.textColor = KeyboardTheme.keyLabelColor
     }
 
