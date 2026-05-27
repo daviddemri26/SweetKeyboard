@@ -61,7 +61,13 @@ final class KeyboardInteractiveRowView: UIView {
     private var rowHeightConstraint: NSLayoutConstraint?
     private let keyHeight: CGFloat
 
-    init(topInset: CGFloat, bottomInset: CGFloat, keyHeight: CGFloat, visualRowSpacing: CGFloat) {
+    init(
+        topInset: CGFloat,
+        bottomInset: CGFloat,
+        keyHeight: CGFloat,
+        visualHorizontalInset: CGFloat,
+        visualRowSpacing: CGFloat
+    ) {
         self.keyHeight = keyHeight
         super.init(frame: .zero)
 
@@ -88,8 +94,8 @@ final class KeyboardInteractiveRowView: UIView {
         )
 
         NSLayoutConstraint.activate([
-            visualRow.leadingAnchor.constraint(equalTo: leadingAnchor),
-            visualRow.trailingAnchor.constraint(equalTo: trailingAnchor),
+            visualRow.leadingAnchor.constraint(equalTo: leadingAnchor, constant: visualHorizontalInset),
+            visualRow.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -visualHorizontalInset),
             topConstraint,
             bottomConstraint,
             rowHeightConstraint!

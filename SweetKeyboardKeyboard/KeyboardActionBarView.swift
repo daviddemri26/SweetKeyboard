@@ -79,8 +79,8 @@ final class KeyboardActionBarView: UIView {
         stack.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: leadingAnchor),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor),
+            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: KeyboardMetrics.visualHorizontalInset),
+            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -KeyboardMetrics.visualHorizontalInset),
             stack.topAnchor.constraint(equalTo: topAnchor),
             stack.bottomAnchor.constraint(equalTo: bottomAnchor),
             heightAnchor.constraint(equalToConstant: KeyboardMetrics.utilityRowHeight)

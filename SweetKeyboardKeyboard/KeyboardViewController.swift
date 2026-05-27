@@ -231,13 +231,25 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
             keyboardRows.trailingAnchor.constraint(equalTo: keyboardContainer.trailingAnchor),
             keyboardRows.topAnchor.constraint(equalTo: keyboardContainer.topAnchor, constant: KeyboardMetrics.keyboardTopPadding),
 
-            clipboardPanel.leadingAnchor.constraint(equalTo: keyboardContainer.leadingAnchor),
-            clipboardPanel.trailingAnchor.constraint(equalTo: keyboardContainer.trailingAnchor),
+            clipboardPanel.leadingAnchor.constraint(
+                equalTo: keyboardContainer.leadingAnchor,
+                constant: KeyboardMetrics.visualHorizontalInset
+            ),
+            clipboardPanel.trailingAnchor.constraint(
+                equalTo: keyboardContainer.trailingAnchor,
+                constant: -KeyboardMetrics.visualHorizontalInset
+            ),
             clipboardPanel.topAnchor.constraint(equalTo: keyboardContainer.topAnchor),
             clipboardPanel.bottomAnchor.constraint(equalTo: keyboardContainer.bottomAnchor),
 
-            settingsPanel.leadingAnchor.constraint(equalTo: keyboardContainer.leadingAnchor),
-            settingsPanel.trailingAnchor.constraint(equalTo: keyboardContainer.trailingAnchor),
+            settingsPanel.leadingAnchor.constraint(
+                equalTo: keyboardContainer.leadingAnchor,
+                constant: KeyboardMetrics.visualHorizontalInset
+            ),
+            settingsPanel.trailingAnchor.constraint(
+                equalTo: keyboardContainer.trailingAnchor,
+                constant: -KeyboardMetrics.visualHorizontalInset
+            ),
             settingsPanel.topAnchor.constraint(equalTo: keyboardContainer.topAnchor),
             settingsPanel.bottomAnchor.constraint(equalTo: keyboardContainer.bottomAnchor),
             keyboardRowsBottomConstraint!
@@ -250,8 +262,8 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         rootStack.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            rootStack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: KeyboardMetrics.outerHorizontalPadding),
-            rootStack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -KeyboardMetrics.outerHorizontalPadding),
+            rootStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            rootStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             rootStack.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -KeyboardMetrics.outerBottomPadding),
             rootStack.topAnchor.constraint(equalTo: view.topAnchor, constant: KeyboardMetrics.outerTopPadding),
             keyboardContainerHeightConstraint!
@@ -501,6 +513,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
             topInset: rowInsets.top,
             bottomInset: rowInsets.bottom,
             keyHeight: KeyboardMetrics.keyboardRowHeight,
+            visualHorizontalInset: KeyboardMetrics.visualHorizontalInset,
             visualRowSpacing: KeyboardMetrics.keyboardVisualRowSpacing
         )
 

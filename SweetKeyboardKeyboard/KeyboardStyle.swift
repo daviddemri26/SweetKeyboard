@@ -2,7 +2,7 @@ import Symbols
 import UIKit
 
 enum KeyboardMetrics {
-    static let outerHorizontalPadding: CGFloat = 6
+    static let visualHorizontalInset: CGFloat = 6
     static let outerTopPadding: CGFloat = 4
     static let outerBottomPadding: CGFloat = 0
 

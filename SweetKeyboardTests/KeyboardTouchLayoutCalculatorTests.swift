@@ -74,4 +74,18 @@ final class KeyboardTouchLayoutCalculatorTests: XCTestCase {
 
         XCTAssertEqual(touchFrames, [CGRect(x: 0, y: 0, width: 80, height: 48)])
     }
+
+    func testTouchFramesCoverFullRowWhenVisualKeysKeepOuterInsets() {
+        let touchFrames = KeyboardTouchLayoutCalculator.touchFrames(
+            for: [
+                CGRect(x: 6, y: 3, width: 20, height: 42),
+                CGRect(x: 32, y: 3, width: 20, height: 42),
+                CGRect(x: 58, y: 3, width: 16, height: 42)
+            ],
+            in: CGRect(x: 0, y: 0, width: 80, height: 48)
+        )
+
+        XCTAssertEqual(touchFrames.first?.minX, 0)
+        XCTAssertEqual(touchFrames.last?.maxX, 80)
+    }
 }
