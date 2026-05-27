@@ -2,7 +2,7 @@
 
 SweetKeyboard is an iPhone custom keyboard focused on fast daily typing, practical utility actions, and a local-first privacy model.
 
-It combines a familiar English QWERTY layout with an always-on number row, a one-page symbols layer, cursor movement controls, speed-aware cursor swiping, optional clipboard history with pinned favorites, and several quality-of-life flows that reduce layout switching while typing.
+It combines a familiar English QWERTY layout with an always-on number row, a one-page symbols layer, cursor movement controls, speed-aware cursor swiping, optional Clipboard History with pinned favorites, and several quality-of-life flows that reduce layout switching while typing.
 
 For a full functional breakdown, see [docs/FEATURES.md](docs/FEATURES.md).
 
@@ -15,7 +15,7 @@ SweetKeyboard is built for people who want a keyboard that feels familiar immedi
 - numbers are always visible
 - native-style symbols are available together on one page
 - cursor movement is available through arrow keys and keyboard-wide swipe gestures
-- copied snippets can be reused from local history and pinned favorites
+- copied snippets can be reused from Clipboard History and pinned favorites
 - the keyboard reacts to the current field
 - clipboard tools are available when the user explicitly opts in
 - everything stays local on device
@@ -33,7 +33,7 @@ SweetKeyboard helps users type faster without forcing them to learn a new layout
 - Emoji access from the symbols layer without adding a separate primary keyboard
 - Contextual `@` shortcut in email fields
 - Contextual action key that adapts to host app return-key traits
-- Optional clipboard toolbar with copy, paste, local history, pinned favorites, and manual system clipboard import
+- Optional clipboard toolbar with Copy, configurable iOS Clipboard actions, Clipboard History, and pinned favorites
 - Local-only privacy model with no analytics, no sync, and no remote text processing
 
 ### What Feels Different
@@ -48,7 +48,7 @@ SweetKeyboard is intentionally optimized around practical typing flows rather th
 - It keeps emoji behind the symbols layer so the main keyboard stays compact and familiar.
 - It exposes accent and punctuation variants through long press on supported keys.
 - It follows host auto-capitalization intent in compatible fields instead of forcing a static Shift behavior.
-- It lets users keep reusable snippets near the top of clipboard history by pinning them.
+- It lets users keep reusable snippets near the top of Clipboard History by pinning them.
 
 ### Main User-Facing Features
 
@@ -67,12 +67,12 @@ SweetKeyboard is intentionally optimized around practical typing flows rather th
 - Long-press accent variants for `a`, `c`, `e`, `i`, `n`, `o`, `u`, and `y`
 - Long-press period variants: `…`, `:`, `•`, `@`, `!`, `?`, `,`
 - Contextual action key for `return`, `search`, `go`, `next`, `send`, `done`, and related host return-key types
-- Optional clipboard toolbar with `Copy`, `Import`, `Clipboard`, and `Settings`
-- Local clipboard history grid inside the keyboard
+- Optional clipboard toolbar with `Copy`, iOS Clipboard actions, `Clipboard`, and `Settings`
+- Local Clipboard History grid inside the keyboard
 - Pinned clipboard favorites shown before unpinned history
-- Optional auto-open clipboard history after `Copy`
-- Manual plain-text import from the iOS clipboard when the toolbar shows available text
-- In-keyboard settings panel for clipboard mode, copy behavior, auto-capitalization, forward delete, swipe cursor, and key haptics
+- Optional auto-open Clipboard History after `Copy`
+- Configurable plain-text actions for iOS Clipboard text copied outside the keyboard
+- In-keyboard settings panel for clipboard mode, iOS Clipboard action, copy behavior, auto-capitalization, forward delete, swipe cursor, and key haptics
 - Optional key haptics
 - Containing app interface with adaptive light and dark appearance
 
@@ -86,8 +86,8 @@ SweetKeyboard is intentionally local-first.
 - No keystroke upload
 - No remote inference or text processing
 
-Clipboard history is stored locally in the shared App Group container used by the app and keyboard extension.
-System clipboard import only reads plain text after the user taps the import button.
+Clipboard History is stored locally in the shared App Group container used by the app and keyboard extension.
+iOS Clipboard text is read only after the user taps an iOS Clipboard action.
 Pinned clipboard favorites use the same local storage and never leave the device.
 
 ### Full Access Positioning
@@ -96,7 +96,7 @@ Basic typing works without Full Access.
 
 Full Access is requested only for optional features that require system capability beyond basic text entry:
 
-- `UIPasteboard` integration for copy verification and manual plain-text import
+- `UIPasteboard` integration for copy verification and user-triggered iOS Clipboard actions
 - shared settings and clipboard state between the containing app and the keyboard extension
 
 If Full Access is disabled, SweetKeyboard automatically falls back to typing-only mode.
@@ -114,7 +114,7 @@ The project contains two Apple targets plus shared logic:
 ### Current Technical Feature Set
 
 - Shared settings persisted through `UserDefaults(suiteName:)`
-- Shared clipboard history persisted in the App Group
+- Shared Clipboard History persisted in the App Group
 - Shared capability status flag to confirm Full Access availability
 - Keyboard layout generation through `KeyboardLayoutEngine`
 - Contextual action-key resolution through host `UITextInputTraits`
@@ -194,9 +194,9 @@ Behavior highlights:
 - Clipboard mode is user-controlled through shared settings
 - The top action bar appears only when Full Access is available and clipboard mode is enabled
 - A `Hide Keyboard` toolbar button dismisses the keyboard with `dismissKeyboard()`; this hides the keyboard UI only and does not force the host text field to lose focus
-- `Copy` uses `selectedText` when the host exposes it, or selected text inside a clipboard detail view; it writes plain text only and verifies the pasteboard round trip byte-for-byte before saving history
-- A toolbar import button appears when iOS reports that plain text is available; tapping it saves the current `UIPasteboard.general` text into local history
-- Clipboard history is local only
+- `Copy` uses `selectedText` when the host exposes it, or selected text inside a clipboard detail view; it writes plain text only and verifies the pasteboard round trip byte-for-byte before saving to Clipboard History
+- iOS Clipboard action buttons appear when iOS reports that plain text is available; the shared setting chooses `Paste & Save`, `Import Only`, `Paste Only`, or `Import + Paste`
+- Clipboard History is local only
 - Pinned favorites are shown before unpinned history
 - Pinned favorites are ordered by newest pin first
 - Unpinned history is stored newest first
@@ -228,10 +228,11 @@ Settings are available in two places:
 
 The current settings are:
 
-- Auto-capitalization
 - Clipboard toolbar
-- Forward delete with Shift
+- iOS Clipboard Action
 - Open clipboard after copy
+- Auto-capitalization
+- Forward delete with Shift
 - Swipe cursor
 - Key haptics
 
@@ -246,7 +247,7 @@ The Features tab is the marketing-oriented surface for the keyboard's differenti
 - one-page symbols layout
 - cursor arrow keys
 - keyboard-wide cursor swipe movement
-- clipboard history and pinned favorites
+- Clipboard History and pinned favorites
 
 The SwiftUI app chrome follows the phone's light or dark appearance automatically.
 
@@ -254,7 +255,7 @@ The SwiftUI app chrome follows the phone's light or dark appearance automaticall
 
 - Basic typing does not require Full Access
 - Clipboard tools require Full Access
-- Clipboard import requires a user tap on the toolbar import button
+- iOS Clipboard text requires a user tap on an iOS Clipboard action
 - Shared settings between app and extension rely on the App Group
 - The current codebase is local-only and performs no network requests
 

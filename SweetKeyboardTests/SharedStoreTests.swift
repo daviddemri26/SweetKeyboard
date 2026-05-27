@@ -170,6 +170,7 @@ final class SharedStoreTests: XCTestCase {
         XCTAssertTrue(store.load().autoCapitalizationEnabled)
         XCTAssertFalse(store.load().symbolLockEnabled)
         XCTAssertFalse(store.load().openClipboardAfterCopyEnabled)
+        XCTAssertEqual(store.load().systemClipboardActionMode, .pasteAndSave)
         XCTAssertTrue(store.load().cursorSwipeEnabled)
         XCTAssertFalse(store.load().forwardDeleteWithShiftEnabled)
     }
@@ -217,6 +218,15 @@ final class SharedStoreTests: XCTestCase {
         store.setOpenClipboardAfterCopyEnabled(true)
 
         XCTAssertTrue(store.load().openClipboardAfterCopyEnabled)
+    }
+
+    func testSharedKeyboardSettingsStorePersistsSystemClipboardActionMode() {
+        let defaults = makeDefaults()
+        let store = SharedKeyboardSettingsStore(defaults: defaults)
+
+        store.setSystemClipboardActionMode(.importAndPaste)
+
+        XCTAssertEqual(store.load().systemClipboardActionMode, .importAndPaste)
     }
 
     func testSharedKeyboardSettingsStorePersistsCursorSwipeMode() {
@@ -301,6 +311,18 @@ final class SharedStoreTests: XCTestCase {
                 cursorSwipeEnabled: true
             )
         )
+    }
+
+    func testSharedKeyboardSettingsStoreLoadsPayloadWithSystemClipboardActionMode() throws {
+        let defaults = makeDefaults()
+        let payload = """
+        {"clipboardModeEnabled":true,"systemClipboardActionMode":"pasteOnly"}
+        """.data(using: .utf8)!
+        defaults.set(payload, forKey: "keyboard.settings.v1")
+
+        let store = SharedKeyboardSettingsStore(defaults: defaults)
+
+        XCTAssertEqual(store.load().systemClipboardActionMode, .pasteOnly)
     }
 
     func testKeyboardCapabilityStatusStoreDefaultsToNoConfirmation() {

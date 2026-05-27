@@ -286,6 +286,10 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
                 copySelectedText()
             case .importClipboard:
                 importSystemClipboardFromUserAction()
+            case .pasteClipboard:
+                pasteSystemClipboardFromUserAction(savesToHistory: false)
+            case .pasteAndSaveClipboard:
+                pasteSystemClipboardFromUserAction(savesToHistory: true)
             case .clipboard:
                 toggleMode(.clipboard)
             case .settings:
@@ -347,6 +351,10 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
             self?.handleOpenClipboardAfterCopyChanged(isEnabled)
         }
 
+        settingsPanel.onSystemClipboardActionModeChanged = { [weak self] mode in
+            self?.handleSystemClipboardActionModeChanged(mode)
+        }
+
         settingsPanel.onAutoCapitalizationEnabledChanged = { [weak self] isEnabled in
             self?.handleAutoCapitalizationChanged(isEnabled)
         }
@@ -401,6 +409,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         settingsPanel.render(
             isClipboardModeEnabled: desiredClipboardModeEnabled,
             isOpenClipboardAfterCopyEnabled: sharedSettings.openClipboardAfterCopyEnabled,
+            systemClipboardActionMode: sharedSettings.systemClipboardActionMode,
             isAutoCapitalizationEnabled: sharedSettings.autoCapitalizationEnabled,
             isCursorSwipeEnabled: sharedSettings.cursorSwipeEnabled,
             isForwardDeleteWithShiftEnabled: sharedSettings.forwardDeleteWithShiftEnabled,
@@ -1228,7 +1237,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         clipboardImportPollTimer?.invalidate()
         clipboardImportPollTimer = nil
         clipboardImportPollsRemaining = 0
-        actionBar.setClipboardImportAvailable(false)
+        actionBar.setSystemClipboardActionsAvailable(false, mode: sharedSettings.systemClipboardActionMode)
     }
 
     private func updateClipboardImportAvailability() {
@@ -1240,7 +1249,10 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
             )
         )
 
-        actionBar.setClipboardImportAvailable(displayMode == .clipboard && isAvailable)
+        actionBar.setSystemClipboardActionsAvailable(
+            displayMode == .clipboard && isAvailable,
+            mode: sharedSettings.systemClipboardActionMode
+        )
     }
 
     private func importSystemClipboardFromUserAction() {
@@ -1265,6 +1277,30 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         case .alreadyProcessed, .noText, .emptyText:
             break
         }
+    }
+
+    private func pasteSystemClipboardFromUserAction(savesToHistory: Bool) {
+        let result = clipboardSystemImportService.readAvailableText(
+            from: UIPasteboard.general,
+            context: ClipboardSystemImportContext(
+                isFullAccessAvailable: hasFullAccess,
+                isClipboardModeEnabled: sharedSettings.clipboardModeEnabled
+            )
+        )
+
+        updateClipboardImportAvailability()
+
+        guard case .available(let text) = result else {
+            return
+        }
+
+        if savesToHistory {
+            clipboardStore.add(text: text, source: .systemPasteboardImport)
+        }
+
+        textDocumentProxy.insertText(text)
+        mode = .keyboard
+        refreshInputContext(forceKeyboardRebuild: keyboardLayoutMode == .letters)
     }
 
     private func showClipboardPanel() {
@@ -1337,6 +1373,14 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         cancelSequencedInteractions()
         sharedSettings.openClipboardAfterCopyEnabled = isEnabled
         sharedSettingsStore.setOpenClipboardAfterCopyEnabled(isEnabled)
+
+    }
+
+    private func handleSystemClipboardActionModeChanged(_ mode: SystemClipboardActionMode) {
+        cancelSequencedInteractions()
+        sharedSettings.systemClipboardActionMode = mode
+        sharedSettingsStore.setSystemClipboardActionMode(mode)
+        updateClipboardImportAvailability()
 
     }
 

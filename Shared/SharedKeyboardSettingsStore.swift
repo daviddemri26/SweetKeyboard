@@ -1,11 +1,32 @@
 import Foundation
 
+enum SystemClipboardActionMode: String, Codable, CaseIterable, Equatable, Hashable {
+    case pasteAndSave
+    case importOnly
+    case pasteOnly
+    case importAndPaste
+
+    var title: String {
+        switch self {
+        case .pasteAndSave:
+            return "Paste & Save"
+        case .importOnly:
+            return "Import Only"
+        case .pasteOnly:
+            return "Paste Only"
+        case .importAndPaste:
+            return "Import + Paste"
+        }
+    }
+}
+
 struct SharedKeyboardSettings: Codable, Equatable {
     var clipboardModeEnabled: Bool = false
     var keyHapticsEnabled: Bool = false
     var autoCapitalizationEnabled: Bool = true
     var symbolLockEnabled: Bool = false
     var openClipboardAfterCopyEnabled: Bool = false
+    var systemClipboardActionMode: SystemClipboardActionMode = .pasteAndSave
     var cursorSwipeEnabled: Bool = true
     var forwardDeleteWithShiftEnabled: Bool = false
 
@@ -15,6 +36,7 @@ struct SharedKeyboardSettings: Codable, Equatable {
         case autoCapitalizationEnabled
         case symbolLockEnabled
         case openClipboardAfterCopyEnabled
+        case systemClipboardActionMode
         case cursorSwipeEnabled
         case forwardDeleteWithShiftEnabled
     }
@@ -25,6 +47,7 @@ struct SharedKeyboardSettings: Codable, Equatable {
         autoCapitalizationEnabled: Bool = true,
         symbolLockEnabled: Bool = false,
         openClipboardAfterCopyEnabled: Bool = false,
+        systemClipboardActionMode: SystemClipboardActionMode = .pasteAndSave,
         cursorSwipeEnabled: Bool = true,
         forwardDeleteWithShiftEnabled: Bool = false
     ) {
@@ -33,6 +56,7 @@ struct SharedKeyboardSettings: Codable, Equatable {
         self.autoCapitalizationEnabled = autoCapitalizationEnabled
         self.symbolLockEnabled = symbolLockEnabled
         self.openClipboardAfterCopyEnabled = openClipboardAfterCopyEnabled
+        self.systemClipboardActionMode = systemClipboardActionMode
         self.cursorSwipeEnabled = cursorSwipeEnabled
         self.forwardDeleteWithShiftEnabled = forwardDeleteWithShiftEnabled
     }
@@ -47,6 +71,10 @@ struct SharedKeyboardSettings: Codable, Equatable {
             Bool.self,
             forKey: .openClipboardAfterCopyEnabled
         ) ?? false
+        systemClipboardActionMode = (try? container.decode(
+            SystemClipboardActionMode.self,
+            forKey: .systemClipboardActionMode
+        )) ?? .pasteAndSave
         cursorSwipeEnabled = try container.decodeIfPresent(Bool.self, forKey: .cursorSwipeEnabled) ?? true
         forwardDeleteWithShiftEnabled = try container.decodeIfPresent(
             Bool.self,
@@ -105,6 +133,12 @@ final class SharedKeyboardSettingsStore {
     func setOpenClipboardAfterCopyEnabled(_ isEnabled: Bool) {
         var settings = load()
         settings.openClipboardAfterCopyEnabled = isEnabled
+        save(settings)
+    }
+
+    func setSystemClipboardActionMode(_ mode: SystemClipboardActionMode) {
+        var settings = load()
+        settings.systemClipboardActionMode = mode
         save(settings)
     }
 

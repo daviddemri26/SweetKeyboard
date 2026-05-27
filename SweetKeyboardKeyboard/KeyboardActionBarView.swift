@@ -4,6 +4,8 @@ final class KeyboardActionBarView: UIView {
     enum Action {
         case copy
         case importClipboard
+        case pasteClipboard
+        case pasteAndSaveClipboard
         case clipboard
         case settings
         case hideKeyboard
@@ -15,6 +17,10 @@ final class KeyboardActionBarView: UIView {
     private let settingsButton = KeyboardActionBarView.makeIconButton(symbolName: "gearshape.fill")
     private let hideKeyboardButton = KeyboardActionBarView.makeIconButton(symbolName: "chevron.down.2")
     private let importClipboardButton = KeyboardActionBarView.makeIconButton(symbolName: "square.and.arrow.down.on.square")
+    private let pasteClipboardButton = KeyboardActionBarView.makeIconButton(symbolNames: ["doc.on.clipboard", "clipboard"])
+    private let pasteAndSaveClipboardButton = KeyboardActionBarView.makeIconButton(
+        symbolNames: ["doc.on.clipboard.fill", "doc.on.clipboard", "square.and.arrow.down.on.square"]
+    )
     private let copyButton = KeyboardActionBarView.makeIconButton(symbolName: "square.on.square")
     private let clipboardButton = KeyboardActionBarView.makeIconButton(symbolName: "list.clipboard.fill")
 
@@ -42,8 +48,10 @@ final class KeyboardActionBarView: UIView {
         applyTheme()
     }
 
-    func setClipboardImportAvailable(_ available: Bool) {
-        importClipboardButton.isHidden = !available
+    func setSystemClipboardActionsAvailable(_ available: Bool, mode: SystemClipboardActionMode) {
+        importClipboardButton.isHidden = !(available && (mode == .importOnly || mode == .importAndPaste))
+        pasteClipboardButton.isHidden = !(available && (mode == .pasteOnly || mode == .importAndPaste))
+        pasteAndSaveClipboardButton.isHidden = !(available && mode == .pasteAndSave)
     }
 
     private func observeTraitChanges() {
@@ -56,7 +64,13 @@ final class KeyboardActionBarView: UIView {
     private func setup() {
         backgroundColor = .clear
 
-        let rightStack = UIStackView(arrangedSubviews: [importClipboardButton, copyButton, clipboardButton])
+        let rightStack = UIStackView(arrangedSubviews: [
+            pasteAndSaveClipboardButton,
+            importClipboardButton,
+            pasteClipboardButton,
+            copyButton,
+            clipboardButton
+        ])
         rightStack.axis = .horizontal
         rightStack.alignment = .fill
         rightStack.spacing = KeyboardMetrics.utilityRowButtonSpacing
@@ -88,20 +102,36 @@ final class KeyboardActionBarView: UIView {
 
         copyButton.addTarget(self, action: #selector(copyTapped), for: .touchUpInside)
         importClipboardButton.addTarget(self, action: #selector(importClipboardTapped), for: .touchUpInside)
+        pasteClipboardButton.addTarget(self, action: #selector(pasteClipboardTapped), for: .touchUpInside)
+        pasteAndSaveClipboardButton.addTarget(self, action: #selector(pasteAndSaveClipboardTapped), for: .touchUpInside)
         clipboardButton.addTarget(self, action: #selector(clipboardTapped), for: .touchUpInside)
         settingsButton.addTarget(self, action: #selector(settingsTapped), for: .touchUpInside)
         hideKeyboardButton.addTarget(self, action: #selector(hideKeyboardTapped), for: .touchUpInside)
-        [copyButton, importClipboardButton, clipboardButton, settingsButton, hideKeyboardButton].forEach {
+        [
+            copyButton,
+            importClipboardButton,
+            pasteClipboardButton,
+            pasteAndSaveClipboardButton,
+            clipboardButton,
+            settingsButton,
+            hideKeyboardButton
+        ].forEach {
             $0.addTarget(self, action: #selector(buttonTouchDown), for: .touchDown)
         }
 
         copyButton.accessibilityLabel = "Copy"
-        copyButton.accessibilityHint = "Copies selected text into SweetKeyboard history."
+        copyButton.accessibilityHint = "Copies selected text into Clipboard History."
         importClipboardButton.isHidden = true
-        importClipboardButton.accessibilityLabel = "Import clipboard"
-        importClipboardButton.accessibilityHint = "Imports the current iOS clipboard text into SweetKeyboard history."
+        pasteClipboardButton.isHidden = true
+        pasteAndSaveClipboardButton.isHidden = true
+        importClipboardButton.accessibilityLabel = "Import from iOS Clipboard"
+        importClipboardButton.accessibilityHint = "Saves the current iOS Clipboard text into Clipboard History."
+        pasteClipboardButton.accessibilityLabel = "Paste from iOS Clipboard"
+        pasteClipboardButton.accessibilityHint = "Pastes the current iOS Clipboard text into the active field."
+        pasteAndSaveClipboardButton.accessibilityLabel = "Paste and Save from iOS Clipboard"
+        pasteAndSaveClipboardButton.accessibilityHint = "Pastes the current iOS Clipboard text and saves it into Clipboard History."
         clipboardButton.accessibilityLabel = "Clipboard"
-        clipboardButton.accessibilityHint = "Shows SweetKeyboard clipboard history."
+        clipboardButton.accessibilityHint = "Shows Clipboard History."
         settingsButton.accessibilityLabel = "Settings"
         settingsButton.accessibilityHint = "Shows SweetKeyboard settings."
         hideKeyboardButton.accessibilityLabel = "Hide keyboard"
@@ -129,6 +159,16 @@ final class KeyboardActionBarView: UIView {
         }
         KeyboardTheme.applyChrome(
             to: importClipboardButton,
+            role: .utility,
+            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
+        )
+        KeyboardTheme.applyChrome(
+            to: pasteClipboardButton,
+            role: .utility,
+            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
+        )
+        KeyboardTheme.applyChrome(
+            to: pasteAndSaveClipboardButton,
             role: .utility,
             cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
         )
@@ -182,6 +222,14 @@ final class KeyboardActionBarView: UIView {
 
     @objc private func importClipboardTapped() {
         onAction?(.importClipboard)
+    }
+
+    @objc private func pasteClipboardTapped() {
+        onAction?(.pasteClipboard)
+    }
+
+    @objc private func pasteAndSaveClipboardTapped() {
+        onAction?(.pasteAndSaveClipboard)
     }
 
     @objc private func clipboardTapped() {

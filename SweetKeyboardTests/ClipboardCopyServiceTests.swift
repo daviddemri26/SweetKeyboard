@@ -68,6 +68,17 @@ final class ClipboardCopyServiceTests: XCTestCase {
         XCTAssertEqual(store.allItems().first?.source, .systemPasteboardImport)
     }
 
+    func testSystemClipboardReadReturnsTextWithoutSavingAndMarksProcessed() {
+        let defaults = makeDefaults()
+        let pasteboard = MockReadablePasteboard(changeCount: 12, hasStrings: true, string: "copied text")
+        let service = ClipboardSystemImportService(defaults: defaults)
+
+        XCTAssertEqual(service.readAvailableText(from: pasteboard, context: enabledContext), .available("copied text"))
+        XCTAssertEqual(service.readAvailableText(from: pasteboard, context: enabledContext), .alreadyProcessed)
+        XCTAssertFalse(service.hasAvailableText(in: pasteboard, context: enabledContext))
+        XCTAssertEqual(pasteboard.stringReadCount, 1)
+    }
+
     func testSystemImportMarkProcessedHidesAvailabilityWithoutReadingText() {
         let defaults = makeDefaults()
         let pasteboard = MockReadablePasteboard(changeCount: 15, hasStrings: true, string: "copied text")
@@ -142,6 +153,21 @@ final class ClipboardCopyServiceTests: XCTestCase {
 
         XCTAssertEqual(store.allItems().first?.text, text)
         XCTAssertEqual(store.allItems().first.map { Array($0.text.utf8) }, Array(text.utf8))
+    }
+
+    func testSystemClipboardReadPreservesUTF8BytesExactly() {
+        let defaults = makeDefaults()
+        let text = "  \nTabs\tCRLF\r\nemoji 👩🏽‍💻 zero-width\u{200B} accent e\u{0301}  "
+        let pasteboard = MockReadablePasteboard(changeCount: 55, hasStrings: true, string: text)
+        let service = ClipboardSystemImportService(defaults: defaults)
+
+        guard case .available(let readText) = service.readAvailableText(from: pasteboard, context: enabledContext) else {
+            XCTFail("Expected available text")
+            return
+        }
+
+        XCTAssertEqual(readText, text)
+        XCTAssertEqual(Array(readText.utf8), Array(text.utf8))
     }
 
     func testSystemImportDeduplicatesConsecutiveClipboardValues() {

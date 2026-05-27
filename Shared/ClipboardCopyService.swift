@@ -40,6 +40,14 @@ enum ClipboardSystemImportResult: Equatable {
     case duplicate
 }
 
+enum ClipboardSystemTextReadResult: Equatable {
+    case unavailable
+    case alreadyProcessed
+    case noText
+    case emptyText
+    case available(String)
+}
+
 final class ClipboardSystemImportService {
     private enum Constants {
         static let lastProcessedChangeCountKey = "clipboard.systemImport.lastProcessedChangeCount.v1"
@@ -74,6 +82,27 @@ final class ClipboardSystemImportService {
         into store: ClipboardStore,
         context: ClipboardSystemImportContext
     ) -> ClipboardSystemImportResult {
+        let result = readAvailableText(from: pasteboard, context: context)
+
+        switch result {
+        case .available(let text):
+            let wasStored = store.add(text: text, source: .systemPasteboardImport)
+            return wasStored ? .stored : .duplicate
+        case .unavailable:
+            return .unavailable
+        case .alreadyProcessed:
+            return .alreadyProcessed
+        case .noText:
+            return .noText
+        case .emptyText:
+            return .emptyText
+        }
+    }
+
+    func readAvailableText(
+        from pasteboard: ClipboardReadablePasteboard,
+        context: ClipboardSystemImportContext
+    ) -> ClipboardSystemTextReadResult {
         guard context.isFullAccessAvailable,
               context.isClipboardModeEnabled else {
             return .unavailable
@@ -99,9 +128,8 @@ final class ClipboardSystemImportService {
             return .emptyText
         }
 
-        let wasStored = store.add(text: text, source: .systemPasteboardImport)
         markProcessed(changeCount)
-        return wasStored ? .stored : .duplicate
+        return .available(text)
     }
 
     func markProcessed(_ pasteboard: ClipboardReadablePasteboard) {
