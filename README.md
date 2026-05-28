@@ -195,7 +195,7 @@ Behavior highlights:
 - The top action bar appears only when Full Access is available and clipboard mode is enabled
 - A `Hide Keyboard` toolbar button dismisses the keyboard with `dismissKeyboard()`; this hides the keyboard UI only and does not force the host text field to lose focus
 - `Copy` uses `selectedText` when the host exposes it, or selected text inside a clipboard detail view; it writes plain text only and verifies the pasteboard round trip byte-for-byte before saving to Clipboard History
-- iOS Clipboard action buttons appear when iOS reports that plain text is available; the shared setting chooses `Paste & Save`, `Import Only`, `Paste Only`, or `Import + Paste`
+- iOS Clipboard action buttons appear when iOS reports that plain text is available; shared settings choose any combination of `Import and Paste`, `Import`, and `Paste`
 - Clipboard History is local only
 - Pinned favorites are shown before unpinned history
 - Pinned favorites are ordered by newest pin first
@@ -229,7 +229,7 @@ Settings are available in two places:
 The current settings are:
 
 - Clipboard toolbar
-- iOS Clipboard Action
+- iOS Clipboard Buttons
 - Open clipboard after copy
 - Auto-capitalization
 - Forward delete with Shift

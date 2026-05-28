@@ -1,21 +1,40 @@
 import Foundation
 
-enum SystemClipboardActionMode: String, Codable, CaseIterable, Equatable, Hashable {
+enum SystemClipboardAction: String, Codable, CaseIterable, Equatable, Hashable {
     case pasteAndSave
     case importOnly
     case pasteOnly
-    case importAndPaste
 
     var title: String {
         switch self {
         case .pasteAndSave:
-            return "Paste & Save"
+            return "Import and Paste"
         case .importOnly:
-            return "Import Only"
+            return "Import"
         case .pasteOnly:
-            return "Paste Only"
-        case .importAndPaste:
-            return "Import + Paste"
+            return "Paste"
+        }
+    }
+
+    var detail: String {
+        switch self {
+        case .pasteAndSave:
+            return "Import iOS Clipboard text into Clipboard History and paste it into the active field."
+        case .importOnly:
+            return "Import iOS Clipboard text into Clipboard History."
+        case .pasteOnly:
+            return "Paste iOS Clipboard text into the active field."
+        }
+    }
+
+    var symbolNames: [String] {
+        switch self {
+        case .pasteAndSave:
+            return ["doc.on.clipboard.fill", "doc.on.clipboard", "square.and.arrow.down.on.square"]
+        case .importOnly:
+            return ["square.and.arrow.down.on.square"]
+        case .pasteOnly:
+            return ["doc.on.clipboard", "clipboard"]
         }
     }
 }
@@ -26,7 +45,7 @@ struct SharedKeyboardSettings: Codable, Equatable {
     var autoCapitalizationEnabled: Bool = true
     var symbolLockEnabled: Bool = false
     var openClipboardAfterCopyEnabled: Bool = false
-    var systemClipboardActionMode: SystemClipboardActionMode = .pasteAndSave
+    var systemClipboardActions: Set<SystemClipboardAction> = [.pasteAndSave]
     var cursorSwipeEnabled: Bool = true
     var forwardDeleteWithShiftEnabled: Bool = false
 
@@ -36,9 +55,30 @@ struct SharedKeyboardSettings: Codable, Equatable {
         case autoCapitalizationEnabled
         case symbolLockEnabled
         case openClipboardAfterCopyEnabled
+        case systemClipboardActions
         case systemClipboardActionMode
         case cursorSwipeEnabled
         case forwardDeleteWithShiftEnabled
+    }
+
+    private enum LegacySystemClipboardActionMode: String, Codable {
+        case pasteAndSave
+        case importOnly
+        case pasteOnly
+        case importAndPaste
+
+        var actions: Set<SystemClipboardAction> {
+            switch self {
+            case .pasteAndSave:
+                return [.pasteAndSave]
+            case .importOnly:
+                return [.importOnly]
+            case .pasteOnly:
+                return [.pasteOnly]
+            case .importAndPaste:
+                return [.importOnly, .pasteOnly]
+            }
+        }
     }
 
     init(
@@ -47,7 +87,7 @@ struct SharedKeyboardSettings: Codable, Equatable {
         autoCapitalizationEnabled: Bool = true,
         symbolLockEnabled: Bool = false,
         openClipboardAfterCopyEnabled: Bool = false,
-        systemClipboardActionMode: SystemClipboardActionMode = .pasteAndSave,
+        systemClipboardActions: Set<SystemClipboardAction> = [.pasteAndSave],
         cursorSwipeEnabled: Bool = true,
         forwardDeleteWithShiftEnabled: Bool = false
     ) {
@@ -56,7 +96,7 @@ struct SharedKeyboardSettings: Codable, Equatable {
         self.autoCapitalizationEnabled = autoCapitalizationEnabled
         self.symbolLockEnabled = symbolLockEnabled
         self.openClipboardAfterCopyEnabled = openClipboardAfterCopyEnabled
-        self.systemClipboardActionMode = systemClipboardActionMode
+        self.systemClipboardActions = systemClipboardActions
         self.cursorSwipeEnabled = cursorSwipeEnabled
         self.forwardDeleteWithShiftEnabled = forwardDeleteWithShiftEnabled
     }
@@ -71,15 +111,39 @@ struct SharedKeyboardSettings: Codable, Equatable {
             Bool.self,
             forKey: .openClipboardAfterCopyEnabled
         ) ?? false
-        systemClipboardActionMode = (try? container.decode(
-            SystemClipboardActionMode.self,
+        if let actions = try container.decodeIfPresent(Set<SystemClipboardAction>.self, forKey: .systemClipboardActions) {
+            systemClipboardActions = actions
+        } else if let legacyMode = try? container.decode(
+            LegacySystemClipboardActionMode.self,
             forKey: .systemClipboardActionMode
-        )) ?? .pasteAndSave
+        ) {
+            systemClipboardActions = legacyMode.actions
+        } else {
+            systemClipboardActions = [.pasteAndSave]
+        }
         cursorSwipeEnabled = try container.decodeIfPresent(Bool.self, forKey: .cursorSwipeEnabled) ?? true
         forwardDeleteWithShiftEnabled = try container.decodeIfPresent(
             Bool.self,
             forKey: .forwardDeleteWithShiftEnabled
         ) ?? false
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(clipboardModeEnabled, forKey: .clipboardModeEnabled)
+        try container.encode(keyHapticsEnabled, forKey: .keyHapticsEnabled)
+        try container.encode(autoCapitalizationEnabled, forKey: .autoCapitalizationEnabled)
+        try container.encode(symbolLockEnabled, forKey: .symbolLockEnabled)
+        try container.encode(openClipboardAfterCopyEnabled, forKey: .openClipboardAfterCopyEnabled)
+        try container.encode(systemClipboardActions.sortedForDisplay, forKey: .systemClipboardActions)
+        try container.encode(cursorSwipeEnabled, forKey: .cursorSwipeEnabled)
+        try container.encode(forwardDeleteWithShiftEnabled, forKey: .forwardDeleteWithShiftEnabled)
+    }
+}
+
+extension Set where Element == SystemClipboardAction {
+    var sortedForDisplay: [SystemClipboardAction] {
+        SystemClipboardAction.allCases.filter { contains($0) }
     }
 }
 
@@ -136,9 +200,9 @@ final class SharedKeyboardSettingsStore {
         save(settings)
     }
 
-    func setSystemClipboardActionMode(_ mode: SystemClipboardActionMode) {
+    func setSystemClipboardActions(_ actions: Set<SystemClipboardAction>) {
         var settings = load()
-        settings.systemClipboardActionMode = mode
+        settings.systemClipboardActions = actions
         save(settings)
     }
 

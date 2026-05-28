@@ -64,9 +64,9 @@ final class AppScreenModel: ObservableObject {
         sharedSettingsStore.setOpenClipboardAfterCopyEnabled(isEnabled)
     }
 
-    func setSystemClipboardActionMode(_ mode: SystemClipboardActionMode) {
-        sharedSettings.systemClipboardActionMode = mode
-        sharedSettingsStore.setSystemClipboardActionMode(mode)
+    func setSystemClipboardActions(_ actions: Set<SystemClipboardAction>) {
+        sharedSettings.systemClipboardActions = actions
+        sharedSettingsStore.setSystemClipboardActions(actions)
     }
 
     func setKeyHapticsEnabled(_ isEnabled: Bool) {
@@ -236,9 +236,9 @@ private struct SettingsView: View {
                     get: { model.sharedSettings.clipboardModeEnabled },
                     set: model.setClipboardModeEnabled
                 ),
-                systemClipboardActionMode: Binding(
-                    get: { model.sharedSettings.systemClipboardActionMode },
-                    set: model.setSystemClipboardActionMode
+                systemClipboardActions: Binding(
+                    get: { model.sharedSettings.systemClipboardActions },
+                    set: model.setSystemClipboardActions
                 ),
                 openClipboardAfterCopyEnabled: Binding(
                     get: { model.sharedSettings.openClipboardAfterCopyEnabled },
@@ -607,7 +607,7 @@ private struct InstallStepCard<Accessory: View>: View {
 
 private struct ClipboardToolsSettingsCard: View {
     let clipboardToolbarEnabled: Binding<Bool>
-    let systemClipboardActionMode: Binding<SystemClipboardActionMode>
+    let systemClipboardActions: Binding<Set<SystemClipboardAction>>
     let openClipboardAfterCopyEnabled: Binding<Bool>
     let footnote: String
 
@@ -634,26 +634,30 @@ private struct ClipboardToolsSettingsCard: View {
 
                 Divider()
 
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(alignment: .center, spacing: 12) {
-                        Text("iOS Clipboard Action")
-                            .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                            .foregroundStyle(AppTheme.primaryText)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("iOS Clipboard Buttons")
+                        .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                        .foregroundStyle(AppTheme.primaryText)
 
-                        Spacer(minLength: 0)
-
-                        Picker("iOS Clipboard Action", selection: systemClipboardActionMode) {
-                            ForEach(SystemClipboardActionMode.allCases, id: \.self) { mode in
-                                Text(mode.title).tag(mode)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                    }
-
-                    Text("Choose what SweetKeyboard shows when iOS Clipboard has text copied outside the keyboard.")
+                    Text("Choose which buttons SweetKeyboard shows when iOS Clipboard has text copied outside the keyboard.")
                         .font(.system(.footnote, design: .rounded))
                         .foregroundStyle(AppTheme.secondaryText)
                         .fixedSize(horizontal: false, vertical: true)
+
+                    ForEach(SystemClipboardAction.allCases, id: \.self) { action in
+                        SystemClipboardActionSelectionRow(
+                            action: action,
+                            isSelected: systemClipboardActions.wrappedValue.contains(action)
+                        ) {
+                            var nextActions = systemClipboardActions.wrappedValue
+                            if nextActions.contains(action) {
+                                nextActions.remove(action)
+                            } else {
+                                nextActions.insert(action)
+                            }
+                            systemClipboardActions.wrappedValue = nextActions
+                        }
+                    }
                 }
 
                 Divider()
@@ -678,6 +682,48 @@ private struct ClipboardToolsSettingsCard: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
+    }
+}
+
+private struct SystemClipboardActionSelectionRow: View {
+    let action: SystemClipboardAction
+    let isSelected: Bool
+    let onToggle: () -> Void
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Button(action: onToggle) {
+                Image(systemName: action.symbolNames.first ?? "clipboard")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(isSelected ? .white : AppTheme.primaryText)
+                    .frame(width: 42, height: 42)
+                    .background(
+                        Circle()
+                            .fill(isSelected ? AppTheme.accent : AppTheme.innerCardBackground)
+                    )
+                    .overlay(
+                        Circle()
+                            .stroke(isSelected ? AppTheme.accent : AppTheme.cardBorder, lineWidth: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(action.title)
+            .accessibilityHint(action.detail)
+            .accessibilityAddTraits(isSelected ? .isSelected : [])
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text(action.title)
+                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    .foregroundStyle(AppTheme.primaryText)
+
+                Text(action.detail)
+                    .font(.system(.footnote, design: .rounded))
+                    .foregroundStyle(AppTheme.secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onToggle)
     }
 }
 

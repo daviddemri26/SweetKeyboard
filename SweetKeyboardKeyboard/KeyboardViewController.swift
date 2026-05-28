@@ -288,7 +288,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
                 importSystemClipboardFromUserAction()
             case .pasteClipboard:
                 pasteSystemClipboardFromUserAction(savesToHistory: false)
-            case .pasteAndSaveClipboard:
+            case .importAndPasteClipboard:
                 pasteSystemClipboardFromUserAction(savesToHistory: true)
             case .clipboard:
                 toggleMode(.clipboard)
@@ -351,8 +351,8 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
             self?.handleOpenClipboardAfterCopyChanged(isEnabled)
         }
 
-        settingsPanel.onSystemClipboardActionModeChanged = { [weak self] mode in
-            self?.handleSystemClipboardActionModeChanged(mode)
+        settingsPanel.onSystemClipboardActionsChanged = { [weak self] actions in
+            self?.handleSystemClipboardActionsChanged(actions)
         }
 
         settingsPanel.onAutoCapitalizationEnabledChanged = { [weak self] isEnabled in
@@ -409,7 +409,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         settingsPanel.render(
             isClipboardModeEnabled: desiredClipboardModeEnabled,
             isOpenClipboardAfterCopyEnabled: sharedSettings.openClipboardAfterCopyEnabled,
-            systemClipboardActionMode: sharedSettings.systemClipboardActionMode,
+            systemClipboardActions: sharedSettings.systemClipboardActions,
             isAutoCapitalizationEnabled: sharedSettings.autoCapitalizationEnabled,
             isCursorSwipeEnabled: sharedSettings.cursorSwipeEnabled,
             isForwardDeleteWithShiftEnabled: sharedSettings.forwardDeleteWithShiftEnabled,
@@ -1237,7 +1237,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         clipboardImportPollTimer?.invalidate()
         clipboardImportPollTimer = nil
         clipboardImportPollsRemaining = 0
-        actionBar.setSystemClipboardActionsAvailable(false, mode: sharedSettings.systemClipboardActionMode)
+        actionBar.setSystemClipboardActionsAvailable(false, actions: sharedSettings.systemClipboardActions)
     }
 
     private func updateClipboardImportAvailability() {
@@ -1251,7 +1251,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
 
         actionBar.setSystemClipboardActionsAvailable(
             displayMode == .clipboard && isAvailable,
-            mode: sharedSettings.systemClipboardActionMode
+            actions: sharedSettings.systemClipboardActions
         )
     }
 
@@ -1376,10 +1376,10 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
 
     }
 
-    private func handleSystemClipboardActionModeChanged(_ mode: SystemClipboardActionMode) {
+    private func handleSystemClipboardActionsChanged(_ actions: Set<SystemClipboardAction>) {
         cancelSequencedInteractions()
-        sharedSettings.systemClipboardActionMode = mode
-        sharedSettingsStore.setSystemClipboardActionMode(mode)
+        sharedSettings.systemClipboardActions = actions
+        sharedSettingsStore.setSystemClipboardActions(actions)
         updateClipboardImportAvailability()
 
     }

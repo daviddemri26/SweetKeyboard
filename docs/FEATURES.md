@@ -32,7 +32,7 @@ This document is the detailed functional reference for the current codebase. It 
 
 - Optional top action bar in clipboard mode
 - `Copy`
-- Configurable iOS Clipboard actions: `Paste & Save`, `Import Only`, `Paste Only`, or `Import + Paste`
+- Configurable iOS Clipboard buttons: `Import and Paste`, `Import`, and `Paste`
 - `Clipboard`
 - `Settings`
 - `Hide Keyboard`
@@ -44,7 +44,7 @@ This document is the detailed functional reference for the current codebase. It 
 
 - Auto-capitalization toggle
 - Clipboard toolbar toggle
-- iOS Clipboard Action picker
+- iOS Clipboard Buttons selector
 - Open clipboard after copy toggle
 - Forward delete with Shift toggle
 - Swipe cursor toggle
@@ -246,10 +246,9 @@ Interaction rules:
 - `Copy` saves the selected text if the host exposes it, or the selected text inside an open clipboard detail view, into Clipboard History
 - `Copy` can optionally open Clipboard History automatically after a successful save
 - The top toolbar shows iOS Clipboard action buttons when iOS reports plain text is available
-- `Paste & Save` pastes iOS Clipboard text into the active field and saves it to Clipboard History
-- `Import Only` saves iOS Clipboard text to Clipboard History and opens Clipboard History
-- `Paste Only` pastes iOS Clipboard text into the active field without saving it
-- `Import + Paste` shows separate Import and Paste buttons
+- `Import and Paste` imports iOS Clipboard text into Clipboard History and pastes it into the active field
+- `Import` saves iOS Clipboard text to Clipboard History and opens Clipboard History
+- `Paste` pastes iOS Clipboard text into the active field without saving it
 - Selecting a history item inserts it directly into the current field
 - Long-pressing a history item opens a full-text detail view with Back and Paste actions; selected detail text can be copied into history from the top action bar
 - Detail view actions can pin or unpin an item
@@ -273,7 +272,7 @@ Shared settings currently stored:
 - `autoCapitalizationEnabled`
 - `symbolLockEnabled`
 - `openClipboardAfterCopyEnabled`
-- `systemClipboardActionMode`
+- `systemClipboardActions`
 - `cursorSwipeEnabled`
 - `forwardDeleteWithShiftEnabled`
 
@@ -284,7 +283,7 @@ Default values:
 - Auto-capitalization on
 - Symbol lock off
 - Open clipboard after copy off
-- iOS Clipboard Action defaults to `Paste & Save`
+- iOS Clipboard Buttons default to `Import and Paste`
 - Swipe cursor on
 - Forward delete with Shift off
 

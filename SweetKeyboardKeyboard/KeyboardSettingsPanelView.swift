@@ -3,7 +3,7 @@ import UIKit
 final class KeyboardSettingsPanelView: UIView {
     var onClipboardModeChanged: ((Bool) -> Void)?
     var onOpenClipboardAfterCopyChanged: ((Bool) -> Void)?
-    var onSystemClipboardActionModeChanged: ((SystemClipboardActionMode) -> Void)?
+    var onSystemClipboardActionsChanged: ((Set<SystemClipboardAction>) -> Void)?
     var onAutoCapitalizationEnabledChanged: ((Bool) -> Void)?
     var onCursorSwipeEnabledChanged: ((Bool) -> Void)?
     var onForwardDeleteWithShiftChanged: ((Bool) -> Void)?
@@ -21,8 +21,8 @@ final class KeyboardSettingsPanelView: UIView {
         static let rowHorizontalInset: CGFloat = 16
         static let rowSpacing: CGFloat = 12
         static let cardCornerRadius: CGFloat = 16
-        static let modeButtonMinWidth: CGFloat = 132
-        static let modeButtonHeight: CGFloat = 34
+        static let actionButtonSize: CGFloat = 42
+        static let actionOptionVerticalInset: CGFloat = 8
     }
 
     private let contentStack = UIStackView()
@@ -43,12 +43,10 @@ final class KeyboardSettingsPanelView: UIView {
     private let clipboardInfoLabel = UILabel()
     private let clipboardSeparator = UIView()
 
-    private let systemClipboardActionModeRow = UIStackView()
-    private let systemClipboardActionModeTitleLabel = UILabel()
-    private let systemClipboardActionModeButton = KeyboardPressableButton(type: .custom)
-    private let systemClipboardActionModeHelperRow = UIView()
-    private let systemClipboardActionModeHelperLabel = UILabel()
-    private let systemClipboardActionModeSeparator = UIView()
+    private let systemClipboardActionsSection = UIStackView()
+    private let systemClipboardActionsTitleLabel = UILabel()
+    private let systemClipboardActionsHelperLabel = UILabel()
+    private let systemClipboardActionsSeparator = UIView()
 
     private let openClipboardAfterCopyRow = UIStackView()
     private let openClipboardAfterCopyTitleLabel = UILabel()
@@ -74,11 +72,13 @@ final class KeyboardSettingsPanelView: UIView {
     private let cursorSwipeSwitch = UISwitch()
 
     private var clipboardSeparatorHeightConstraint: NSLayoutConstraint?
-    private var systemClipboardActionModeSeparatorHeightConstraint: NSLayoutConstraint?
+    private var systemClipboardActionsSeparatorHeightConstraint: NSLayoutConstraint?
     private var hapticsSeparatorHeightConstraint: NSLayoutConstraint?
     private var autoCapitalizationSeparatorHeightConstraint: NSLayoutConstraint?
     private var forwardDeleteWithShiftSeparatorHeightConstraint: NSLayoutConstraint?
-    private var selectedSystemClipboardActionMode: SystemClipboardActionMode = .pasteAndSave
+    private var selectedSystemClipboardActions: Set<SystemClipboardAction> = [.pasteAndSave]
+    private var systemClipboardActionButtons: [SystemClipboardAction: KeyboardPressableButton] = [:]
+    private var systemClipboardActionTextStacks: [SystemClipboardAction: UIStackView] = [:]
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -94,7 +94,7 @@ final class KeyboardSettingsPanelView: UIView {
     func render(
         isClipboardModeEnabled: Bool,
         isOpenClipboardAfterCopyEnabled: Bool,
-        systemClipboardActionMode: SystemClipboardActionMode,
+        systemClipboardActions: Set<SystemClipboardAction>,
         isAutoCapitalizationEnabled: Bool,
         isCursorSwipeEnabled: Bool,
         isForwardDeleteWithShiftEnabled: Bool,
@@ -107,16 +107,15 @@ final class KeyboardSettingsPanelView: UIView {
         autoCapitalizationSwitch.isOn = isAutoCapitalizationEnabled
         cursorSwipeSwitch.isOn = isCursorSwipeEnabled
         forwardDeleteWithShiftSwitch.isOn = isForwardDeleteWithShiftEnabled
-        selectedSystemClipboardActionMode = systemClipboardActionMode
-        updateSystemClipboardActionModeButton()
+        selectedSystemClipboardActions = systemClipboardActions
+        updateSystemClipboardActionButtons()
 
         clipboardSwitch.isEnabled = true
-        systemClipboardActionModeButton.isEnabled = true
         clipboardInfoRow.isHidden = fullAccessStatusText?.isEmpty ?? true
         clipboardInfoLabel.text = fullAccessStatusText
 
         clipboardTitleLabel.textColor = KeyboardTheme.keyLabelColor
-        systemClipboardActionModeTitleLabel.textColor = KeyboardTheme.keyLabelColor
+        systemClipboardActionsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         openClipboardAfterCopyTitleLabel.textColor = KeyboardTheme.keyLabelColor
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
@@ -168,7 +167,7 @@ final class KeyboardSettingsPanelView: UIView {
             toggle: clipboardSwitch,
             action: #selector(clipboardSwitchChanged)
         )
-        configureSystemClipboardActionModeRow()
+        configureSystemClipboardActionsSection()
         configureRow(
             openClipboardAfterCopyRow,
             titleLabel: openClipboardAfterCopyTitleLabel,
@@ -205,16 +204,15 @@ final class KeyboardSettingsPanelView: UIView {
             action: #selector(cursorSwipeSwitchChanged)
         )
 
-        configureInfoRows()
+        configureInfoRow()
         configureCard(clipboardToolsCard, stack: clipboardToolsCardStack)
         configureCard(generalCard, stack: generalCardStack)
 
         clipboardToolsCardStack.addArrangedSubview(clipboardRow)
         clipboardToolsCardStack.addArrangedSubview(clipboardInfoRow)
         clipboardToolsCardStack.addArrangedSubview(clipboardSeparator)
-        clipboardToolsCardStack.addArrangedSubview(systemClipboardActionModeRow)
-        clipboardToolsCardStack.addArrangedSubview(systemClipboardActionModeHelperRow)
-        clipboardToolsCardStack.addArrangedSubview(systemClipboardActionModeSeparator)
+        clipboardToolsCardStack.addArrangedSubview(systemClipboardActionsSection)
+        clipboardToolsCardStack.addArrangedSubview(systemClipboardActionsSeparator)
         clipboardToolsCardStack.addArrangedSubview(openClipboardAfterCopyRow)
 
         generalCardStack.addArrangedSubview(hapticsRow)
@@ -226,7 +224,7 @@ final class KeyboardSettingsPanelView: UIView {
         generalCardStack.addArrangedSubview(cursorSwipeRow)
 
         clipboardSeparatorHeightConstraint = clipboardSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
-        systemClipboardActionModeSeparatorHeightConstraint = systemClipboardActionModeSeparator.heightAnchor.constraint(
+        systemClipboardActionsSeparatorHeightConstraint = systemClipboardActionsSeparator.heightAnchor.constraint(
             equalToConstant: separatorThickness
         )
         hapticsSeparatorHeightConstraint = hapticsSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
@@ -253,7 +251,7 @@ final class KeyboardSettingsPanelView: UIView {
             closeButton.widthAnchor.constraint(equalToConstant: 28),
             closeButton.heightAnchor.constraint(equalToConstant: 28),
             clipboardSeparatorHeightConstraint!,
-            systemClipboardActionModeSeparatorHeightConstraint!,
+            systemClipboardActionsSeparatorHeightConstraint!,
             hapticsSeparatorHeightConstraint!,
             autoCapitalizationSeparatorHeightConstraint!,
             forwardDeleteWithShiftSeparatorHeightConstraint!
@@ -303,7 +301,7 @@ final class KeyboardSettingsPanelView: UIView {
         ])
     }
 
-    private func configureInfoRows() {
+    private func configureInfoRow() {
         clipboardInfoLabel.font = .preferredFont(forTextStyle: .footnote)
         clipboardInfoLabel.numberOfLines = 0
         clipboardInfoLabel.text = "Full Access has never been confirmed on this device."
@@ -316,65 +314,87 @@ final class KeyboardSettingsPanelView: UIView {
             clipboardInfoLabel.trailingAnchor.constraint(equalTo: clipboardInfoRow.trailingAnchor, constant: -16),
             clipboardInfoLabel.bottomAnchor.constraint(equalTo: clipboardInfoRow.bottomAnchor, constant: -8)
         ])
-
-        systemClipboardActionModeHelperLabel.font = .preferredFont(forTextStyle: .footnote)
-        systemClipboardActionModeHelperLabel.numberOfLines = 0
-        systemClipboardActionModeHelperLabel.text = "Choose what SweetKeyboard shows when iOS Clipboard has text copied outside the keyboard."
-
-        systemClipboardActionModeHelperRow.addSubview(systemClipboardActionModeHelperLabel)
-        systemClipboardActionModeHelperLabel.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            systemClipboardActionModeHelperLabel.topAnchor.constraint(equalTo: systemClipboardActionModeHelperRow.topAnchor),
-            systemClipboardActionModeHelperLabel.leadingAnchor.constraint(
-                equalTo: systemClipboardActionModeHelperRow.leadingAnchor,
-                constant: 16
-            ),
-            systemClipboardActionModeHelperLabel.trailingAnchor.constraint(
-                equalTo: systemClipboardActionModeHelperRow.trailingAnchor,
-                constant: -16
-            ),
-            systemClipboardActionModeHelperLabel.bottomAnchor.constraint(
-                equalTo: systemClipboardActionModeHelperRow.bottomAnchor,
-                constant: -8
-            )
-        ])
     }
 
-    private func configureSystemClipboardActionModeRow() {
-        systemClipboardActionModeTitleLabel.font = .preferredFont(forTextStyle: .body)
-        systemClipboardActionModeTitleLabel.numberOfLines = 1
-        systemClipboardActionModeTitleLabel.text = "iOS Clipboard Action"
-
-        systemClipboardActionModeButton.setTitleFonts(
-            normal: .preferredFont(forTextStyle: .subheadline),
-            highlighted: .preferredFont(forTextStyle: .subheadline)
-        )
-        systemClipboardActionModeButton.titleLabel?.adjustsFontSizeToFitWidth = true
-        systemClipboardActionModeButton.titleLabel?.minimumScaleFactor = 0.8
-        systemClipboardActionModeButton.showsMenuAsPrimaryAction = true
-        systemClipboardActionModeButton.accessibilityLabel = "iOS Clipboard Action"
-        systemClipboardActionModeButton.addTarget(self, action: #selector(buttonTouchDown), for: .touchDown)
-        systemClipboardActionModeButton.heightAnchor.constraint(equalToConstant: Constants.modeButtonHeight).isActive = true
-        systemClipboardActionModeButton.widthAnchor.constraint(
-            greaterThanOrEqualToConstant: Constants.modeButtonMinWidth
-        ).isActive = true
-
-        systemClipboardActionModeRow.axis = .horizontal
-        systemClipboardActionModeRow.alignment = .center
-        systemClipboardActionModeRow.spacing = Constants.rowSpacing
-        systemClipboardActionModeRow.isLayoutMarginsRelativeArrangement = true
-        systemClipboardActionModeRow.directionalLayoutMargins = NSDirectionalEdgeInsets(
-            top: 0,
+    private func configureSystemClipboardActionsSection() {
+        systemClipboardActionsSection.axis = .vertical
+        systemClipboardActionsSection.alignment = .fill
+        systemClipboardActionsSection.spacing = 10
+        systemClipboardActionsSection.isLayoutMarginsRelativeArrangement = true
+        systemClipboardActionsSection.directionalLayoutMargins = NSDirectionalEdgeInsets(
+            top: 12,
             leading: Constants.rowHorizontalInset,
-            bottom: 0,
+            bottom: 12,
             trailing: Constants.rowHorizontalInset
         )
 
-        systemClipboardActionModeRow.addArrangedSubview(systemClipboardActionModeTitleLabel)
-        systemClipboardActionModeRow.addArrangedSubview(UIView())
-        systemClipboardActionModeRow.addArrangedSubview(systemClipboardActionModeButton)
-        systemClipboardActionModeRow.heightAnchor.constraint(greaterThanOrEqualToConstant: Constants.rowMinHeight).isActive = true
-        updateSystemClipboardActionModeButton()
+        systemClipboardActionsTitleLabel.font = .preferredFont(forTextStyle: .body)
+        systemClipboardActionsTitleLabel.numberOfLines = 1
+        systemClipboardActionsTitleLabel.text = "iOS Clipboard Buttons"
+
+        systemClipboardActionsHelperLabel.font = .preferredFont(forTextStyle: .footnote)
+        systemClipboardActionsHelperLabel.numberOfLines = 0
+        systemClipboardActionsHelperLabel.text = "Choose which buttons SweetKeyboard shows when iOS Clipboard has text copied outside the keyboard."
+
+        systemClipboardActionsSection.addArrangedSubview(systemClipboardActionsTitleLabel)
+        systemClipboardActionsSection.addArrangedSubview(systemClipboardActionsHelperLabel)
+
+        SystemClipboardAction.allCases.forEach { action in
+            systemClipboardActionsSection.addArrangedSubview(makeSystemClipboardActionOption(for: action))
+        }
+    }
+
+    private func makeSystemClipboardActionOption(for action: SystemClipboardAction) -> UIView {
+        let row = UIStackView()
+        row.axis = .horizontal
+        row.alignment = .center
+        row.spacing = 12
+        row.isLayoutMarginsRelativeArrangement = true
+        row.directionalLayoutMargins = NSDirectionalEdgeInsets(
+            top: Constants.actionOptionVerticalInset,
+            leading: 0,
+            bottom: Constants.actionOptionVerticalInset,
+            trailing: 0
+        )
+
+        let button = KeyboardPressableButton(type: .custom)
+        button.setSymbolConfigurations(
+            normal: UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.iconPointSize, weight: .medium),
+            highlighted: UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.iconPointSize, weight: .semibold)
+        )
+        button.setSymbolImage(action.symbolNames.lazy.compactMap { UIImage(systemName: $0) }.first)
+        button.layer.cornerRadius = Constants.actionButtonSize / 2
+        button.layer.cornerCurve = .continuous
+        button.accessibilityLabel = action.title
+        button.accessibilityHint = action.detail
+        button.addTarget(self, action: #selector(buttonTouchDown), for: .touchDown)
+        button.addAction(UIAction { [weak self] _ in
+            self?.toggleSystemClipboardAction(action)
+        }, for: .touchUpInside)
+        button.widthAnchor.constraint(equalToConstant: Constants.actionButtonSize).isActive = true
+        button.heightAnchor.constraint(equalToConstant: Constants.actionButtonSize).isActive = true
+
+        let titleLabel = UILabel()
+        titleLabel.font = .preferredFont(forTextStyle: .subheadline)
+        titleLabel.numberOfLines = 1
+        titleLabel.text = action.title
+
+        let detailLabel = UILabel()
+        detailLabel.font = .preferredFont(forTextStyle: .footnote)
+        detailLabel.numberOfLines = 0
+        detailLabel.text = action.detail
+
+        let textStack = UIStackView(arrangedSubviews: [titleLabel, detailLabel])
+        textStack.axis = .vertical
+        textStack.alignment = .fill
+        textStack.spacing = 3
+
+        row.addArrangedSubview(button)
+        row.addArrangedSubview(textStack)
+
+        systemClipboardActionButtons[action] = button
+        systemClipboardActionTextStacks[action] = textStack
+        return row
     }
 
     private func configureRow(
@@ -420,30 +440,22 @@ final class KeyboardSettingsPanelView: UIView {
         clipboardToolsCard.backgroundColor = KeyboardTheme.settingsGroupBackground
         generalCard.backgroundColor = KeyboardTheme.settingsGroupBackground
         clipboardSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
-        systemClipboardActionModeSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
+        systemClipboardActionsSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
         hapticsSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
         autoCapitalizationSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
         forwardDeleteWithShiftSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
 
         clipboardTitleLabel.textColor = KeyboardTheme.keyLabelColor
         clipboardInfoLabel.textColor = KeyboardTheme.secondaryLabelColor
-        systemClipboardActionModeTitleLabel.textColor = KeyboardTheme.keyLabelColor
-        systemClipboardActionModeHelperLabel.textColor = KeyboardTheme.secondaryLabelColor
+        systemClipboardActionsTitleLabel.textColor = KeyboardTheme.keyLabelColor
+        systemClipboardActionsHelperLabel.textColor = KeyboardTheme.secondaryLabelColor
         openClipboardAfterCopyTitleLabel.textColor = KeyboardTheme.keyLabelColor
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
         forwardDeleteWithShiftTitleLabel.textColor = KeyboardTheme.keyLabelColor
         cursorSwipeTitleLabel.textColor = KeyboardTheme.keyLabelColor
 
-        KeyboardTheme.applyChrome(
-            to: systemClipboardActionModeButton,
-            role: .utility,
-            cornerRadius: Constants.modeButtonHeight / 2
-        )
-        systemClipboardActionModeButton.setForegroundColors(
-            normal: KeyboardTheme.keyLabelColor,
-            highlighted: KeyboardTheme.keyLabelColor
-        )
+        updateSystemClipboardActionButtons()
     }
 
     override func didMoveToWindow() {
@@ -487,25 +499,56 @@ final class KeyboardSettingsPanelView: UIView {
         onPressDown?()
     }
 
-    private func updateSystemClipboardActionModeButton() {
-        systemClipboardActionModeButton.setTitle(selectedSystemClipboardActionMode.title, for: .normal)
-        systemClipboardActionModeButton.accessibilityValue = selectedSystemClipboardActionMode.title
-        systemClipboardActionModeButton.menu = UIMenu(
-            children: SystemClipboardActionMode.allCases.map { mode in
-                UIAction(
-                    title: mode.title,
-                    state: mode == selectedSystemClipboardActionMode ? .on : .off
-                ) { [weak self] _ in
-                    guard let self else {
-                        return
-                    }
+    private func toggleSystemClipboardAction(_ action: SystemClipboardAction) {
+        if selectedSystemClipboardActions.contains(action) {
+            selectedSystemClipboardActions.remove(action)
+        } else {
+            selectedSystemClipboardActions.insert(action)
+        }
 
-                    self.selectedSystemClipboardActionMode = mode
-                    self.updateSystemClipboardActionModeButton()
-                    self.onSystemClipboardActionModeChanged?(mode)
-                }
+        updateSystemClipboardActionButtons()
+        onSystemClipboardActionsChanged?(selectedSystemClipboardActions)
+    }
+
+    private func updateSystemClipboardActionButtons() {
+        SystemClipboardAction.allCases.forEach { action in
+            guard let button = systemClipboardActionButtons[action] else {
+                return
             }
-        )
+
+            let isSelected = selectedSystemClipboardActions.contains(action)
+            button.isSelected = isSelected
+            button.accessibilityTraits = isSelected ? [.button, .selected] : [.button]
+
+            if isSelected {
+                button.setBackgroundColors(
+                    normal: KeyboardTheme.settingsAccentColor,
+                    highlighted: KeyboardTheme.settingsAccentColor.withAlphaComponent(0.82)
+                )
+                button.setForegroundColors(normal: .white, highlighted: .white)
+                button.setBorder(width: 0)
+            } else {
+                KeyboardTheme.applyChrome(
+                    to: button,
+                    role: .utility,
+                    cornerRadius: Constants.actionButtonSize / 2
+                )
+                button.setForegroundColors(
+                    normal: KeyboardTheme.keyLabelColor,
+                    highlighted: KeyboardTheme.keyLabelColor
+                )
+            }
+
+            systemClipboardActionTextStacks[action]?.arrangedSubviews.forEach { view in
+                guard let label = view as? UILabel else {
+                    return
+                }
+
+                label.textColor = label.font.pointSize >= UIFont.preferredFont(forTextStyle: .subheadline).pointSize
+                    ? KeyboardTheme.keyLabelColor
+                    : KeyboardTheme.secondaryLabelColor
+            }
+        }
     }
 
     private var separatorThickness: CGFloat {
@@ -514,7 +557,7 @@ final class KeyboardSettingsPanelView: UIView {
 
     private func updateSeparatorThickness() {
         clipboardSeparatorHeightConstraint?.constant = separatorThickness
-        systemClipboardActionModeSeparatorHeightConstraint?.constant = separatorThickness
+        systemClipboardActionsSeparatorHeightConstraint?.constant = separatorThickness
         hapticsSeparatorHeightConstraint?.constant = separatorThickness
         autoCapitalizationSeparatorHeightConstraint?.constant = separatorThickness
         forwardDeleteWithShiftSeparatorHeightConstraint?.constant = separatorThickness
