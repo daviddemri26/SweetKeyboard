@@ -300,8 +300,8 @@ private struct InfoView: View {
             InfoCard(
                 title: "Privacy",
                 items: [
-                    "Clipboard History data stays on this device.",
-                    "iOS Clipboard text is read only after you tap an iOS Clipboard action.",
+                    "SweetKeyboard Clipboard data stays on this device.",
+                    "Native iPhone Clipboard text is read only after you tap a native iPhone Clipboard action.",
                     "No network, no analytics, no cloud."
                 ]
             )
@@ -372,8 +372,8 @@ private struct FeaturesView: View {
             callout: "Manual Shift"
         ),
             EssentialFeature(
-                title: "Clipboard History and Favorites",
-                message: "Keep copied text in Clipboard History, pin important snippets as favorites, and paste them back with one tap.",
+                title: "SweetKeyboard Clipboard and Favorites",
+                message: "Keep copied text in SweetKeyboard Clipboard, pin important snippets as favorites, and paste them back with one tap.",
                 systemImage: "doc.on.clipboard",
                 callout: "Full Access optional"
             )
@@ -410,7 +410,7 @@ private struct FeaturesView: View {
         ),
         FeatureItem(
             title: "Local privacy",
-            message: "Clipboard History data stays on device, with no analytics, cloud sync, or remote processing."
+            message: "SweetKeyboard Clipboard data stays on device, with no analytics, cloud sync, or remote processing."
         )
     ]
 
@@ -418,7 +418,7 @@ private struct FeaturesView: View {
         "Always-on numbers",
         "One symbols page",
         "Cursor control",
-        "Clipboard History"
+        "SweetKeyboard Clipboard"
     ]
 
     var body: some View {
@@ -440,15 +440,15 @@ private struct FeaturesView: View {
             FeatureSectionCard(
                 title: "Clipboard tools",
                 systemImage: "doc.on.clipboard",
-                intro: "Clipboard History, pinned favorites, iOS Clipboard actions, and one-tap paste are available when Full Access is enabled.",
+                intro: "SweetKeyboard Clipboard, pinned favorites, native iPhone Clipboard actions, and one-tap paste are available when Full Access is enabled.",
                 items: [
                     FeatureItem(
                         title: "History",
-                        message: "Copied and saved iOS Clipboard text appears newest first in a local grid."
+                        message: "Copied and saved native iPhone Clipboard text appears newest first in a local grid."
                     ),
                     FeatureItem(
                         title: "Favorites",
-                        message: "Pin important snippets so they stay at the top of Clipboard History."
+                        message: "Pin important snippets so they stay at the top of SweetKeyboard Clipboard."
                     ),
                     FeatureItem(
                         title: "One-tap paste",
@@ -624,7 +624,7 @@ private struct ClipboardToolsSettingsCard: View {
                             .font(.system(.subheadline, design: .rounded).weight(.semibold))
                             .foregroundStyle(AppTheme.primaryText)
 
-                        Text("Shows Copy, iOS Clipboard actions, Clipboard History, and Settings above the keyboard.")
+                        Text("Shows Copy, native iPhone Clipboard actions, SweetKeyboard Clipboard, and Settings above the keyboard.")
                             .font(.system(.footnote, design: .rounded))
                             .foregroundStyle(AppTheme.secondaryText)
                             .fixedSize(horizontal: false, vertical: true)
@@ -635,11 +635,11 @@ private struct ClipboardToolsSettingsCard: View {
                 Divider()
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("iOS Clipboard Buttons")
+                    Text("Native iPhone Clipboard Buttons")
                         .font(.system(.subheadline, design: .rounded).weight(.semibold))
                         .foregroundStyle(AppTheme.primaryText)
 
-                    Text("Choose which buttons SweetKeyboard shows when iOS Clipboard has text copied outside the keyboard.")
+                    Text("Choose which buttons SweetKeyboard shows when the native iPhone Clipboard has text copied outside the keyboard.")
                         .font(.system(.footnote, design: .rounded))
                         .foregroundStyle(AppTheme.secondaryText)
                         .fixedSize(horizontal: false, vertical: true)
@@ -668,7 +668,7 @@ private struct ClipboardToolsSettingsCard: View {
                             .font(.system(.subheadline, design: .rounded).weight(.semibold))
                             .foregroundStyle(AppTheme.primaryText)
 
-                        Text("After SweetKeyboard Copy saves selected text, automatically show Clipboard History.")
+                        Text("After SweetKeyboard Copy saves selected text, automatically show SweetKeyboard Clipboard.")
                             .font(.system(.footnote, design: .rounded))
                             .foregroundStyle(AppTheme.secondaryText)
                             .fixedSize(horizontal: false, vertical: true)

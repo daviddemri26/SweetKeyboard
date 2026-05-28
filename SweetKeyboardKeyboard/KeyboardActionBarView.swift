@@ -120,18 +120,18 @@ final class KeyboardActionBarView: UIView {
         }
 
         copyButton.accessibilityLabel = "Copy"
-        copyButton.accessibilityHint = "Copies selected text into Clipboard History."
+        copyButton.accessibilityHint = "Copies selected text into SweetKeyboard Clipboard."
         importClipboardButton.isHidden = true
         pasteClipboardButton.isHidden = true
         importAndPasteClipboardButton.isHidden = true
-        importClipboardButton.accessibilityLabel = "Import from iOS Clipboard"
-        importClipboardButton.accessibilityHint = "Saves the current iOS Clipboard text into Clipboard History."
-        pasteClipboardButton.accessibilityLabel = "Paste from iOS Clipboard"
-        pasteClipboardButton.accessibilityHint = "Pastes the current iOS Clipboard text into the active field."
-        importAndPasteClipboardButton.accessibilityLabel = "Import and Paste from iOS Clipboard"
-        importAndPasteClipboardButton.accessibilityHint = "Imports the current iOS Clipboard text into Clipboard History and pastes it."
+        importClipboardButton.accessibilityLabel = "Import from native iPhone Clipboard"
+        importClipboardButton.accessibilityHint = "Saves the current native iPhone Clipboard text into SweetKeyboard Clipboard."
+        pasteClipboardButton.accessibilityLabel = "Paste from native iPhone Clipboard"
+        pasteClipboardButton.accessibilityHint = "Pastes the current native iPhone Clipboard text into the active field."
+        importAndPasteClipboardButton.accessibilityLabel = "Import and Paste from native iPhone Clipboard"
+        importAndPasteClipboardButton.accessibilityHint = "Imports the current native iPhone Clipboard text into SweetKeyboard Clipboard and pastes it."
         clipboardButton.accessibilityLabel = "Clipboard"
-        clipboardButton.accessibilityHint = "Shows Clipboard History."
+        clipboardButton.accessibilityHint = "Shows SweetKeyboard Clipboard."
         settingsButton.accessibilityLabel = "Settings"
         settingsButton.accessibilityHint = "Shows SweetKeyboard settings."
         hideKeyboardButton.accessibilityLabel = "Hide keyboard"

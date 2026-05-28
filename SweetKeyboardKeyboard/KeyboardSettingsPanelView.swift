@@ -330,11 +330,11 @@ final class KeyboardSettingsPanelView: UIView {
 
         systemClipboardActionsTitleLabel.font = .preferredFont(forTextStyle: .body)
         systemClipboardActionsTitleLabel.numberOfLines = 1
-        systemClipboardActionsTitleLabel.text = "iOS Clipboard Buttons"
+        systemClipboardActionsTitleLabel.text = "Native iPhone Clipboard Buttons"
 
         systemClipboardActionsHelperLabel.font = .preferredFont(forTextStyle: .footnote)
         systemClipboardActionsHelperLabel.numberOfLines = 0
-        systemClipboardActionsHelperLabel.text = "Choose which buttons SweetKeyboard shows when iOS Clipboard has text copied outside the keyboard."
+        systemClipboardActionsHelperLabel.text = "Choose which buttons SweetKeyboard shows when the native iPhone Clipboard has text copied outside the keyboard."
 
         systemClipboardActionsSection.addArrangedSubview(systemClipboardActionsTitleLabel)
         systemClipboardActionsSection.addArrangedSubview(systemClipboardActionsHelperLabel)

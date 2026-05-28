@@ -19,11 +19,11 @@ enum SystemClipboardAction: String, Codable, CaseIterable, Equatable, Hashable {
     var detail: String {
         switch self {
         case .pasteAndSave:
-            return "Import iOS Clipboard text into Clipboard History and paste it into the active field."
+            return "Import text from the native iPhone Clipboard into SweetKeyboard Clipboard and paste it into the active field."
         case .importOnly:
-            return "Import iOS Clipboard text into Clipboard History."
+            return "Import text from the native iPhone Clipboard into SweetKeyboard Clipboard."
         case .pasteOnly:
-            return "Paste iOS Clipboard text into the active field."
+            return "Paste text from the native iPhone Clipboard into the active field."
         }
     }
 

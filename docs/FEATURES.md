@@ -32,19 +32,19 @@ This document is the detailed functional reference for the current codebase. It 
 
 - Optional top action bar in clipboard mode
 - `Copy`
-- Configurable iOS Clipboard buttons: `Import and Paste`, `Import`, and `Paste`
+- Configurable native iPhone Clipboard buttons: `Import and Paste`, `Import`, and `Paste`
 - `Clipboard`
 - `Settings`
 - `Hide Keyboard`
-- Local Clipboard History grid
+- Local SweetKeyboard Clipboard grid
 - Pinned clipboard favorites shown before unpinned history
-- iOS Clipboard action buttons for available plain text
+- Native iPhone Clipboard action buttons for available plain text
 
 ### In-Keyboard Settings
 
 - Auto-capitalization toggle
 - Clipboard toolbar toggle
-- iOS Clipboard Buttons selector
+- Native iPhone Clipboard Buttons selector
 - Open clipboard after copy toggle
 - Forward delete with Shift toggle
 - Swipe cursor toggle
@@ -235,7 +235,7 @@ Storage rules:
 - Shared through the App Group
 - Maximum 50 items
 - Full copied text is preserved per item
-- Copied text is handled as exact plain text; the pasteboard write is verified byte-for-byte before Clipboard History is updated
+- Copied text is handled as exact plain text; the pasteboard write is verified byte-for-byte before SweetKeyboard Clipboard is updated
 - Consecutive duplicates are ignored
 - Pinned favorites appear before unpinned history
 - Pinned favorites are ordered by newest pin first
@@ -243,12 +243,12 @@ Storage rules:
 
 Interaction rules:
 
-- `Copy` saves the selected text if the host exposes it, or the selected text inside an open clipboard detail view, into Clipboard History
-- `Copy` can optionally open Clipboard History automatically after a successful save
-- The top toolbar shows iOS Clipboard action buttons when iOS reports plain text is available
-- `Import and Paste` imports iOS Clipboard text into Clipboard History and pastes it into the active field
-- `Import` saves iOS Clipboard text to Clipboard History and opens Clipboard History
-- `Paste` pastes iOS Clipboard text into the active field without saving it
+- `Copy` saves the selected text if the host exposes it, or the selected text inside an open clipboard detail view, into SweetKeyboard Clipboard
+- `Copy` can optionally open SweetKeyboard Clipboard automatically after a successful save
+- The top toolbar shows native iPhone Clipboard action buttons when iOS reports plain text is available
+- `Import and Paste` imports native iPhone Clipboard text into SweetKeyboard Clipboard and pastes it into the active field
+- `Import` saves native iPhone Clipboard text to SweetKeyboard Clipboard and opens SweetKeyboard Clipboard
+- `Paste` pastes native iPhone Clipboard text into the active field without saving it
 - Selecting a history item inserts it directly into the current field
 - Long-pressing a history item opens a full-text detail view with Back and Paste actions; selected detail text can be copied into history from the top action bar
 - Detail view actions can pin or unpin an item
@@ -256,7 +256,7 @@ Interaction rules:
 
 Favorite rules:
 
-- Pinned items are still plain Clipboard History items
+- Pinned items are still plain SweetKeyboard Clipboard items
 - Pin state is persisted with the item
 - Legacy clipboard items without pin metadata load as unpinned
 - Pinning an item does not upload, sync, or transform the stored text
@@ -283,7 +283,7 @@ Default values:
 - Auto-capitalization on
 - Symbol lock off
 - Open clipboard after copy off
-- iOS Clipboard Buttons default to `Import and Paste`
+- Native iPhone Clipboard Buttons default to `Import and Paste`
 - Swipe cursor on
 - Forward delete with Shift off
 
@@ -301,9 +301,9 @@ Default values:
 ### With Full Access
 
 - Clipboard toolbar can be enabled
-- iOS Clipboard action buttons appear only when iOS Clipboard text is available
+- Native iPhone Clipboard action buttons appear only when native iPhone Clipboard text is available
 - Shared app-to-keyboard settings stay synchronized
-- Clipboard History and iOS Clipboard features work
+- SweetKeyboard Clipboard and native iPhone Clipboard features work
 
 Current privacy position:
 
@@ -319,7 +319,7 @@ The app target is a setup and product-education surface, separate from the keybo
 Current tabs:
 
 - Home: setup steps for adding the keyboard and enabling Full Access when needed
-- Settings: shared controls for clipboard mode, iOS Clipboard action, copy behavior, auto-capitalization, forward delete, swipe cursor, and haptics
+- Settings: shared controls for clipboard mode, native iPhone Clipboard buttons, copy behavior, auto-capitalization, forward delete, swipe cursor, and haptics
 - Features: marketing-oriented feature page focused on SweetKeyboard's differentiators
 - Info: privacy, Full Access explanation, iOS limits, and app version
 
@@ -329,7 +329,7 @@ Features tab hierarchy:
 - Native-style symbols grouped on one page
 - Left and right cursor keys
 - Keyboard-wide swipe cursor movement with speed-aware travel
-- Clipboard history with pinned favorites and one-tap paste
+- SweetKeyboard Clipboard with pinned favorites and one-tap paste
 - Secondary compact coverage for auto-capitalization, action key, email shortcut, emoji, symbol lock, long-press shortcuts, haptics, shared settings, and local privacy
 
 Appearance:
@@ -350,7 +350,7 @@ The current test suite explicitly covers the newest functional work:
 - symbol-to-letter return rules
 - overlapping-touch sequencing
 - shared settings backward compatibility
-- Clipboard History preservation and item-cap rules
+- SweetKeyboard Clipboard preservation and item-cap rules
 - clipboard pinning and ordering rules
 
 ## Platform Constraints

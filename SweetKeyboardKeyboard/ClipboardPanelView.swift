@@ -31,7 +31,7 @@ final class ClipboardPanelView: UIView {
     private var detailItem: ClipboardItem?
     private let emptyLabel: UILabel = {
         let label = UILabel()
-        label.text = "Clipboard history is empty"
+        label.text = "SweetKeyboard Clipboard is empty"
         label.textAlignment = .center
         label.textColor = KeyboardTheme.keyLabelColor
         label.numberOfLines = 0
