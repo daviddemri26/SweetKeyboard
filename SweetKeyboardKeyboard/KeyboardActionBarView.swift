@@ -21,6 +21,8 @@ final class KeyboardActionBarView: UIView {
     private let importAndPasteClipboardButton = KeyboardActionBarView.makeIconButton(
         symbolNames: ["doc.on.clipboard.fill", "doc.on.clipboard", "square.and.arrow.down.on.square"]
     )
+    private let nativeClipboardGroupView = UIView()
+    private let nativeClipboardGroupStack = UIStackView()
     private let copyButton = KeyboardActionBarView.makeIconButton(symbolName: "square.on.square")
     private let clipboardButton = KeyboardActionBarView.makeIconButton(symbolName: "list.clipboard.fill")
 
@@ -52,6 +54,11 @@ final class KeyboardActionBarView: UIView {
         importClipboardButton.isHidden = !(available && actions.contains(.importOnly))
         pasteClipboardButton.isHidden = !(available && actions.contains(.pasteOnly))
         importAndPasteClipboardButton.isHidden = !(available && actions.contains(.pasteAndSave))
+        nativeClipboardGroupView.isHidden = [
+            importClipboardButton,
+            pasteClipboardButton,
+            importAndPasteClipboardButton
+        ].allSatisfy(\.isHidden)
     }
 
     private func observeTraitChanges() {
@@ -64,10 +71,37 @@ final class KeyboardActionBarView: UIView {
     private func setup() {
         backgroundColor = .clear
 
+        nativeClipboardGroupStack.axis = .horizontal
+        nativeClipboardGroupStack.alignment = .fill
+        nativeClipboardGroupStack.spacing = KeyboardMetrics.utilityRowButtonSpacing
+        nativeClipboardGroupStack.addArrangedSubview(importAndPasteClipboardButton)
+        nativeClipboardGroupStack.addArrangedSubview(importClipboardButton)
+        nativeClipboardGroupStack.addArrangedSubview(pasteClipboardButton)
+
+        nativeClipboardGroupView.addSubview(nativeClipboardGroupStack)
+        nativeClipboardGroupStack.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            nativeClipboardGroupStack.leadingAnchor.constraint(
+                equalTo: nativeClipboardGroupView.leadingAnchor,
+                constant: KeyboardMetrics.nativeClipboardGroupHorizontalPadding
+            ),
+            nativeClipboardGroupStack.trailingAnchor.constraint(
+                equalTo: nativeClipboardGroupView.trailingAnchor,
+                constant: -KeyboardMetrics.nativeClipboardGroupHorizontalPadding
+            ),
+            nativeClipboardGroupStack.topAnchor.constraint(
+                equalTo: nativeClipboardGroupView.topAnchor,
+                constant: KeyboardMetrics.nativeClipboardGroupVerticalPadding
+            ),
+            nativeClipboardGroupStack.bottomAnchor.constraint(
+                equalTo: nativeClipboardGroupView.bottomAnchor,
+                constant: -KeyboardMetrics.nativeClipboardGroupVerticalPadding
+            )
+        ])
+
         let rightStack = UIStackView(arrangedSubviews: [
-            importAndPasteClipboardButton,
-            importClipboardButton,
-            pasteClipboardButton,
+            nativeClipboardGroupView,
             copyButton,
             clipboardButton
         ])
@@ -124,6 +158,7 @@ final class KeyboardActionBarView: UIView {
         importClipboardButton.isHidden = true
         pasteClipboardButton.isHidden = true
         importAndPasteClipboardButton.isHidden = true
+        nativeClipboardGroupView.isHidden = true
         importClipboardButton.accessibilityLabel = "Import from native iPhone Clipboard"
         importClipboardButton.accessibilityHint = "Saves the current native iPhone Clipboard text into SweetKeyboard Clipboard."
         pasteClipboardButton.accessibilityLabel = "Paste from native iPhone Clipboard"
@@ -139,6 +174,10 @@ final class KeyboardActionBarView: UIView {
     }
 
     private func applyTheme() {
+        nativeClipboardGroupView.backgroundColor = KeyboardTheme.nativeClipboardGroupBackground
+        nativeClipboardGroupView.layer.cornerRadius = KeyboardMetrics.actionBarButtonCornerRadius
+        nativeClipboardGroupView.layer.cornerCurve = .continuous
+
         KeyboardTheme.applyChrome(
             to: copyButton,
             role: .utility,

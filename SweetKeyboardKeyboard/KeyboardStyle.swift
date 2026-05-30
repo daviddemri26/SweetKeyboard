@@ -11,6 +11,8 @@ enum KeyboardMetrics {
     static let utilityButtonHorizontalPadding: CGFloat = 12
     static let utilityRowButtonSpacing: CGFloat = 6
     static let utilityGroupSpacing: CGFloat = 6
+    static let nativeClipboardGroupHorizontalPadding: CGFloat = 4
+    static let nativeClipboardGroupVerticalPadding: CGFloat = 0
 
     static let keyboardTopPadding: CGFloat = 4
     static let minimumKeyboardBottomInset: CGFloat = 4
@@ -126,6 +128,16 @@ enum KeyboardTheme {
             }
 
             return UIColor(hex: 0x7B8493, alpha: 0.98)
+        }
+    }
+
+    static var nativeClipboardGroupBackground: UIColor {
+        UIColor { traits in
+            if traits.userInterfaceStyle == .dark {
+                return UIColor(hex: 0x2A2A2D, alpha: 0.9)
+            }
+
+            return UIColor(hex: 0xDADDE4, alpha: 0.9)
         }
     }
 
