@@ -90,6 +90,20 @@ final class ClipboardCopyServiceTests: XCTestCase {
         XCTAssertEqual(pasteboard.stringReadCount, 0)
     }
 
+    func testSystemImportNewPasteboardChangeCountBecomesAvailableAfterProcessedValue() {
+        let defaults = makeDefaults()
+        let pasteboard = MockReadablePasteboard(changeCount: 16, hasStrings: true, string: "first")
+        let service = ClipboardSystemImportService(defaults: defaults)
+
+        service.markProcessed(pasteboard)
+        XCTAssertFalse(service.hasAvailableText(in: pasteboard, context: enabledContext))
+
+        pasteboard.changeCount = 17
+
+        XCTAssertTrue(service.hasAvailableText(in: pasteboard, context: enabledContext))
+        XCTAssertEqual(pasteboard.stringReadCount, 0)
+    }
+
     func testSystemImportSkipsUnavailableContextsWithoutReadingPasteboardText() {
         let contexts = [
             ClipboardSystemImportContext(

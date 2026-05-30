@@ -245,7 +245,7 @@ Interaction rules:
 
 - `Copy` saves the selected text if the host exposes it, or the selected text inside an open clipboard detail view, into SweetKeyboard Clipboard
 - `Copy` can optionally open SweetKeyboard Clipboard automatically after a successful save
-- The top toolbar shows native iPhone Clipboard action buttons when iOS reports plain text is available
+- The top toolbar checks native iPhone Clipboard availability about once per second while the keyboard is open and shows selected action buttons when iOS reports plain text is available
 - `Import and Paste` imports native iPhone Clipboard text into SweetKeyboard Clipboard and pastes it into the active field
 - `Import` saves native iPhone Clipboard text to SweetKeyboard Clipboard and opens SweetKeyboard Clipboard
 - `Paste` pastes native iPhone Clipboard text into the active field without saving it

@@ -95,9 +95,9 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
     private var sequencedKeyKindsByButtonID: [ObjectIdentifier: SequencedKeyKind] = [:]
     private var keyboardRebuildIsDeferred = false
     private var activeDeleteDirection: DeleteDirection?
+    private var isKeyboardViewVisible = false
     private var pasteboardChangeObserver: NSObjectProtocol?
-    private var clipboardImportPollTimer: Timer?
-    private var clipboardImportPollsRemaining = 0
+    private var clipboardImportAvailabilityTimer: Timer?
 
     private weak var actionKeyButton: UIButton?
     private weak var actionKeyHitTarget: KeyboardHitTargetButton?
@@ -113,6 +113,10 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
 
     private var canCheckSystemClipboardImport: Bool {
         hasFullAccess && sharedSettings.clipboardModeEnabled
+    }
+
+    private var canMonitorSystemClipboardImport: Bool {
+        isKeyboardViewVisible && canCheckSystemClipboardImport && !sharedSettings.systemClipboardActions.isEmpty
     }
 
     private var effectiveDisplayMode: DisplayMode {
@@ -144,11 +148,11 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        isKeyboardViewVisible = true
         mode = .keyboard
         keyboardLayoutMode = .letters
         clearAccentState(rebuild: false)
         reloadFeatureState(rebuildKeyboard: true)
-        beginClipboardImportAvailabilitySessionIfAllowed()
     }
 
     override func viewWillLayoutSubviews() {
@@ -163,6 +167,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        isKeyboardViewVisible = false
         stopKeyRepeats()
         cancelSequencedInteractions(performDeferredRebuild: false)
         stopClipboardImportAvailabilityMonitoring()
@@ -402,7 +407,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         updateKeyboardSizingIfNeeded()
         refreshModeUI()
         refreshInputContext(forceKeyboardRebuild: rebuildKeyboard || previousDisplayMode != displayMode)
-        refreshClipboardImportAvailabilityObservation()
+        refreshClipboardImportAvailabilityMonitoring()
     }
 
     private func updateSettingsPanel(capabilityStatus: KeyboardCapabilityStatus) {
@@ -1169,23 +1174,18 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
 
     }
 
-    private func beginClipboardImportAvailabilitySessionIfAllowed() {
-        guard canCheckSystemClipboardImport else {
+    private func refreshClipboardImportAvailabilityMonitoring() {
+        guard canMonitorSystemClipboardImport else {
             stopClipboardImportAvailabilityMonitoring()
             return
         }
 
-        refreshClipboardImportAvailabilityObservation()
+        startClipboardImportAvailabilityObservationIfNeeded()
         updateClipboardImportAvailability()
-        startClipboardImportAvailabilityPollingWindowIfAllowed()
+        startClipboardImportAvailabilityTimerIfNeeded()
     }
 
-    private func refreshClipboardImportAvailabilityObservation() {
-        guard canCheckSystemClipboardImport else {
-            stopClipboardImportAvailabilityMonitoring()
-            return
-        }
-
+    private func startClipboardImportAvailabilityObservationIfNeeded() {
         guard pasteboardChangeObserver == nil else {
             return
         }
@@ -1199,15 +1199,10 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         }
     }
 
-    private func startClipboardImportAvailabilityPollingWindowIfAllowed() {
-        guard canCheckSystemClipboardImport else {
-            clipboardImportPollTimer?.invalidate()
-            clipboardImportPollTimer = nil
+    private func startClipboardImportAvailabilityTimerIfNeeded() {
+        guard clipboardImportAvailabilityTimer == nil else {
             return
         }
-
-        clipboardImportPollTimer?.invalidate()
-        clipboardImportPollsRemaining = 3
 
         let timer = Timer(timeInterval: 1, repeats: true) { [weak self] timer in
             guard let self else {
@@ -1215,16 +1210,15 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
                 return
             }
 
-            self.updateClipboardImportAvailability()
-            self.clipboardImportPollsRemaining -= 1
-
-            if self.clipboardImportPollsRemaining <= 0 {
-                timer.invalidate()
-                self.clipboardImportPollTimer = nil
+            guard self.canMonitorSystemClipboardImport else {
+                self.stopClipboardImportAvailabilityMonitoring()
+                return
             }
+
+            self.updateClipboardImportAvailability()
         }
 
-        clipboardImportPollTimer = timer
+        clipboardImportAvailabilityTimer = timer
         RunLoop.main.add(timer, forMode: .common)
     }
 
@@ -1234,9 +1228,8 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
             self.pasteboardChangeObserver = nil
         }
 
-        clipboardImportPollTimer?.invalidate()
-        clipboardImportPollTimer = nil
-        clipboardImportPollsRemaining = 0
+        clipboardImportAvailabilityTimer?.invalidate()
+        clipboardImportAvailabilityTimer = nil
         actionBar.setSystemClipboardActionsAvailable(false, actions: sharedSettings.systemClipboardActions)
     }
 
@@ -1354,11 +1347,6 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         sharedSettingsStore.setClipboardModeEnabled(isEnabled)
         reloadFeatureState(rebuildKeyboard: true)
 
-        if canCheckSystemClipboardImport {
-            updateClipboardImportAvailability()
-            startClipboardImportAvailabilityPollingWindowIfAllowed()
-        }
-
     }
 
     private func handleKeyHapticsChanged(_ isEnabled: Bool) {
@@ -1380,7 +1368,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         cancelSequencedInteractions()
         sharedSettings.systemClipboardActions = actions
         sharedSettingsStore.setSystemClipboardActions(actions)
-        updateClipboardImportAvailability()
+        refreshClipboardImportAvailabilityMonitoring()
 
     }
 
