@@ -7,28 +7,28 @@ final class KeyboardTouchLayoutCalculatorTests: XCTestCase {
             KeyboardTouchLayoutCalculator.rowInsets(
                 rowIndex: 0,
                 rowCount: 5,
-                visualRowSpacing: 6,
+                visualRowSpacing: 4,
                 bottomInset: 10
             ),
-            KeyboardTouchRowInsets(top: 0, bottom: 3)
+            KeyboardTouchRowInsets(top: 0, bottom: 2)
         )
         XCTAssertEqual(
             KeyboardTouchLayoutCalculator.rowInsets(
                 rowIndex: 2,
                 rowCount: 5,
-                visualRowSpacing: 6,
+                visualRowSpacing: 4,
                 bottomInset: 10
             ),
-            KeyboardTouchRowInsets(top: 3, bottom: 3)
+            KeyboardTouchRowInsets(top: 2, bottom: 2)
         )
         XCTAssertEqual(
             KeyboardTouchLayoutCalculator.rowInsets(
                 rowIndex: 4,
                 rowCount: 5,
-                visualRowSpacing: 6,
+                visualRowSpacing: 4,
                 bottomInset: 10
             ),
-            KeyboardTouchRowInsets(top: 3, bottom: 10)
+            KeyboardTouchRowInsets(top: 2, bottom: 10)
         )
     }
 
@@ -36,7 +36,7 @@ final class KeyboardTouchLayoutCalculatorTests: XCTestCase {
         let frames = KeyboardTouchLayoutCalculator.rowFrames(
             rowCount: 5,
             keyHeight: 42,
-            visualRowSpacing: 6,
+            visualRowSpacing: 4,
             bottomInset: 10
         )
 
@@ -45,7 +45,7 @@ final class KeyboardTouchLayoutCalculatorTests: XCTestCase {
         XCTAssertEqual(frames[1].maxY, frames[2].minY)
         XCTAssertEqual(frames[2].maxY, frames[3].minY)
         XCTAssertEqual(frames[3].maxY, frames[4].minY)
-        XCTAssertEqual(frames.last?.maxY, 244)
+        XCTAssertEqual(frames.last?.maxY, 236)
     }
 
     func testTouchFramesExpandToRowEdgesAndMidpoints() {

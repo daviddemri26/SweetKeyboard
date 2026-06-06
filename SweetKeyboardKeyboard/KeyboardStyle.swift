@@ -2,7 +2,7 @@ import Symbols
 import UIKit
 
 enum KeyboardMetrics {
-    static let visualHorizontalInset: CGFloat = 6
+    static let visualHorizontalInset: CGFloat = 4
     static let outerTopPadding: CGFloat = 4
     static let outerBottomPadding: CGFloat = 0
 
@@ -15,15 +15,15 @@ enum KeyboardMetrics {
     static let keyboardTopPadding: CGFloat = 4
     static let minimumKeyboardBottomInset: CGFloat = 4
     static let keyboardRowHeight: CGFloat = 42
-    static let keyboardRowSpacing: CGFloat = 6
-    static let keyboardKeySpacing: CGFloat = 6
+    static let keyboardRowSpacing: CGFloat = 4
+    static let keyboardKeySpacing: CGFloat = 4
     static var keyboardVisualRowSpacing: CGFloat { keyboardRowSpacing }
     static var keyboardVisualKeySpacing: CGFloat { keyboardKeySpacing }
     static var keyboardTouchVerticalInset: CGFloat { keyboardVisualRowSpacing / 2 }
     static var keyboardTouchHorizontalInset: CGFloat { keyboardVisualKeySpacing / 2 }
 
     static let keyUnitWidth: CGFloat = 28
-    static let keyCornerRadius: CGFloat = 9
+    static let keyCornerRadius: CGFloat = 7
     static let utilityCornerRadius: CGFloat = 9
     static let actionBarButtonCornerRadius: CGFloat = 17
 
@@ -272,10 +272,16 @@ enum KeyboardTheme {
         button.layer.shadowOffset = .zero
         button.layer.borderWidth = 0
         button.layer.borderColor = UIColor.clear.cgColor
+
+        if let pressableButton = button as? KeyboardPressableButton {
+            pressableButton.setKeyDepthChromeEnabled(role != .utility)
+        }
     }
 }
 
 final class KeyboardPressableButton: UIButton {
+    private let topReliefLayer = CAShapeLayer()
+    private let bottomReliefLayer = CAShapeLayer()
     private var normalBackgroundColor: UIColor?
     private var highlightedBackgroundColor: UIColor?
     private var normalTitleFont: UIFont?
@@ -283,10 +289,12 @@ final class KeyboardPressableButton: UIButton {
     private var normalForegroundColor: UIColor?
     private var highlightedForegroundColor: UIColor?
     private var borderColorProvider: ((UITraitCollection) -> UIColor)?
+    private var usesKeyDepthChrome = false
 
     var usesDiamondBackground = false {
         didSet {
             layer.mask = nil
+            updateDepthChromeAppearance()
             setNeedsLayout()
         }
     }
@@ -306,11 +314,13 @@ final class KeyboardPressableButton: UIButton {
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         updateBorderAppearance()
+        updateDepthChromeAppearance()
     }
 
     override func layoutSubviews() {
         super.layoutSubviews()
         updateBackgroundShape()
+        updateDepthChromePaths()
     }
 
     func setBackgroundColors(normal: UIColor, highlighted: UIColor) {
@@ -353,8 +363,28 @@ final class KeyboardPressableButton: UIButton {
         updateBorderAppearance()
     }
 
+    func setKeyDepthChromeEnabled(_ isEnabled: Bool) {
+        usesKeyDepthChrome = isEnabled
+
+        if isEnabled {
+            if topReliefLayer.superlayer == nil {
+                layer.addSublayer(topReliefLayer)
+            }
+            if bottomReliefLayer.superlayer == nil {
+                layer.addSublayer(bottomReliefLayer)
+            }
+        } else {
+            topReliefLayer.removeFromSuperlayer()
+            bottomReliefLayer.removeFromSuperlayer()
+        }
+
+        updateDepthChromeAppearance()
+        setNeedsLayout()
+    }
+
     private func updatePressedAppearance() {
         backgroundColor = (isHighlighted && isEnabled) ? highlightedBackgroundColor ?? normalBackgroundColor : normalBackgroundColor
+        updateDepthChromeAppearance()
 
         if let normalForegroundColor {
             tintColor = (isHighlighted && isEnabled) ? highlightedForegroundColor ?? normalForegroundColor : normalForegroundColor
@@ -394,6 +424,67 @@ final class KeyboardPressableButton: UIButton {
         mask.path = diamondPath.cgPath
         layer.mask = mask
         layer.cornerRadius = 0
+    }
+
+    private func updateDepthChromeAppearance() {
+        guard usesKeyDepthChrome, !usesDiamondBackground else {
+            layer.shadowColor = UIColor.clear.cgColor
+            layer.shadowOpacity = 0
+            layer.shadowRadius = 0
+            layer.shadowOffset = .zero
+            topReliefLayer.isHidden = true
+            bottomReliefLayer.isHidden = true
+            return
+        }
+
+        let isPressed = isHighlighted && isEnabled
+        let isDark = traitCollection.userInterfaceStyle == .dark
+
+        layer.masksToBounds = false
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = isPressed ? (isDark ? 0.12 : 0.07) : (isDark ? 0.24 : 0.16)
+        layer.shadowRadius = isPressed ? 0.5 : 1.1
+        layer.shadowOffset = CGSize(width: 0, height: isPressed ? 0.5 : 1.2)
+
+        topReliefLayer.isHidden = false
+        bottomReliefLayer.isHidden = false
+        topReliefLayer.fillColor = UIColor.clear.cgColor
+        bottomReliefLayer.fillColor = UIColor.clear.cgColor
+        topReliefLayer.lineWidth = isPressed ? 0.6 : 0.8
+        bottomReliefLayer.lineWidth = isPressed ? 0.6 : 0.8
+        topReliefLayer.strokeColor = (isDark
+            ? UIColor.white.withAlphaComponent(isPressed ? 0.05 : 0.09)
+            : UIColor.white.withAlphaComponent(isPressed ? 0.36 : 0.68)
+        ).cgColor
+        bottomReliefLayer.strokeColor = (isDark
+            ? UIColor.black.withAlphaComponent(isPressed ? 0.22 : 0.34)
+            : UIColor.black.withAlphaComponent(isPressed ? 0.06 : 0.12)
+        ).cgColor
+    }
+
+    private func updateDepthChromePaths() {
+        guard usesKeyDepthChrome, !usesDiamondBackground, bounds.width > 0, bounds.height > 0 else {
+            return
+        }
+
+        let radius = max(layer.cornerRadius - 1, 0)
+        let inset: CGFloat = 0.8
+        let topY = bounds.minY + inset
+        let bottomY = bounds.maxY - inset
+
+        topReliefLayer.frame = bounds
+        bottomReliefLayer.frame = bounds
+
+        let topPath = UIBezierPath()
+        topPath.move(to: CGPoint(x: bounds.minX + radius + inset, y: topY))
+        topPath.addLine(to: CGPoint(x: bounds.maxX - radius - inset, y: topY))
+
+        let bottomPath = UIBezierPath()
+        bottomPath.move(to: CGPoint(x: bounds.minX + radius + inset, y: bottomY))
+        bottomPath.addLine(to: CGPoint(x: bounds.maxX - radius - inset, y: bottomY))
+
+        topReliefLayer.path = topPath.cgPath
+        bottomReliefLayer.path = bottomPath.cgPath
     }
 }
 
