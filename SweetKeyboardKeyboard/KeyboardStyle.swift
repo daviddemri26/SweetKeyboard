@@ -11,8 +11,6 @@ enum KeyboardMetrics {
     static let utilityButtonHorizontalPadding: CGFloat = 12
     static let utilityRowButtonSpacing: CGFloat = 6
     static let utilityGroupSpacing: CGFloat = 6
-    static let nativeClipboardGroupHorizontalPadding: CGFloat = 4
-    static let nativeClipboardGroupVerticalPadding: CGFloat = 0
 
     static let keyboardTopPadding: CGFloat = 4
     static let minimumKeyboardBottomInset: CGFloat = 4
@@ -128,16 +126,6 @@ enum KeyboardTheme {
             }
 
             return UIColor(hex: 0x7B8493, alpha: 0.98)
-        }
-    }
-
-    static var nativeClipboardGroupBackground: UIColor {
-        UIColor { traits in
-            if traits.userInterfaceStyle == .dark {
-                return UIColor(hex: 0x2A2A2D, alpha: 0.9)
-            }
-
-            return UIColor(hex: 0xDADDE4, alpha: 0.9)
         }
     }
 
@@ -296,6 +284,13 @@ final class KeyboardPressableButton: UIButton {
     private var highlightedForegroundColor: UIColor?
     private var borderColorProvider: ((UITraitCollection) -> UIColor)?
 
+    var usesDiamondBackground = false {
+        didSet {
+            layer.mask = nil
+            setNeedsLayout()
+        }
+    }
+
     override var isHighlighted: Bool {
         didSet {
             updatePressedAppearance()
@@ -311,6 +306,11 @@ final class KeyboardPressableButton: UIButton {
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         updateBorderAppearance()
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        updateBackgroundShape()
     }
 
     func setBackgroundColors(normal: UIColor, highlighted: UIColor) {
@@ -375,6 +375,25 @@ final class KeyboardPressableButton: UIButton {
         }
 
         layer.borderColor = borderColorProvider(traitCollection).cgColor
+    }
+
+    private func updateBackgroundShape() {
+        guard usesDiamondBackground else {
+            layer.mask = nil
+            return
+        }
+
+        let diamondPath = UIBezierPath()
+        diamondPath.move(to: CGPoint(x: bounds.midX, y: bounds.minY))
+        diamondPath.addLine(to: CGPoint(x: bounds.maxX, y: bounds.midY))
+        diamondPath.addLine(to: CGPoint(x: bounds.midX, y: bounds.maxY))
+        diamondPath.addLine(to: CGPoint(x: bounds.minX, y: bounds.midY))
+        diamondPath.close()
+
+        let mask = CAShapeLayer()
+        mask.path = diamondPath.cgPath
+        layer.mask = mask
+        layer.cornerRadius = 0
     }
 }
 

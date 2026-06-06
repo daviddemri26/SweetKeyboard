@@ -334,7 +334,7 @@ final class KeyboardSettingsPanelView: UIView {
 
         systemClipboardActionsHelperLabel.font = .preferredFont(forTextStyle: .footnote)
         systemClipboardActionsHelperLabel.numberOfLines = 0
-        systemClipboardActionsHelperLabel.text = "Choose which buttons SweetKeyboard shows when the native iPhone Clipboard has text copied outside the keyboard."
+        systemClipboardActionsHelperLabel.text = "Choose which diamond buttons SweetKeyboard shows when the native iPhone Clipboard has text copied outside the keyboard."
 
         systemClipboardActionsSection.addArrangedSubview(systemClipboardActionsTitleLabel)
         systemClipboardActionsSection.addArrangedSubview(systemClipboardActionsHelperLabel)
@@ -363,8 +363,7 @@ final class KeyboardSettingsPanelView: UIView {
             highlighted: UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.iconPointSize, weight: .semibold)
         )
         button.setSymbolImage(action.symbolNames.lazy.compactMap { UIImage(systemName: $0) }.first)
-        button.layer.cornerRadius = Constants.actionButtonSize / 2
-        button.layer.cornerCurve = .continuous
+        button.usesDiamondBackground = true
         button.accessibilityLabel = action.title
         button.accessibilityHint = action.detail
         button.addTarget(self, action: #selector(buttonTouchDown), for: .touchDown)
@@ -531,7 +530,7 @@ final class KeyboardSettingsPanelView: UIView {
                 KeyboardTheme.applyChrome(
                     to: button,
                     role: .utility,
-                    cornerRadius: Constants.actionButtonSize / 2
+                    cornerRadius: 0
                 )
                 button.setForegroundColors(
                     normal: KeyboardTheme.keyLabelColor,

@@ -195,7 +195,7 @@ Behavior highlights:
 - The top action bar appears only when Full Access is available and clipboard mode is enabled
 - A `Hide Keyboard` toolbar button dismisses the keyboard with `dismissKeyboard()`; this hides the keyboard UI only and does not force the host text field to lose focus
 - `Copy` uses `selectedText` when the host exposes it, or selected text inside a clipboard detail view; it writes plain text only and verifies the pasteboard round trip byte-for-byte before saving to SweetKeyboard Clipboard
-- Native iPhone Clipboard action buttons appear when iOS reports that plain text is available; SweetKeyboard checks availability about once per second while the keyboard is open, and shared settings choose any combination of `Import and Paste`, `Import`, and `Paste`
+- Native iPhone Clipboard action buttons appear as diamond buttons when iOS reports that plain text is available; SweetKeyboard checks availability about once per second while the keyboard is open, and shared settings choose any combination of `Import and Paste`, `Import`, and `Paste`
 - SweetKeyboard Clipboard is local only
 - Pinned favorites are shown before unpinned history
 - Pinned favorites are ordered by newest pin first
