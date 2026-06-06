@@ -32,13 +32,13 @@ This document is the detailed functional reference for the current codebase. It 
 
 - Optional top action bar in clipboard mode
 - `Copy`
-- Configurable native iPhone Clipboard diamond buttons: `Import and Paste`, `Import`, and `Paste`
+- Configurable native iPhone Clipboard rounded-square buttons: `Import and Paste`, `Import`, and `Paste`
 - `Clipboard`
 - `Settings`
 - `Hide Keyboard`
 - Local SweetKeyboard Clipboard grid
 - Pinned clipboard favorites shown before unpinned history
-- Native iPhone Clipboard diamond buttons for available plain text
+- Native iPhone Clipboard rounded-square buttons for available plain text
 
 ### In-Keyboard Settings
 
@@ -245,7 +245,7 @@ Interaction rules:
 
 - `Copy` saves the selected text if the host exposes it, or the selected text inside an open clipboard detail view, into SweetKeyboard Clipboard
 - `Copy` can optionally open SweetKeyboard Clipboard automatically after a successful save
-- The top toolbar checks native iPhone Clipboard availability about once per second while the keyboard is open and shows selected diamond buttons when iOS reports plain text is available
+- The top toolbar checks native iPhone Clipboard availability about once per second while the keyboard is open and shows selected rounded-square buttons when iOS reports plain text is available
 - `Import and Paste` imports native iPhone Clipboard text into SweetKeyboard Clipboard and pastes it into the active field
 - `Import` saves native iPhone Clipboard text to SweetKeyboard Clipboard and opens SweetKeyboard Clipboard
 - `Paste` pastes native iPhone Clipboard text into the active field without saving it
@@ -301,7 +301,7 @@ Default values:
 ### With Full Access
 
 - Clipboard toolbar can be enabled
-- Native iPhone Clipboard diamond buttons appear only when native iPhone Clipboard text is available
+- Native iPhone Clipboard rounded-square buttons appear only when native iPhone Clipboard text is available
 - Shared app-to-keyboard settings stay synchronized
 - SweetKeyboard Clipboard and native iPhone Clipboard features work
 

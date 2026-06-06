@@ -64,12 +64,6 @@ final class KeyboardActionBarView: UIView {
     private func setup() {
         backgroundColor = .clear
 
-        [
-            importAndPasteClipboardButton,
-            importClipboardButton,
-            pasteClipboardButton
-        ].forEach { $0.usesDiamondBackground = true }
-
         let rightStack = UIStackView(arrangedSubviews: [
             importAndPasteClipboardButton,
             importClipboardButton,
@@ -166,17 +160,17 @@ final class KeyboardActionBarView: UIView {
         KeyboardTheme.applyChrome(
             to: importClipboardButton,
             role: .utility,
-            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
+            cornerRadius: KeyboardMetrics.nativeClipboardButtonCornerRadius
         )
         KeyboardTheme.applyChrome(
             to: pasteClipboardButton,
             role: .utility,
-            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
+            cornerRadius: KeyboardMetrics.nativeClipboardButtonCornerRadius
         )
         KeyboardTheme.applyChrome(
             to: importAndPasteClipboardButton,
             role: .utility,
-            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
+            cornerRadius: KeyboardMetrics.nativeClipboardButtonCornerRadius
         )
         KeyboardTheme.applyChrome(
             to: settingsButton,

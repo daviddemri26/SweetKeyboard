@@ -639,7 +639,7 @@ private struct ClipboardToolsSettingsCard: View {
                         .font(.system(.subheadline, design: .rounded).weight(.semibold))
                         .foregroundStyle(AppTheme.primaryText)
 
-                    Text("Choose which diamond buttons SweetKeyboard shows when the native iPhone Clipboard has text copied outside the keyboard.")
+                    Text("Choose which rounded-square buttons SweetKeyboard shows when the native iPhone Clipboard has text copied outside the keyboard.")
                         .font(.system(.footnote, design: .rounded))
                         .foregroundStyle(AppTheme.secondaryText)
                         .fixedSize(horizontal: false, vertical: true)
@@ -698,11 +698,11 @@ private struct SystemClipboardActionSelectionRow: View {
                     .foregroundStyle(isSelected ? .white : AppTheme.primaryText)
                     .frame(width: 42, height: 42)
                     .background(
-                        Diamond()
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .fill(isSelected ? AppTheme.accent : AppTheme.innerCardBackground)
                     )
                     .overlay(
-                        Diamond()
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .stroke(isSelected ? AppTheme.accent : AppTheme.cardBorder, lineWidth: 1)
                     )
             }
@@ -724,18 +724,6 @@ private struct SystemClipboardActionSelectionRow: View {
         }
         .contentShape(Rectangle())
         .onTapGesture(perform: onToggle)
-    }
-}
-
-private struct Diamond: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
-        path.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
-        path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
-        path.addLine(to: CGPoint(x: rect.minX, y: rect.midY))
-        path.closeSubpath()
-        return path
     }
 }
 

@@ -25,6 +25,7 @@ enum KeyboardMetrics {
     static let keyUnitWidth: CGFloat = 28
     static let keyCornerRadius: CGFloat = 7
     static let utilityCornerRadius: CGFloat = 9
+    static let nativeClipboardButtonCornerRadius: CGFloat = 9
     static let actionBarButtonCornerRadius: CGFloat = 17
 
     static let iconButtonWidth: CGFloat = 34
@@ -291,14 +292,6 @@ final class KeyboardPressableButton: UIButton {
     private var borderColorProvider: ((UITraitCollection) -> UIColor)?
     private var usesKeyDepthChrome = false
 
-    var usesDiamondBackground = false {
-        didSet {
-            layer.mask = nil
-            updateDepthChromeAppearance()
-            setNeedsLayout()
-        }
-    }
-
     override var isHighlighted: Bool {
         didSet {
             updatePressedAppearance()
@@ -319,7 +312,6 @@ final class KeyboardPressableButton: UIButton {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        updateBackgroundShape()
         updateDepthChromePaths()
     }
 
@@ -407,27 +399,8 @@ final class KeyboardPressableButton: UIButton {
         layer.borderColor = borderColorProvider(traitCollection).cgColor
     }
 
-    private func updateBackgroundShape() {
-        guard usesDiamondBackground else {
-            layer.mask = nil
-            return
-        }
-
-        let diamondPath = UIBezierPath()
-        diamondPath.move(to: CGPoint(x: bounds.midX, y: bounds.minY))
-        diamondPath.addLine(to: CGPoint(x: bounds.maxX, y: bounds.midY))
-        diamondPath.addLine(to: CGPoint(x: bounds.midX, y: bounds.maxY))
-        diamondPath.addLine(to: CGPoint(x: bounds.minX, y: bounds.midY))
-        diamondPath.close()
-
-        let mask = CAShapeLayer()
-        mask.path = diamondPath.cgPath
-        layer.mask = mask
-        layer.cornerRadius = 0
-    }
-
     private func updateDepthChromeAppearance() {
-        guard usesKeyDepthChrome, !usesDiamondBackground else {
+        guard usesKeyDepthChrome else {
             layer.shadowColor = UIColor.clear.cgColor
             layer.shadowOpacity = 0
             layer.shadowRadius = 0
@@ -463,7 +436,7 @@ final class KeyboardPressableButton: UIButton {
     }
 
     private func updateDepthChromePaths() {
-        guard usesKeyDepthChrome, !usesDiamondBackground, bounds.width > 0, bounds.height > 0 else {
+        guard usesKeyDepthChrome, bounds.width > 0, bounds.height > 0 else {
             return
         }
 

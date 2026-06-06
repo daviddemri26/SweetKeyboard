@@ -334,7 +334,7 @@ final class KeyboardSettingsPanelView: UIView {
 
         systemClipboardActionsHelperLabel.font = .preferredFont(forTextStyle: .footnote)
         systemClipboardActionsHelperLabel.numberOfLines = 0
-        systemClipboardActionsHelperLabel.text = "Choose which diamond buttons SweetKeyboard shows when the native iPhone Clipboard has text copied outside the keyboard."
+        systemClipboardActionsHelperLabel.text = "Choose which rounded-square buttons SweetKeyboard shows when the native iPhone Clipboard has text copied outside the keyboard."
 
         systemClipboardActionsSection.addArrangedSubview(systemClipboardActionsTitleLabel)
         systemClipboardActionsSection.addArrangedSubview(systemClipboardActionsHelperLabel)
@@ -363,7 +363,8 @@ final class KeyboardSettingsPanelView: UIView {
             highlighted: UIImage.SymbolConfiguration(pointSize: KeyboardMetrics.iconPointSize, weight: .semibold)
         )
         button.setSymbolImage(action.symbolNames.lazy.compactMap { UIImage(systemName: $0) }.first)
-        button.usesDiamondBackground = true
+        button.layer.cornerRadius = KeyboardMetrics.nativeClipboardButtonCornerRadius
+        button.layer.cornerCurve = .continuous
         button.accessibilityLabel = action.title
         button.accessibilityHint = action.detail
         button.addTarget(self, action: #selector(buttonTouchDown), for: .touchDown)
@@ -526,11 +527,13 @@ final class KeyboardSettingsPanelView: UIView {
                 )
                 button.setForegroundColors(normal: .white, highlighted: .white)
                 button.setBorder(width: 0)
+                button.layer.cornerRadius = KeyboardMetrics.nativeClipboardButtonCornerRadius
+                button.layer.cornerCurve = .continuous
             } else {
                 KeyboardTheme.applyChrome(
                     to: button,
                     role: .utility,
-                    cornerRadius: 0
+                    cornerRadius: KeyboardMetrics.nativeClipboardButtonCornerRadius
                 )
                 button.setForegroundColors(
                     normal: KeyboardTheme.keyLabelColor,
