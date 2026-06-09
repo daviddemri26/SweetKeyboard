@@ -13,7 +13,15 @@ final class AccentFeatureTests: XCTestCase {
         let state = AccentCatalog.replacementState(for: "E", isUppercase: true)
 
         XCTAssertEqual(state?.baseLetter, "E")
-        XCTAssertEqual(state?.variants, ["É", "È", "Ê", "Ë", "Ē"])
+        XCTAssertEqual(state?.variants, ["È", "É", "Ê", "Ë", "Ē"])
+    }
+
+    func testAccentCatalogUsesFrenchOptimizedVariantOrder() {
+        XCTAssertEqual(AccentCatalog.replacementState(for: "c", isUppercase: false)?.variants, ["ć", "ç", "č"])
+        XCTAssertEqual(AccentCatalog.replacementState(for: "e", isUppercase: false)?.variants, ["è", "é", "ê", "ë", "ē"])
+        XCTAssertEqual(AccentCatalog.replacementState(for: "i", isUppercase: false)?.variants, ["í", "ì", "ī", "î", "ï"])
+        XCTAssertEqual(AccentCatalog.replacementState(for: "o", isUppercase: false)?.variants, ["ó", "ò", "õ", "ø", "ō", "œ", "ô", "ö"])
+        XCTAssertEqual(AccentCatalog.replacementState(for: "u", isUppercase: false)?.variants, ["û", "ü", "ú", "ù", "ū"])
     }
 
     func testAccentCatalogReturnsNilForUnsupportedLetters() {

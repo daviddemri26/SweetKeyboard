@@ -170,12 +170,12 @@ Implemented through `AccentCatalog`, `KeyboardLongPressController`, and dynamic 
 Supported letter long presses:
 
 - `a` -> `à â ä á æ ã å ā`
-- `c` -> `ç ć č`
-- `e` -> `é è ê ë ē`
-- `i` -> `î ï í ì ī`
+- `c` -> `ć ç č`
+- `e` -> `è é ê ë ē`
+- `i` -> `í ì ī î ï`
 - `n` -> `ñ ń ň`
-- `o` -> `ô ö ó ò œ õ ø ō`
-- `u` -> `ù û ü ú ū`
+- `o` -> `ó ò õ ø ō œ ô ö`
+- `u` -> `û ü ú ù ū`
 - `y` -> `ÿ ý`
 
 Supported period long press:
