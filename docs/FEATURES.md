@@ -44,8 +44,8 @@ This document is the detailed functional reference for the current codebase. It 
 
 - Auto-capitalization toggle
 - Clipboard toolbar toggle
-- Native iPhone Clipboard Buttons selector
 - Open clipboard after copy toggle
+- Native iPhone Clipboard Buttons selector
 - Forward delete with Shift toggle
 - Swipe cursor toggle
 - Key haptics toggle

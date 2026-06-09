@@ -229,8 +229,8 @@ Settings are available in two places:
 The current settings are:
 
 - Clipboard toolbar
-- Native iPhone Clipboard Buttons
 - Open clipboard after copy
+- Native iPhone Clipboard Buttons
 - Auto-capitalization
 - Forward delete with Shift
 - Swipe cursor

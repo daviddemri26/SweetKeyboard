@@ -632,6 +632,20 @@ private struct ClipboardToolsSettingsCard: View {
                 }
                 .tint(AppTheme.accent)
 
+                Toggle(isOn: openClipboardAfterCopyEnabled) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Open Clipboard After Copy")
+                            .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                            .foregroundStyle(AppTheme.primaryText)
+
+                        Text("After SweetKeyboard Copy saves selected text, automatically show SweetKeyboard Clipboard.")
+                            .font(.system(.footnote, design: .rounded))
+                            .foregroundStyle(AppTheme.secondaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .tint(AppTheme.accent)
+
                 Divider()
 
                 VStack(alignment: .leading, spacing: 12) {
@@ -659,22 +673,6 @@ private struct ClipboardToolsSettingsCard: View {
                         }
                     }
                 }
-
-                Divider()
-
-                Toggle(isOn: openClipboardAfterCopyEnabled) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Open Clipboard After Copy")
-                            .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                            .foregroundStyle(AppTheme.primaryText)
-
-                        Text("After SweetKeyboard Copy saves selected text, automatically show SweetKeyboard Clipboard.")
-                            .font(.system(.footnote, design: .rounded))
-                            .foregroundStyle(AppTheme.secondaryText)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                }
-                .tint(AppTheme.accent)
 
                 Text(footnote)
                     .font(.system(.footnote, design: .rounded))

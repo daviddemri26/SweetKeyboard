@@ -46,7 +46,6 @@ final class KeyboardSettingsPanelView: UIView {
     private let systemClipboardActionsSection = UIStackView()
     private let systemClipboardActionsTitleLabel = UILabel()
     private let systemClipboardActionsHelperLabel = UILabel()
-    private let systemClipboardActionsSeparator = UIView()
 
     private let openClipboardAfterCopyRow = UIStackView()
     private let openClipboardAfterCopyTitleLabel = UILabel()
@@ -72,7 +71,6 @@ final class KeyboardSettingsPanelView: UIView {
     private let cursorSwipeSwitch = UISwitch()
 
     private var clipboardSeparatorHeightConstraint: NSLayoutConstraint?
-    private var systemClipboardActionsSeparatorHeightConstraint: NSLayoutConstraint?
     private var hapticsSeparatorHeightConstraint: NSLayoutConstraint?
     private var autoCapitalizationSeparatorHeightConstraint: NSLayoutConstraint?
     private var forwardDeleteWithShiftSeparatorHeightConstraint: NSLayoutConstraint?
@@ -209,11 +207,10 @@ final class KeyboardSettingsPanelView: UIView {
         configureCard(generalCard, stack: generalCardStack)
 
         clipboardToolsCardStack.addArrangedSubview(clipboardRow)
+        clipboardToolsCardStack.addArrangedSubview(openClipboardAfterCopyRow)
         clipboardToolsCardStack.addArrangedSubview(clipboardInfoRow)
         clipboardToolsCardStack.addArrangedSubview(clipboardSeparator)
         clipboardToolsCardStack.addArrangedSubview(systemClipboardActionsSection)
-        clipboardToolsCardStack.addArrangedSubview(systemClipboardActionsSeparator)
-        clipboardToolsCardStack.addArrangedSubview(openClipboardAfterCopyRow)
 
         generalCardStack.addArrangedSubview(hapticsRow)
         generalCardStack.addArrangedSubview(hapticsSeparator)
@@ -224,9 +221,6 @@ final class KeyboardSettingsPanelView: UIView {
         generalCardStack.addArrangedSubview(cursorSwipeRow)
 
         clipboardSeparatorHeightConstraint = clipboardSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
-        systemClipboardActionsSeparatorHeightConstraint = systemClipboardActionsSeparator.heightAnchor.constraint(
-            equalToConstant: separatorThickness
-        )
         hapticsSeparatorHeightConstraint = hapticsSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
         autoCapitalizationSeparatorHeightConstraint = autoCapitalizationSeparator.heightAnchor.constraint(
             equalToConstant: separatorThickness
@@ -251,7 +245,6 @@ final class KeyboardSettingsPanelView: UIView {
             closeButton.widthAnchor.constraint(equalToConstant: 28),
             closeButton.heightAnchor.constraint(equalToConstant: 28),
             clipboardSeparatorHeightConstraint!,
-            systemClipboardActionsSeparatorHeightConstraint!,
             hapticsSeparatorHeightConstraint!,
             autoCapitalizationSeparatorHeightConstraint!,
             forwardDeleteWithShiftSeparatorHeightConstraint!
@@ -440,7 +433,6 @@ final class KeyboardSettingsPanelView: UIView {
         clipboardToolsCard.backgroundColor = KeyboardTheme.settingsGroupBackground
         generalCard.backgroundColor = KeyboardTheme.settingsGroupBackground
         clipboardSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
-        systemClipboardActionsSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
         hapticsSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
         autoCapitalizationSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
         forwardDeleteWithShiftSeparator.backgroundColor = KeyboardTheme.settingsSeparatorColor
@@ -559,7 +551,6 @@ final class KeyboardSettingsPanelView: UIView {
 
     private func updateSeparatorThickness() {
         clipboardSeparatorHeightConstraint?.constant = separatorThickness
-        systemClipboardActionsSeparatorHeightConstraint?.constant = separatorThickness
         hapticsSeparatorHeightConstraint?.constant = separatorThickness
         autoCapitalizationSeparatorHeightConstraint?.constant = separatorThickness
         forwardDeleteWithShiftSeparatorHeightConstraint?.constant = separatorThickness
