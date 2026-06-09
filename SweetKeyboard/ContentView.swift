@@ -257,11 +257,11 @@ private struct SettingsView: View {
             )
 
             SettingsToggleCard(
-                title: "Forward delete with Shift",
-                message: "When Shift is manually enabled, Delete removes the character after the cursor.",
+                title: "Key haptics",
+                message: "Adds light haptic feedback to supported keys and actions.",
                 isOn: Binding(
-                    get: { model.sharedSettings.forwardDeleteWithShiftEnabled },
-                    set: model.setForwardDeleteWithShiftEnabled
+                    get: { model.sharedSettings.keyHapticsEnabled },
+                    set: model.setKeyHapticsEnabled
                 )
             )
 
@@ -275,11 +275,11 @@ private struct SettingsView: View {
             )
 
             SettingsToggleCard(
-                title: "Key haptics",
-                message: "Adds light haptic feedback to supported keys and actions.",
+                title: "Forward delete with Shift",
+                message: "When Shift is manually enabled, Delete removes the character after the cursor.",
                 isOn: Binding(
-                    get: { model.sharedSettings.keyHapticsEnabled },
-                    set: model.setKeyHapticsEnabled
+                    get: { model.sharedSettings.forwardDeleteWithShiftEnabled },
+                    set: model.setForwardDeleteWithShiftEnabled
                 )
             )
         }
@@ -320,7 +320,8 @@ private struct InfoView: View {
                 items: [
                     "Third-party keyboards are unavailable in some secure fields.",
                     "Some apps limit or completely block custom keyboards.",
-                    "The Copy action depends on text exposed by the host app."
+                    "The Copy action depends on text exposed by the host app.",
+                    "Clear Text Field is best effort in long documents because iOS may expose only part of the active text to a keyboard extension."
                 ]
             )
 
@@ -371,6 +372,12 @@ private struct FeaturesView: View {
             systemImage: "delete.forward",
             callout: "Manual Shift"
         ),
+        EssentialFeature(
+            title: "Clear text field",
+            message: "Tap the eraser in the top toolbar to clear the active field. Short fields usually clear immediately; long documents depend on the text context exposed by the host app.",
+            systemImage: "eraser.line.dashed.fill",
+            callout: "Best effort"
+        ),
             EssentialFeature(
                 title: "SweetKeyboard Clipboard and Favorites",
                 message: "Keep copied text in SweetKeyboard Clipboard, pin important snippets as favorites, and paste them back with one tap.",
@@ -418,6 +425,7 @@ private struct FeaturesView: View {
         "Always-on numbers",
         "One symbols page",
         "Cursor control",
+        "Clear field",
         "SweetKeyboard Clipboard"
     ]
 
@@ -624,7 +632,7 @@ private struct ClipboardToolsSettingsCard: View {
                             .font(.system(.subheadline, design: .rounded).weight(.semibold))
                             .foregroundStyle(AppTheme.primaryText)
 
-                        Text("Shows Copy, native iPhone Clipboard actions, SweetKeyboard Clipboard, and Settings above the keyboard.")
+                        Text("Shows Copy, Clear Text Field, native iPhone Clipboard actions, SweetKeyboard Clipboard, and Settings above the keyboard.")
                             .font(.system(.footnote, design: .rounded))
                             .foregroundStyle(AppTheme.secondaryText)
                             .fixedSize(horizontal: false, vertical: true)

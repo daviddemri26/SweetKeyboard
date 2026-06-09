@@ -32,6 +32,7 @@ This document is the detailed functional reference for the current codebase. It 
 
 - Optional top action bar in clipboard mode
 - `Copy`
+- `Clear Text Field`
 - Configurable native iPhone Clipboard rounded-square buttons: `Import and Paste`, `Just Import`, and `Just Paste`
 - `Clipboard`
 - `Settings`
@@ -245,6 +246,8 @@ Interaction rules:
 
 - `Copy` saves the selected text if the host exposes it, or the selected text inside an open clipboard detail view, into SweetKeyboard Clipboard
 - `Copy` can optionally open SweetKeyboard Clipboard automatically after a successful save
+- `Clear Text Field` attempts to clear the active field from the toolbar by deleting selected text, moving to the exposed end of the field, and deleting backward in batches
+- `Clear Text Field` is usually immediate in short fields, but large documents can be slower or incomplete when the host app exposes limited text context to the keyboard extension
 - The top toolbar checks native iPhone Clipboard availability about once per second while the keyboard is open and shows selected rounded-square buttons when iOS reports plain text is available
 - `Import and Paste` imports native iPhone Clipboard text into SweetKeyboard Clipboard and pastes it into the active field
 - `Just Import` saves native iPhone Clipboard text to SweetKeyboard Clipboard and opens SweetKeyboard Clipboard
@@ -329,6 +332,7 @@ Features tab hierarchy:
 - Native-style symbols grouped on one page
 - Left and right cursor keys
 - Keyboard-wide swipe cursor movement with speed-aware travel
+- Clear active field from the top toolbar, with best-effort behavior in long documents
 - SweetKeyboard Clipboard with pinned favorites and one-tap paste
 - Secondary compact coverage for auto-capitalization, action key, email shortcut, emoji, symbol lock, long-press shortcuts, haptics, shared settings, and local privacy
 
@@ -352,6 +356,7 @@ The current test suite explicitly covers the newest functional work:
 - shared settings backward compatibility
 - SweetKeyboard Clipboard preservation and item-cap rules
 - clipboard pinning and ordering rules
+- clear text field deletion across cursor positions, selections, truncated context, and inaccessible host context
 
 ## Platform Constraints
 
@@ -359,6 +364,7 @@ The current test suite explicitly covers the newest functional work:
 - Some apps block custom keyboards altogether
 - Host apps do not always expose enough trait information for perfect return-key matching
 - Copy depends on the host exposing plain selected text to the extension
+- Clear Text Field depends on the host exposing editable text context around the insertion point; it is best effort in long notes, documents, and apps with limited proxy context
 - The keyboard extension API does not expose selected text attributes, so rich styling and list formatting are out of scope for copy/paste
 
 ## Suggested Positioning For Future Copy
@@ -367,6 +373,7 @@ The current test suite explicitly covers the newest functional work:
 - "Numbers always visible"
 - "Symbols in one place"
 - "Cursor movement without the magnifier"
+- "Clear short fields with one tap"
 - "Favorites for the snippets you paste again"
 - "Clipboard tools only if you opt in"
 - "Private by default, local by design"

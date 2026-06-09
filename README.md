@@ -33,7 +33,7 @@ SweetKeyboard helps users type faster without forcing them to learn a new layout
 - Emoji access from the symbols layer without adding a separate primary keyboard
 - Contextual `@` shortcut in email fields
 - Contextual action key that adapts to host app return-key traits
-- Optional clipboard toolbar with Copy, configurable native iPhone Clipboard actions, SweetKeyboard Clipboard, and pinned favorites
+- Optional clipboard toolbar with Copy, Clear Text Field, configurable native iPhone Clipboard actions, SweetKeyboard Clipboard, and pinned favorites
 - Local-only privacy model with no analytics, no sync, and no remote text processing
 
 ### What Feels Different
@@ -49,6 +49,7 @@ SweetKeyboard is intentionally optimized around practical typing flows rather th
 - It exposes accent and punctuation variants through long press on supported keys.
 - It follows host auto-capitalization intent in compatible fields instead of forcing a static Shift behavior.
 - It lets users keep reusable snippets near the top of SweetKeyboard Clipboard by pinning them.
+- It can clear the active text field from the toolbar, with best-effort behavior in large documents where iOS exposes limited text context to keyboard extensions.
 
 ### Main User-Facing Features
 
@@ -67,7 +68,7 @@ SweetKeyboard is intentionally optimized around practical typing flows rather th
 - Long-press accent variants for `a`, `c`, `e`, `i`, `n`, `o`, `u`, and `y`
 - Long-press period variants: `…`, `:`, `•`, `@`, `!`, `?`, `,`
 - Contextual action key for `return`, `search`, `go`, `next`, `send`, `done`, and related host return-key types
-- Optional clipboard toolbar with `Copy`, native iPhone Clipboard actions, `Clipboard`, and `Settings`
+- Optional clipboard toolbar with `Copy`, `Clear Text Field`, native iPhone Clipboard actions, `Clipboard`, and `Settings`
 - Local SweetKeyboard Clipboard grid inside the keyboard
 - Pinned clipboard favorites shown before unpinned history
 - Optional auto-open SweetKeyboard Clipboard after `Copy`
@@ -195,6 +196,7 @@ Behavior highlights:
 - The top action bar appears only when Full Access is available and clipboard mode is enabled
 - A `Hide Keyboard` toolbar button dismisses the keyboard with `dismissKeyboard()`; this hides the keyboard UI only and does not force the host text field to lose focus
 - `Copy` uses `selectedText` when the host exposes it, or selected text inside a clipboard detail view; it writes plain text only and verifies the pasteboard round trip byte-for-byte before saving to SweetKeyboard Clipboard
+- `Clear Text Field` uses `selectedText`, `documentContextAfterInput`, `adjustTextPosition(byCharacterOffset:)`, and repeated `deleteBackward()` batches to clear as much of the active field as iOS exposes to the keyboard extension
 - Native iPhone Clipboard action buttons appear as rounded-square buttons when iOS reports that plain text is available; SweetKeyboard checks availability about once per second while the keyboard is open, and shared settings choose any combination of `Import and Paste`, `Just Import`, and `Just Paste`
 - SweetKeyboard Clipboard is local only
 - Pinned favorites are shown before unpinned history
@@ -247,6 +249,7 @@ The Features tab is the marketing-oriented surface for the keyboard's differenti
 - one-page symbols layout
 - cursor arrow keys
 - keyboard-wide cursor swipe movement
+- clear active field from the toolbar
 - SweetKeyboard Clipboard and pinned favorites
 
 The SwiftUI app chrome follows the phone's light or dark appearance automatically.
@@ -265,6 +268,7 @@ The SwiftUI app chrome follows the phone's light or dark appearance automaticall
 - Some apps block custom keyboards entirely
 - Host apps do not always expose enough `UITextInputTraits` information for perfect action-key matching
 - Copy depends on the host exposing plain `selectedText` to the keyboard extension
+- Clear Text Field is best effort: it is usually instant in short fields, but large documents or host apps that expose limited text context may clear more slowly or incompletely
 - Rich-text attributes, styles, and list formatting are not available through the keyboard text proxy, so clipboard tools intentionally preserve exact plain text only
 - Real-world keyboard behavior should be validated on device, not only in Simulator
 

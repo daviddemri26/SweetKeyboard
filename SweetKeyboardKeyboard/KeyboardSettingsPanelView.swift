@@ -173,13 +173,6 @@ final class KeyboardSettingsPanelView: UIView {
             action: #selector(openClipboardAfterCopySwitchChanged)
         )
         configureRow(
-            hapticsRow,
-            titleLabel: hapticsTitleLabel,
-            title: "Key Haptics",
-            toggle: hapticsSwitch,
-            action: #selector(hapticsSwitchChanged)
-        )
-        configureRow(
             autoCapitalizationRow,
             titleLabel: autoCapitalizationTitleLabel,
             title: "Auto-capitalization",
@@ -187,11 +180,11 @@ final class KeyboardSettingsPanelView: UIView {
             action: #selector(autoCapitalizationSwitchChanged)
         )
         configureRow(
-            forwardDeleteWithShiftRow,
-            titleLabel: forwardDeleteWithShiftTitleLabel,
-            title: "Forward Delete with Shift",
-            toggle: forwardDeleteWithShiftSwitch,
-            action: #selector(forwardDeleteWithShiftSwitchChanged)
+            hapticsRow,
+            titleLabel: hapticsTitleLabel,
+            title: "Key Haptics",
+            toggle: hapticsSwitch,
+            action: #selector(hapticsSwitchChanged)
         )
         configureRow(
             cursorSwipeRow,
@@ -199,6 +192,13 @@ final class KeyboardSettingsPanelView: UIView {
             title: "Swipe Cursor",
             toggle: cursorSwipeSwitch,
             action: #selector(cursorSwipeSwitchChanged)
+        )
+        configureRow(
+            forwardDeleteWithShiftRow,
+            titleLabel: forwardDeleteWithShiftTitleLabel,
+            title: "Forward Delete with Shift",
+            toggle: forwardDeleteWithShiftSwitch,
+            action: #selector(forwardDeleteWithShiftSwitchChanged)
         )
 
         configureInfoRow()
@@ -211,13 +211,13 @@ final class KeyboardSettingsPanelView: UIView {
         clipboardToolsCardStack.addArrangedSubview(clipboardSeparator)
         clipboardToolsCardStack.addArrangedSubview(systemClipboardActionsSection)
 
-        generalCardStack.addArrangedSubview(hapticsRow)
-        generalCardStack.addArrangedSubview(hapticsSeparator)
         generalCardStack.addArrangedSubview(autoCapitalizationRow)
         generalCardStack.addArrangedSubview(autoCapitalizationSeparator)
-        generalCardStack.addArrangedSubview(forwardDeleteWithShiftRow)
-        generalCardStack.addArrangedSubview(forwardDeleteWithShiftSeparator)
+        generalCardStack.addArrangedSubview(hapticsRow)
+        generalCardStack.addArrangedSubview(hapticsSeparator)
         generalCardStack.addArrangedSubview(cursorSwipeRow)
+        generalCardStack.addArrangedSubview(forwardDeleteWithShiftSeparator)
+        generalCardStack.addArrangedSubview(forwardDeleteWithShiftRow)
 
         clipboardSeparatorHeightConstraint = clipboardSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)
         hapticsSeparatorHeightConstraint = hapticsSeparator.heightAnchor.constraint(equalToConstant: separatorThickness)

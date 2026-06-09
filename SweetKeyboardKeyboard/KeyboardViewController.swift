@@ -98,6 +98,8 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
     private var isKeyboardViewVisible = false
     private var pasteboardChangeObserver: NSObjectProtocol?
     private var clipboardImportAvailabilityTimer: Timer?
+    private var clearTextDeletionController: ClearTextFieldDeletionController?
+    private var clearTextDeletionGeneration = 0
 
     private weak var actionKeyButton: UIButton?
     private weak var actionKeyHitTarget: KeyboardHitTargetButton?
@@ -297,6 +299,8 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
                 pasteSystemClipboardFromUserAction(savesToHistory: true)
             case .clipboard:
                 toggleMode(.clipboard)
+            case .clearText:
+                clearTextField()
             case .settings:
                 self.handleNonLetterPostAction(.settings, allowsImmediateRebuild: true)
                 toggleMode(.settings)
@@ -600,6 +604,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
     }
 
     private func cancelSequencedInteractions(performDeferredRebuild: Bool = true) {
+        cancelClearTextDeletion()
         pressSequenceCoordinator.cancelAll()
         characterHoldController.stop()
 
@@ -1174,6 +1179,55 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
 
     }
 
+    private func clearTextField() {
+        stopKeyRepeats()
+        let didClearAccentState = clearAccentState(rebuild: false)
+        clearTextDeletionGeneration += 1
+        clearTextDeletionController = ClearTextFieldDeletionController()
+        performClearTextDeletionBatch(
+            generation: clearTextDeletionGeneration,
+            forceKeyboardRebuildOnCompletion: didClearAccentState
+        )
+    }
+
+    private func cancelClearTextDeletion() {
+        guard clearTextDeletionController != nil else {
+            return
+        }
+
+        clearTextDeletionGeneration += 1
+        clearTextDeletionController = nil
+    }
+
+    private func performClearTextDeletionBatch(
+        generation: Int,
+        forceKeyboardRebuildOnCompletion: Bool
+    ) {
+        guard generation == clearTextDeletionGeneration,
+              var controller = clearTextDeletionController else {
+            return
+        }
+
+        let result = controller.performNextBatch(on: UITextDocumentProxyClearTextAdapter(textDocumentProxy))
+        clearTextDeletionController = controller
+
+        switch result.status {
+        case .needsAnotherBatch:
+            DispatchQueue.main.async { [weak self] in
+                self?.performClearTextDeletionBatch(
+                    generation: generation,
+                    forceKeyboardRebuildOnCompletion: forceKeyboardRebuildOnCompletion
+                )
+            }
+        case .complete, .stalled, .reachedBatchLimit:
+            clearTextDeletionController = nil
+            refreshInputContext(
+                forceKeyboardRebuild: forceKeyboardRebuildOnCompletion,
+                allowsImmediateRebuild: true
+            )
+        }
+    }
+
     private func refreshClipboardImportAvailabilityMonitoring() {
         guard canMonitorSystemClipboardImport else {
             stopClipboardImportAvailabilityMonitoring()
@@ -1446,6 +1500,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
     }
 
     private func beginSequencedTouch(on sender: UIButton, kind: SequencedKeyKind) {
+        cancelClearTextDeletion()
         characterHoldController.stop()
         triggerKeyPressHaptic()
         let keyID = ObjectIdentifier(sender)
@@ -1645,6 +1700,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
     }
 
     @objc private func backspaceTouchDown(_ sender: UIButton) {
+        cancelClearTextDeletion()
         cancelSequencedInteractions()
         let direction: DeleteDirection = isForwardDeleteActive ? .forward : .backward
         activeDeleteDirection = direction
@@ -1690,6 +1746,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
     }
 
     @objc private func cursorMovementTouchDown(_ sender: UIButton) {
+        cancelClearTextDeletion()
         cancelSequencedInteractions()
         triggerKeyPressHaptic()
         cursorRepeatController.begin(on: sender, identifier: sender.tag) { [weak self, offset = sender.tag] in

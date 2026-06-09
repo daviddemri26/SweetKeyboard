@@ -7,6 +7,7 @@ final class KeyboardActionBarView: UIView {
         case pasteClipboard
         case importAndPasteClipboard
         case clipboard
+        case clearText
         case settings
         case hideKeyboard
     }
@@ -23,6 +24,7 @@ final class KeyboardActionBarView: UIView {
     )
     private let copyButton = KeyboardActionBarView.makeIconButton(symbolName: "square.on.square")
     private let clipboardButton = KeyboardActionBarView.makeIconButton(symbolName: "list.clipboard.fill")
+    private let clearTextButton = KeyboardActionBarView.makeIconButton(symbolName: "eraser.line.dashed.fill")
 
     private var isClipboardActive = false
     private var isSettingsActive = false
@@ -80,23 +82,49 @@ final class KeyboardActionBarView: UIView {
         leftStack.alignment = .fill
         leftStack.spacing = KeyboardMetrics.utilityRowButtonSpacing
 
-        let spacer = UIView()
-        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        let centerStack = UIStackView(arrangedSubviews: [clearTextButton])
+        centerStack.axis = .horizontal
+        centerStack.alignment = .fill
+        centerStack.spacing = KeyboardMetrics.utilityRowButtonSpacing
 
-        let stack = UIStackView(arrangedSubviews: [leftStack, spacer, rightStack])
-        stack.axis = .horizontal
-        stack.alignment = .fill
-        stack.distribution = .fill
-        stack.spacing = KeyboardMetrics.utilityGroupSpacing
+        let layoutContainer = UIView()
+        addSubview(layoutContainer)
+        layoutContainer.translatesAutoresizingMaskIntoConstraints = false
+        leftStack.translatesAutoresizingMaskIntoConstraints = false
+        centerStack.translatesAutoresizingMaskIntoConstraints = false
+        rightStack.translatesAutoresizingMaskIntoConstraints = false
+        layoutContainer.addSubview(leftStack)
+        layoutContainer.addSubview(centerStack)
+        layoutContainer.addSubview(rightStack)
 
-        addSubview(stack)
-        stack.translatesAutoresizingMaskIntoConstraints = false
+        let centerXConstraint = centerStack.centerXAnchor.constraint(equalTo: layoutContainer.centerXAnchor)
+        centerXConstraint.priority = UILayoutPriority(750)
 
         NSLayoutConstraint.activate([
-            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: KeyboardMetrics.visualHorizontalInset),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -KeyboardMetrics.visualHorizontalInset),
-            stack.topAnchor.constraint(equalTo: topAnchor),
-            stack.bottomAnchor.constraint(equalTo: bottomAnchor),
+            layoutContainer.leadingAnchor.constraint(equalTo: leadingAnchor, constant: KeyboardMetrics.visualHorizontalInset),
+            layoutContainer.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -KeyboardMetrics.visualHorizontalInset),
+            layoutContainer.topAnchor.constraint(equalTo: topAnchor),
+            layoutContainer.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            leftStack.leadingAnchor.constraint(equalTo: layoutContainer.leadingAnchor),
+            leftStack.topAnchor.constraint(equalTo: layoutContainer.topAnchor),
+            leftStack.bottomAnchor.constraint(equalTo: layoutContainer.bottomAnchor),
+
+            centerXConstraint,
+            centerStack.leadingAnchor.constraint(
+                greaterThanOrEqualTo: leftStack.trailingAnchor,
+                constant: KeyboardMetrics.utilityGroupSpacing
+            ),
+            centerStack.trailingAnchor.constraint(
+                lessThanOrEqualTo: rightStack.leadingAnchor,
+                constant: -KeyboardMetrics.utilityGroupSpacing
+            ),
+            centerStack.topAnchor.constraint(equalTo: layoutContainer.topAnchor),
+            centerStack.bottomAnchor.constraint(equalTo: layoutContainer.bottomAnchor),
+
+            rightStack.trailingAnchor.constraint(equalTo: layoutContainer.trailingAnchor),
+            rightStack.topAnchor.constraint(equalTo: layoutContainer.topAnchor),
+            rightStack.bottomAnchor.constraint(equalTo: layoutContainer.bottomAnchor),
             heightAnchor.constraint(equalToConstant: KeyboardMetrics.utilityRowHeight)
         ])
 
@@ -105,6 +133,7 @@ final class KeyboardActionBarView: UIView {
         pasteClipboardButton.addTarget(self, action: #selector(pasteClipboardTapped), for: .touchUpInside)
         importAndPasteClipboardButton.addTarget(self, action: #selector(importAndPasteClipboardTapped), for: .touchUpInside)
         clipboardButton.addTarget(self, action: #selector(clipboardTapped), for: .touchUpInside)
+        clearTextButton.addTarget(self, action: #selector(clearTextTapped), for: .touchUpInside)
         settingsButton.addTarget(self, action: #selector(settingsTapped), for: .touchUpInside)
         hideKeyboardButton.addTarget(self, action: #selector(hideKeyboardTapped), for: .touchUpInside)
         [
@@ -113,6 +142,7 @@ final class KeyboardActionBarView: UIView {
             pasteClipboardButton,
             importAndPasteClipboardButton,
             clipboardButton,
+            clearTextButton,
             settingsButton,
             hideKeyboardButton
         ].forEach {
@@ -132,6 +162,8 @@ final class KeyboardActionBarView: UIView {
         importAndPasteClipboardButton.accessibilityHint = "Imports the current native iPhone Clipboard text into SweetKeyboard Clipboard and pastes it."
         clipboardButton.accessibilityLabel = "Clipboard"
         clipboardButton.accessibilityHint = "Shows SweetKeyboard Clipboard."
+        clearTextButton.accessibilityLabel = "Clear text field"
+        clearTextButton.accessibilityHint = "Deletes the text in the active field."
         settingsButton.accessibilityLabel = "Settings"
         settingsButton.accessibilityHint = "Shows SweetKeyboard settings."
         hideKeyboardButton.accessibilityLabel = "Hide keyboard"
@@ -171,6 +203,11 @@ final class KeyboardActionBarView: UIView {
             to: importAndPasteClipboardButton,
             role: .utility,
             cornerRadius: KeyboardMetrics.nativeClipboardButtonCornerRadius
+        )
+        KeyboardTheme.applyChrome(
+            to: clearTextButton,
+            role: .utility,
+            cornerRadius: KeyboardMetrics.actionBarButtonCornerRadius
         )
         KeyboardTheme.applyChrome(
             to: settingsButton,
@@ -234,6 +271,10 @@ final class KeyboardActionBarView: UIView {
 
     @objc private func clipboardTapped() {
         onAction?(.clipboard)
+    }
+
+    @objc private func clearTextTapped() {
+        onAction?(.clearText)
     }
 
     @objc private func settingsTapped() {
