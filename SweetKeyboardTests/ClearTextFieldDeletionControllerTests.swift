@@ -77,6 +77,44 @@ final class ClearTextFieldDeletionControllerTests: XCTestCase {
         XCTAssertEqual(proxy.cursorOffset, 0)
     }
 
+    func testCursorNudgeRecoversWhenHostStopsExposingContext() {
+        let proxy = MockClearTextDocumentProxy(
+            text: "abcdefghijklmnopqrstuvwxyz",
+            cursorOffset: 13,
+            contextLimit: 4,
+            hiddenContextOffsets: [13]
+        )
+        var controller = ClearTextFieldDeletionController(
+            maximumOperationsPerBatch: 6,
+            maximumCursorNudgeAttempts: 4
+        )
+
+        let result = drain(&controller, proxy: proxy, maximumDrainCount: 20)
+
+        XCTAssertEqual(result.status, .complete)
+        XCTAssertEqual(proxy.text, "")
+        XCTAssertEqual(proxy.cursorOffset, 0)
+    }
+
+    func testCursorNudgeTriesRightWhenLeftDoesNotExposeContext() {
+        let proxy = MockClearTextDocumentProxy(
+            text: "abcdefghijklmnopqrstuvwxyz",
+            cursorOffset: 0,
+            contextLimit: 4,
+            hiddenContextOffsets: [0]
+        )
+        var controller = ClearTextFieldDeletionController(
+            maximumOperationsPerBatch: 6,
+            maximumCursorNudgeAttempts: 4
+        )
+
+        let result = drain(&controller, proxy: proxy, maximumDrainCount: 20)
+
+        XCTAssertEqual(result.status, .complete)
+        XCTAssertEqual(proxy.text, "")
+        XCTAssertEqual(proxy.cursorOffset, 0)
+    }
+
     func testEmptyFieldCompletesWithoutOperations() {
         let proxy = MockClearTextDocumentProxy(text: "", cursorOffset: 0)
         var controller = ClearTextFieldDeletionController(maximumOperationsPerBatch: 20)
@@ -93,11 +131,14 @@ final class ClearTextFieldDeletionControllerTests: XCTestCase {
             cursorOffset: 0,
             contextLimit: 0
         )
-        var controller = ClearTextFieldDeletionController(maximumOperationsPerBatch: 20)
+        var controller = ClearTextFieldDeletionController(
+            maximumOperationsPerBatch: 20,
+            maximumCursorNudgeAttempts: 2
+        )
 
-        let result = controller.performNextBatch(on: proxy)
+        let result = drain(&controller, proxy: proxy, maximumDrainCount: 4)
 
-        XCTAssertEqual(result, ClearTextFieldDeletionBatchResult(status: .stalled, operationCount: 0))
+        XCTAssertEqual(result.status, .stalled)
         XCTAssertEqual(proxy.text, "hidden")
     }
 
@@ -123,6 +164,7 @@ final class ClearTextFieldDeletionControllerTests: XCTestCase {
 private final class MockClearTextDocumentProxy: ClearTextDocumentProxy {
     private var characters: [Character]
     private let contextLimit: Int
+    private let hiddenContextOffsets: Set<Int>
     private var selectedOffsets: Range<Int>?
     private(set) var cursorOffset: Int
 
@@ -130,12 +172,14 @@ private final class MockClearTextDocumentProxy: ClearTextDocumentProxy {
         text: String,
         cursorOffset: Int,
         selectedRange: Range<Int>? = nil,
-        contextLimit: Int = .max
+        contextLimit: Int = .max,
+        hiddenContextOffsets: Set<Int> = []
     ) {
         self.characters = Array(text)
         self.cursorOffset = min(max(0, cursorOffset), characters.count)
         self.selectedOffsets = selectedRange
         self.contextLimit = max(0, contextLimit)
+        self.hiddenContextOffsets = hiddenContextOffsets
     }
 
     var text: String {
@@ -143,11 +187,19 @@ private final class MockClearTextDocumentProxy: ClearTextDocumentProxy {
     }
 
     var documentContextBeforeInput: String? {
+        guard !hiddenContextOffsets.contains(cursorOffset) else {
+            return ""
+        }
+
         let lowerBound = max(0, cursorOffset - contextLimit)
         return String(characters[lowerBound..<cursorOffset])
     }
 
     var documentContextAfterInput: String? {
+        guard !hiddenContextOffsets.contains(cursorOffset) else {
+            return ""
+        }
+
         let upperBound = min(characters.count, cursorOffset.safelyAdding(contextLimit))
         return String(characters[cursorOffset..<upperBound])
     }

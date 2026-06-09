@@ -60,11 +60,18 @@ struct ClearTextFieldDeletionBatchResult: Equatable {
 struct ClearTextFieldDeletionController {
     private let maximumOperationsPerBatch: Int
     private let maximumBatchCount: Int
+    private let maximumCursorNudgeAttempts: Int
     private var completedBatchCount = 0
+    private var consecutiveCursorNudgeCount = 0
 
-    init(maximumOperationsPerBatch: Int = 120, maximumBatchCount: Int = 1_000) {
+    init(
+        maximumOperationsPerBatch: Int = 120,
+        maximumBatchCount: Int = 1_000,
+        maximumCursorNudgeAttempts: Int = 64
+    ) {
         self.maximumOperationsPerBatch = max(1, maximumOperationsPerBatch)
         self.maximumBatchCount = max(1, maximumBatchCount)
+        self.maximumCursorNudgeAttempts = max(0, maximumCursorNudgeAttempts)
     }
 
     mutating func performNextBatch(on proxy: ClearTextDocumentProxy) -> ClearTextFieldDeletionBatchResult {
@@ -78,20 +85,31 @@ struct ClearTextFieldDeletionController {
         while operationCount < maximumOperationsPerBatch {
             if let selectedText = proxy.selectedText, !selectedText.isEmpty {
                 proxy.deleteBackward()
+                consecutiveCursorNudgeCount = 0
                 operationCount += 1
                 continue
             }
 
             if let followingText = proxy.documentContextAfterInput, !followingText.isEmpty {
                 proxy.adjustTextPosition(byCharacterOffset: followingText.count)
-                operationCount += 1
+                proxy.deleteBackward()
+                consecutiveCursorNudgeCount = 0
+                operationCount += 2
                 continue
             }
 
             if let precedingText = proxy.documentContextBeforeInput, !precedingText.isEmpty {
                 proxy.deleteBackward()
+                consecutiveCursorNudgeCount = 0
                 operationCount += 1
                 continue
+            }
+
+            if proxy.hasText, nudgeCursorToExposeMoreContext(on: proxy) {
+                return ClearTextFieldDeletionBatchResult(
+                    status: .needsAnotherBatch,
+                    operationCount: operationCount + 1
+                )
             }
 
             return ClearTextFieldDeletionBatchResult(
@@ -105,5 +123,17 @@ struct ClearTextFieldDeletionController {
         }
 
         return ClearTextFieldDeletionBatchResult(status: .needsAnotherBatch, operationCount: operationCount)
+    }
+
+    private mutating func nudgeCursorToExposeMoreContext(on proxy: ClearTextDocumentProxy) -> Bool {
+        guard consecutiveCursorNudgeCount < maximumCursorNudgeAttempts else {
+            return false
+        }
+
+        let leftAttemptCount = max(1, maximumCursorNudgeAttempts * 3 / 4)
+        let offset = consecutiveCursorNudgeCount < leftAttemptCount ? -1 : 1
+        consecutiveCursorNudgeCount += 1
+        proxy.adjustTextPosition(byCharacterOffset: offset)
+        return true
     }
 }
