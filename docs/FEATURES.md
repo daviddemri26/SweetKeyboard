@@ -32,7 +32,7 @@ This document is the detailed functional reference for the current codebase. It 
 
 - Optional top action bar in clipboard mode
 - `Copy`
-- Configurable native iPhone Clipboard rounded-square buttons: `Import and Paste`, `Import`, and `Paste`
+- Configurable native iPhone Clipboard rounded-square buttons: `Import and Paste`, `Just Import`, and `Just Paste`
 - `Clipboard`
 - `Settings`
 - `Hide Keyboard`
@@ -247,8 +247,8 @@ Interaction rules:
 - `Copy` can optionally open SweetKeyboard Clipboard automatically after a successful save
 - The top toolbar checks native iPhone Clipboard availability about once per second while the keyboard is open and shows selected rounded-square buttons when iOS reports plain text is available
 - `Import and Paste` imports native iPhone Clipboard text into SweetKeyboard Clipboard and pastes it into the active field
-- `Import` saves native iPhone Clipboard text to SweetKeyboard Clipboard and opens SweetKeyboard Clipboard
-- `Paste` pastes native iPhone Clipboard text into the active field without saving it
+- `Just Import` saves native iPhone Clipboard text to SweetKeyboard Clipboard and opens SweetKeyboard Clipboard
+- `Just Paste` pastes native iPhone Clipboard text into the active field without saving it
 - Selecting a history item inserts it directly into the current field
 - Long-pressing a history item opens a full-text detail view with Back and Paste actions; selected detail text can be copied into history from the top action bar
 - Detail view actions can pin or unpin an item

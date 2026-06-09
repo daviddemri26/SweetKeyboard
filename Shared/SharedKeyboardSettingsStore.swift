@@ -10,9 +10,9 @@ enum SystemClipboardAction: String, Codable, CaseIterable, Equatable, Hashable {
         case .pasteAndSave:
             return "Import and Paste"
         case .importOnly:
-            return "Import"
+            return "Just Import"
         case .pasteOnly:
-            return "Paste"
+            return "Just Paste"
         }
     }
 
@@ -21,9 +21,9 @@ enum SystemClipboardAction: String, Codable, CaseIterable, Equatable, Hashable {
         case .pasteAndSave:
             return "Import text from the native iPhone Clipboard into SweetKeyboard Clipboard and paste it into the active field."
         case .importOnly:
-            return "Import text from the native iPhone Clipboard into SweetKeyboard Clipboard."
+            return "Just import text from the native iPhone Clipboard into SweetKeyboard Clipboard."
         case .pasteOnly:
-            return "Paste text from the native iPhone Clipboard into the active field."
+            return "Just paste text from the native iPhone Clipboard into the active field."
         }
     }
 
@@ -34,7 +34,7 @@ enum SystemClipboardAction: String, Codable, CaseIterable, Equatable, Hashable {
         case .importOnly:
             return ["square.and.arrow.down.on.square"]
         case .pasteOnly:
-            return ["doc.on.clipboard", "clipboard"]
+            return ["square.filled.on.square"]
         }
     }
 }

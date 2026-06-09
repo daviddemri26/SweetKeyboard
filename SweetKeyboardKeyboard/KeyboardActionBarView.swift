@@ -17,7 +17,7 @@ final class KeyboardActionBarView: UIView {
     private let settingsButton = KeyboardActionBarView.makeIconButton(symbolName: "gearshape.fill")
     private let hideKeyboardButton = KeyboardActionBarView.makeIconButton(symbolName: "chevron.down.2")
     private let importClipboardButton = KeyboardActionBarView.makeIconButton(symbolName: "square.and.arrow.down.on.square")
-    private let pasteClipboardButton = KeyboardActionBarView.makeIconButton(symbolNames: ["doc.on.clipboard", "clipboard"])
+    private let pasteClipboardButton = KeyboardActionBarView.makeIconButton(symbolName: "square.filled.on.square")
     private let importAndPasteClipboardButton = KeyboardActionBarView.makeIconButton(
         symbolNames: ["doc.on.clipboard.fill", "doc.on.clipboard", "square.and.arrow.down.on.square"]
     )
@@ -124,9 +124,9 @@ final class KeyboardActionBarView: UIView {
         importClipboardButton.isHidden = true
         pasteClipboardButton.isHidden = true
         importAndPasteClipboardButton.isHidden = true
-        importClipboardButton.accessibilityLabel = "Import from native iPhone Clipboard"
+        importClipboardButton.accessibilityLabel = "Just Import from native iPhone Clipboard"
         importClipboardButton.accessibilityHint = "Saves the current native iPhone Clipboard text into SweetKeyboard Clipboard."
-        pasteClipboardButton.accessibilityLabel = "Paste from native iPhone Clipboard"
+        pasteClipboardButton.accessibilityLabel = "Just Paste from native iPhone Clipboard"
         pasteClipboardButton.accessibilityHint = "Pastes the current native iPhone Clipboard text into the active field."
         importAndPasteClipboardButton.accessibilityLabel = "Import and Paste from native iPhone Clipboard"
         importAndPasteClipboardButton.accessibilityHint = "Imports the current native iPhone Clipboard text into SweetKeyboard Clipboard and pastes it."
