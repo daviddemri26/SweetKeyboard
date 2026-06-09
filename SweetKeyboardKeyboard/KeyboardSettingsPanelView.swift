@@ -22,7 +22,7 @@ final class KeyboardSettingsPanelView: UIView {
         static let rowSpacing: CGFloat = 12
         static let cardCornerRadius: CGFloat = 16
         static let actionButtonSize: CGFloat = 42
-        static let actionOptionVerticalInset: CGFloat = 8
+        static let actionOptionVerticalInset: CGFloat = 4
     }
 
     private let contentStack = UIStackView()
@@ -45,7 +45,6 @@ final class KeyboardSettingsPanelView: UIView {
 
     private let systemClipboardActionsSection = UIStackView()
     private let systemClipboardActionsTitleLabel = UILabel()
-    private let systemClipboardActionsHelperLabel = UILabel()
 
     private let openClipboardAfterCopyRow = UIStackView()
     private let openClipboardAfterCopyTitleLabel = UILabel()
@@ -76,7 +75,7 @@ final class KeyboardSettingsPanelView: UIView {
     private var forwardDeleteWithShiftSeparatorHeightConstraint: NSLayoutConstraint?
     private var selectedSystemClipboardActions: Set<SystemClipboardAction> = [.pasteAndSave]
     private var systemClipboardActionButtons: [SystemClipboardAction: KeyboardPressableButton] = [:]
-    private var systemClipboardActionTextStacks: [SystemClipboardAction: UIStackView] = [:]
+    private var systemClipboardActionTitleLabels: [SystemClipboardAction: UILabel] = [:]
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -312,7 +311,7 @@ final class KeyboardSettingsPanelView: UIView {
     private func configureSystemClipboardActionsSection() {
         systemClipboardActionsSection.axis = .vertical
         systemClipboardActionsSection.alignment = .fill
-        systemClipboardActionsSection.spacing = 10
+        systemClipboardActionsSection.spacing = 4
         systemClipboardActionsSection.isLayoutMarginsRelativeArrangement = true
         systemClipboardActionsSection.directionalLayoutMargins = NSDirectionalEdgeInsets(
             top: 12,
@@ -325,12 +324,7 @@ final class KeyboardSettingsPanelView: UIView {
         systemClipboardActionsTitleLabel.numberOfLines = 1
         systemClipboardActionsTitleLabel.text = "Native iPhone Clipboard Buttons"
 
-        systemClipboardActionsHelperLabel.font = .preferredFont(forTextStyle: .footnote)
-        systemClipboardActionsHelperLabel.numberOfLines = 0
-        systemClipboardActionsHelperLabel.text = "Choose which rounded-square buttons SweetKeyboard shows when the native iPhone Clipboard has text copied outside the keyboard."
-
         systemClipboardActionsSection.addArrangedSubview(systemClipboardActionsTitleLabel)
-        systemClipboardActionsSection.addArrangedSubview(systemClipboardActionsHelperLabel)
 
         SystemClipboardAction.allCases.forEach { action in
             systemClipboardActionsSection.addArrangedSubview(makeSystemClipboardActionOption(for: action))
@@ -372,21 +366,11 @@ final class KeyboardSettingsPanelView: UIView {
         titleLabel.numberOfLines = 1
         titleLabel.text = action.title
 
-        let detailLabel = UILabel()
-        detailLabel.font = .preferredFont(forTextStyle: .footnote)
-        detailLabel.numberOfLines = 0
-        detailLabel.text = action.detail
-
-        let textStack = UIStackView(arrangedSubviews: [titleLabel, detailLabel])
-        textStack.axis = .vertical
-        textStack.alignment = .fill
-        textStack.spacing = 3
-
         row.addArrangedSubview(button)
-        row.addArrangedSubview(textStack)
+        row.addArrangedSubview(titleLabel)
 
         systemClipboardActionButtons[action] = button
-        systemClipboardActionTextStacks[action] = textStack
+        systemClipboardActionTitleLabels[action] = titleLabel
         return row
     }
 
@@ -440,7 +424,6 @@ final class KeyboardSettingsPanelView: UIView {
         clipboardTitleLabel.textColor = KeyboardTheme.keyLabelColor
         clipboardInfoLabel.textColor = KeyboardTheme.secondaryLabelColor
         systemClipboardActionsTitleLabel.textColor = KeyboardTheme.keyLabelColor
-        systemClipboardActionsHelperLabel.textColor = KeyboardTheme.secondaryLabelColor
         openClipboardAfterCopyTitleLabel.textColor = KeyboardTheme.keyLabelColor
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         autoCapitalizationTitleLabel.textColor = KeyboardTheme.keyLabelColor
@@ -533,15 +516,7 @@ final class KeyboardSettingsPanelView: UIView {
                 )
             }
 
-            systemClipboardActionTextStacks[action]?.arrangedSubviews.forEach { view in
-                guard let label = view as? UILabel else {
-                    return
-                }
-
-                label.textColor = label.font.pointSize >= UIFont.preferredFont(forTextStyle: .subheadline).pointSize
-                    ? KeyboardTheme.keyLabelColor
-                    : KeyboardTheme.secondaryLabelColor
-            }
+            systemClipboardActionTitleLabels[action]?.textColor = KeyboardTheme.keyLabelColor
         }
     }
 
