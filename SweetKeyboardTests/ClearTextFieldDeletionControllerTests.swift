@@ -115,6 +115,27 @@ final class ClearTextFieldDeletionControllerTests: XCTestCase {
         XCTAssertEqual(proxy.cursorOffset, 0)
     }
 
+    func testCompletionNudgeRecoversWhenHostReportsNoTextAtHiddenBoundary() {
+        let proxy = MockClearTextDocumentProxy(
+            text: "abcdefghijklmnopqrstuvwxyz",
+            cursorOffset: 26,
+            contextLimit: 4,
+            hiddenContextOffsets: [25],
+            hiddenContextOffsetsReportNoText: true
+        )
+        var controller = ClearTextFieldDeletionController(
+            maximumOperationsPerBatch: 6,
+            maximumCursorNudgeAttempts: 4,
+            maximumCompletionNudgeAttempts: 3
+        )
+
+        let result = drain(&controller, proxy: proxy, maximumDrainCount: 20)
+
+        XCTAssertEqual(result.status, .complete)
+        XCTAssertEqual(proxy.text, "")
+        XCTAssertEqual(proxy.cursorOffset, 0)
+    }
+
     func testEmptyFieldCompletesWithoutOperations() {
         let proxy = MockClearTextDocumentProxy(text: "", cursorOffset: 0)
         var controller = ClearTextFieldDeletionController(maximumOperationsPerBatch: 20)
@@ -165,6 +186,7 @@ private final class MockClearTextDocumentProxy: ClearTextDocumentProxy {
     private var characters: [Character]
     private let contextLimit: Int
     private let hiddenContextOffsets: Set<Int>
+    private let hiddenContextOffsetsReportNoText: Bool
     private var selectedOffsets: Range<Int>?
     private(set) var cursorOffset: Int
 
@@ -173,13 +195,15 @@ private final class MockClearTextDocumentProxy: ClearTextDocumentProxy {
         cursorOffset: Int,
         selectedRange: Range<Int>? = nil,
         contextLimit: Int = .max,
-        hiddenContextOffsets: Set<Int> = []
+        hiddenContextOffsets: Set<Int> = [],
+        hiddenContextOffsetsReportNoText: Bool = false
     ) {
         self.characters = Array(text)
         self.cursorOffset = min(max(0, cursorOffset), characters.count)
         self.selectedOffsets = selectedRange
         self.contextLimit = max(0, contextLimit)
         self.hiddenContextOffsets = hiddenContextOffsets
+        self.hiddenContextOffsetsReportNoText = hiddenContextOffsetsReportNoText
     }
 
     var text: String {
@@ -213,7 +237,11 @@ private final class MockClearTextDocumentProxy: ClearTextDocumentProxy {
     }
 
     var hasText: Bool {
-        !characters.isEmpty
+        if hiddenContextOffsetsReportNoText, hiddenContextOffsets.contains(cursorOffset) {
+            return false
+        }
+
+        return !characters.isEmpty
     }
 
     func adjustTextPosition(byCharacterOffset offset: Int) {
