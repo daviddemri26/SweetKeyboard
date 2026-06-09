@@ -143,6 +143,18 @@ struct ContentView: View {
 
             model.reload()
         }
+        .onOpenURL { url in
+            handleDeepLink(url)
+        }
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme == "sweetkeyboard",
+              url.host == "settings" else {
+            return
+        }
+
+        selectedTab = .settings
     }
 
     private func tabLabel(

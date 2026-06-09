@@ -8,6 +8,7 @@ final class KeyboardSettingsPanelView: UIView {
     var onCursorSwipeEnabledChanged: ((Bool) -> Void)?
     var onForwardDeleteWithShiftChanged: ((Bool) -> Void)?
     var onHapticsEnabledChanged: ((Bool) -> Void)?
+    var onViewMoreInfo: (() -> Void)?
     var onClose: (() -> Void)?
     var onPressDown: (() -> Void)?
 
@@ -27,6 +28,8 @@ final class KeyboardSettingsPanelView: UIView {
 
     private let contentStack = UIStackView()
     private let chromeStack = UIStackView()
+    private let viewMoreInfoContainer = UIView()
+    private let viewMoreInfoButton = UIButton(type: .system)
     private let closeButton = KeyboardPressableButton(type: .custom)
     private let scrollView = UIScrollView()
     private let scrollContentStack = UIStackView()
@@ -76,6 +79,7 @@ final class KeyboardSettingsPanelView: UIView {
     private var selectedSystemClipboardActions: Set<SystemClipboardAction> = [.pasteAndSave]
     private var systemClipboardActionButtons: [SystemClipboardAction: KeyboardPressableButton] = [:]
     private var systemClipboardActionTitleLabels: [SystemClipboardAction: UILabel] = [:]
+    private weak var customViewMoreInfoView: UIView?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -147,10 +151,12 @@ final class KeyboardSettingsPanelView: UIView {
         scrollContentStack.alignment = .fill
         scrollContentStack.spacing = Constants.cardSpacing
 
+        configureViewMoreInfoButton()
         configureCloseButton()
         chromeStack.axis = .horizontal
         chromeStack.alignment = .center
         chromeStack.spacing = 8
+        chromeStack.addArrangedSubview(viewMoreInfoContainer)
         chromeStack.addArrangedSubview(UIView())
         chromeStack.addArrangedSubview(closeButton)
 
@@ -243,11 +249,62 @@ final class KeyboardSettingsPanelView: UIView {
             scrollContentStack.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor),
             closeButton.widthAnchor.constraint(equalToConstant: 28),
             closeButton.heightAnchor.constraint(equalToConstant: 28),
+            viewMoreInfoButton.topAnchor.constraint(equalTo: viewMoreInfoContainer.topAnchor),
+            viewMoreInfoButton.leadingAnchor.constraint(equalTo: viewMoreInfoContainer.leadingAnchor),
+            viewMoreInfoButton.trailingAnchor.constraint(equalTo: viewMoreInfoContainer.trailingAnchor),
+            viewMoreInfoButton.bottomAnchor.constraint(equalTo: viewMoreInfoContainer.bottomAnchor),
             clipboardSeparatorHeightConstraint!,
             hapticsSeparatorHeightConstraint!,
             autoCapitalizationSeparatorHeightConstraint!,
             forwardDeleteWithShiftSeparatorHeightConstraint!
         ])
+    }
+
+    func setViewMoreInfoView(_ view: UIView) {
+        customViewMoreInfoView?.removeFromSuperview()
+        viewMoreInfoButton.removeFromSuperview()
+
+        customViewMoreInfoView = view
+        viewMoreInfoContainer.addSubview(view)
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            view.topAnchor.constraint(equalTo: viewMoreInfoContainer.topAnchor),
+            view.leadingAnchor.constraint(equalTo: viewMoreInfoContainer.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: viewMoreInfoContainer.trailingAnchor),
+            view.bottomAnchor.constraint(equalTo: viewMoreInfoContainer.bottomAnchor)
+        ])
+    }
+
+    private func configureViewMoreInfoButton() {
+        var configuration = UIButton.Configuration.plain()
+        configuration.title = "View More Info"
+        configuration.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 8)
+        configuration.baseForegroundColor = KeyboardTheme.keyLabelColor
+        configuration.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { incoming in
+            var outgoing = incoming
+            outgoing.font = .preferredFont(forTextStyle: .footnote)
+            return outgoing
+        }
+        viewMoreInfoButton.configuration = configuration
+        viewMoreInfoButton.configurationUpdateHandler = { button in
+            var updatedConfiguration = button.configuration ?? .plain()
+            updatedConfiguration.baseForegroundColor = button.isHighlighted
+                ? KeyboardTheme.keyLabelColor.withAlphaComponent(0.72)
+                : KeyboardTheme.keyLabelColor
+            updatedConfiguration.background.backgroundColor = button.isHighlighted
+                ? KeyboardTheme.settingsDonePressedBackground
+                : .clear
+            button.configuration = updatedConfiguration
+        }
+        viewMoreInfoButton.layer.cornerRadius = 8
+        viewMoreInfoButton.layer.cornerCurve = .continuous
+        viewMoreInfoButton.accessibilityLabel = "View More Info"
+        viewMoreInfoButton.accessibilityHint = "Opens SweetKeyboard settings in the app."
+        viewMoreInfoButton.addTarget(self, action: #selector(viewMoreInfoTouchDown), for: .touchDown)
+        viewMoreInfoButton.addTarget(self, action: #selector(viewMoreInfoTapped), for: .touchUpInside)
+        viewMoreInfoButton.translatesAutoresizingMaskIntoConstraints = false
+        viewMoreInfoContainer.addSubview(viewMoreInfoButton)
     }
 
     private func configureCloseButton() {
@@ -423,6 +480,7 @@ final class KeyboardSettingsPanelView: UIView {
 
         clipboardTitleLabel.textColor = KeyboardTheme.keyLabelColor
         clipboardInfoLabel.textColor = KeyboardTheme.secondaryLabelColor
+        viewMoreInfoButton.setNeedsUpdateConfiguration()
         systemClipboardActionsTitleLabel.textColor = KeyboardTheme.keyLabelColor
         openClipboardAfterCopyTitleLabel.textColor = KeyboardTheme.keyLabelColor
         hapticsTitleLabel.textColor = KeyboardTheme.keyLabelColor
@@ -464,6 +522,14 @@ final class KeyboardSettingsPanelView: UIView {
 
     @objc private func closeTapped() {
         onClose?()
+    }
+
+    @objc private func viewMoreInfoTapped() {
+        onViewMoreInfo?()
+    }
+
+    @objc private func viewMoreInfoTouchDown() {
+        onPressDown?()
     }
 
     @objc private func closeTouchDown() {

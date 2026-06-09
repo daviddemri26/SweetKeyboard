@@ -1,4 +1,23 @@
+import SwiftUI
 import UIKit
+
+private struct KeyboardSettingsInfoLink: View {
+    private let destination = URL(string: "sweetkeyboard://settings")!
+
+    var body: some View {
+        Link(destination: destination) {
+            Text("View More Info")
+                .font(.footnote)
+                .foregroundStyle(Color(uiColor: KeyboardTheme.keyLabelColor))
+                .padding(.vertical, 4)
+                .padding(.trailing, 8)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("View More Info")
+        .accessibilityHint("Opens SweetKeyboard settings in the app.")
+    }
+}
 
 final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDelegate {
     private enum Mode {
@@ -70,6 +89,12 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
     private let keyboardRows = UIStackView()
     private let clipboardPanel = ClipboardPanelView()
     private let settingsPanel = KeyboardSettingsPanelView()
+    private lazy var settingsInfoLinkHost: UIHostingController<KeyboardSettingsInfoLink> = {
+        let controller = UIHostingController(rootView: KeyboardSettingsInfoLink())
+        controller.view.backgroundColor = .clear
+        controller.sizingOptions = [.intrinsicContentSize]
+        return controller
+    }()
     private let hapticFeedbackController = KeyboardHapticFeedbackController()
     private lazy var backspaceRepeatController = KeyboardKeyRepeatController(
         delay: keyRepeatDelay,
@@ -217,6 +242,7 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         keyboardContainer.addSubview(keyboardRows)
         keyboardContainer.addSubview(clipboardPanel)
         keyboardContainer.addSubview(settingsPanel)
+        installSettingsInfoLink()
         keyboardRows.addGestureRecognizer(cursorSwipeGestureRecognizer)
 
         keyboardRows.translatesAutoresizingMaskIntoConstraints = false
@@ -277,6 +303,12 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         ])
 
         applyTheme()
+    }
+
+    private func installSettingsInfoLink() {
+        addChild(settingsInfoLinkHost)
+        settingsPanel.setViewMoreInfoView(settingsInfoLinkHost.view)
+        settingsInfoLinkHost.didMove(toParent: self)
     }
 
     private func bindActions() {
@@ -386,6 +418,10 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
 
         settingsPanel.onClose = { [weak self] in
             self?.returnToLetterKeyboard()
+        }
+
+        settingsPanel.onViewMoreInfo = { [weak self] in
+            self?.openContainingAppSettings()
         }
     }
 
@@ -1465,6 +1501,15 @@ final class KeyboardViewController: UIInputViewController, UIGestureRecognizerDe
         cancelSequencedInteractions()
         clearAccentState(rebuild: mode == .keyboard)
         mode = (mode == .settings) ? .keyboard : .settings
+    }
+
+    private func openContainingAppSettings() {
+        cancelSequencedInteractions()
+        guard let url = URL(string: "sweetkeyboard://settings") else {
+            return
+        }
+
+        extensionContext?.open(url, completionHandler: nil)
     }
 
     private func returnToLetterKeyboard() {
