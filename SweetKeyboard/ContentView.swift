@@ -2,6 +2,10 @@ import Combine
 import SwiftUI
 import UIKit
 
+private enum AppLinks {
+    static let privacyPolicy = URL(string: "https://lafayette-consulting.us/sweetkeyboard/privacypolicy")!
+}
+
 @MainActor
 final class AppScreenModel: ObservableObject {
     @Published private(set) var sharedSettings = SharedKeyboardSettings()
@@ -316,6 +320,14 @@ private struct InfoView: View {
                     "Native iPhone Clipboard text is read only after you tap a native iPhone Clipboard action.",
                     "No network, no analytics, no cloud."
                 ]
+            )
+
+            ExternalLinkCard(
+                title: "Privacy Policy",
+                message: "Read the public SweetKeyboard privacy policy.",
+                linkTitle: "Open Privacy Policy",
+                systemImage: "hand.raised.fill",
+                url: AppLinks.privacyPolicy
             )
 
             InfoCard(
@@ -997,6 +1009,57 @@ private struct InfoCard: View {
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+private struct ExternalLinkCard: View {
+    let title: String
+    let message: String
+    let linkTitle: String
+    let systemImage: String
+    let url: URL
+
+    var body: some View {
+        AppCard {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .top, spacing: 14) {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(AppTheme.accent)
+                        .frame(width: 38, height: 38)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(AppTheme.accentSoftBackground)
+                        )
+
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(title)
+                            .font(.system(.headline, design: .rounded).weight(.semibold))
+                            .foregroundStyle(AppTheme.primaryText)
+
+                        Text(message)
+                            .font(.system(.subheadline, design: .rounded))
+                            .foregroundStyle(AppTheme.secondaryText)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer(minLength: 0)
+                }
+
+                Link(destination: url) {
+                    Label {
+                        Text(linkTitle)
+                            .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                    } icon: {
+                        Image(systemName: "arrow.up.right.square")
+                            .font(.system(size: 16, weight: .semibold))
+                    }
+                    .foregroundStyle(AppTheme.accent)
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("Opens in the browser")
             }
         }
     }

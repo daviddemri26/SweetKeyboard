@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SweetKeyboard Privacy Policy</title>
+    <meta name="description" content="Privacy policy for SweetKeyboard, a local-first iOS custom keyboard.">
+    <style>
+        :root {
+            color-scheme: light dark;
+            --accent: #00a9c7;
+            --bg: #f5f7fb;
+            --card: #ffffff;
+            --text: #172033;
+            --muted: #5d687a;
+            --border: #dde3ec;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0e1013;
+                --card: #1b1d22;
+                --text: #f4f5f7;
+                --muted: #b9c0cc;
+                --border: #30343b;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            line-height: 1.6;
+        }
+
+        main {
+            width: min(760px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 48px 0;
+        }
+
+        article {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: clamp(24px, 5vw, 44px);
+        }
+
+        h1,
+        h2 {
+            line-height: 1.2;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: clamp(2rem, 6vw, 3.2rem);
+        }
+
+        h2 {
+            margin: 32px 0 8px;
+            font-size: 1.25rem;
+        }
+
+        p,
+        li {
+            color: var(--muted);
+        }
+
+        a {
+            color: var(--accent);
+            font-weight: 650;
+        }
+
+        .eyebrow {
+            color: var(--accent);
+            font-size: 0.8rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            margin: 0 0 8px;
+            text-transform: uppercase;
+        }
+
+        .updated {
+            margin-top: 0;
+        }
+
+        footer {
+            color: var(--muted);
+            font-size: 0.9rem;
+            padding-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <article>
+            <p class="eyebrow">SweetKeyboard</p>
+            <h1>Privacy Policy</h1>
+            <p class="updated">Last updated: June 10, 2026</p>
+
+            <p>
+                SweetKeyboard is built as a local-first iOS custom keyboard. The app and keyboard extension do not use analytics, advertising SDKs, tracking SDKs, cloud sync, or remote text processing.
+            </p>
+
+            <h2>Data Collection</h2>
+            <p>
+                SweetKeyboard does not collect personal data. It does not send keystrokes, typed text, clipboard history, settings, diagnostics, or usage events to Lafayette Consulting or to any third-party service.
+            </p>
+
+            <h2>Keyboard Input</h2>
+            <p>
+                Text typed with SweetKeyboard stays in the active app where you type it. SweetKeyboard does not transmit keyboard input over the network.
+            </p>
+
+            <h2>SweetKeyboard Clipboard</h2>
+            <p>
+                SweetKeyboard Clipboard is optional. Saved clipboard snippets and pinned favorites are stored locally on your device in the shared app container used by the SweetKeyboard app and keyboard extension.
+            </p>
+
+            <h2>Native iPhone Clipboard</h2>
+            <p>
+                SweetKeyboard reads native iPhone Clipboard text only after you tap a native clipboard action inside the keyboard. Clipboard text is handled as plain text and stays local on your device.
+            </p>
+
+            <h2>Full Access</h2>
+            <p>
+                Basic typing works without Full Access. Full Access is optional and is used only for clipboard tools and for sharing selected settings and local clipboard state between the containing app and the keyboard extension.
+            </p>
+
+            <h2>Network Use</h2>
+            <p>
+                SweetKeyboard does not provide a network service and does not upload typed text or clipboard content. The privacy policy page itself is a static web page with no scripts and no analytics.
+            </p>
+
+            <h2>Contact</h2>
+            <p>
+                For privacy questions, contact <a href="mailto:privacy@lafayette-consulting.us">privacy@lafayette-consulting.us</a>.
+            </p>
+        </article>
+        <footer>
+            Lafayette Consulting
+        </footer>
+    </main>
+</body>
+</html>

@@ -2,9 +2,11 @@
 
 *.swift text eol=lf
 *.plist text eol=lf
+*.xcprivacy text eol=lf
 *.pbxproj text eol=lf
 *.strings text eol=lf
 *.md text eol=lf
+*.html text eol=lf
 *.json text eol=lf
 *.yml text eol=lf
 *.yaml text eol=lf
@@ -16,4 +18,3 @@
 *.gif binary
 *.pdf binary
 *.xcassets/** binary
-
