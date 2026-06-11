@@ -502,7 +502,7 @@
 				DEVELOPMENT_TEAM = 57XAAX65VC;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SweetKeyboardKeyboard/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = SweetKeyboardKeyboard;
+				INFOPLIST_KEY_CFBundleDisplayName = SweetKeyboard;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -531,7 +531,7 @@
 				DEVELOPMENT_TEAM = 57XAAX65VC;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = SweetKeyboardKeyboard/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = SweetKeyboardKeyboard;
+				INFOPLIST_KEY_CFBundleDisplayName = SweetKeyboard;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
