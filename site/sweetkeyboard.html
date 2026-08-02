@@ -114,6 +114,17 @@
             background: var(--soft);
         }
 
+        nav a.nav-privacy {
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            margin-left: 4px;
+        }
+
+        nav a.nav-privacy:hover {
+            background: var(--accent);
+            color: #ffffff;
+        }
+
         main {
             width: min(980px, calc(100% - 32px));
             margin: 0 auto;
@@ -199,6 +210,7 @@
         .actions {
             display: flex;
             flex-wrap: wrap;
+            align-items: center;
             gap: 10px;
             margin-top: 22px;
         }
@@ -213,10 +225,55 @@
             text-decoration: none;
         }
 
-        .button.primary {
-            background: var(--accent);
-            border-color: var(--accent);
+        .app-store-button {
+            align-items: center;
+            gap: 10px;
+            min-height: 56px;
+            padding: 7px 18px 8px 14px;
+            border: 1px solid #a6a6a6;
+            border-radius: 12px;
+            background: #000000;
             color: #ffffff;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+            transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+        }
+
+        .app-store-button:hover {
+            border-color: #ffffff;
+            color: #ffffff;
+            box-shadow: 0 11px 28px rgba(0, 0, 0, 0.38);
+            transform: translateY(-1px);
+        }
+
+        .app-store-button:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        .apple-mark {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 2rem;
+            font-weight: 400;
+            line-height: 1;
+        }
+
+        .app-store-copy {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .app-store-copy small {
+            font-size: 0.65rem;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            margin-bottom: 4px;
+        }
+
+        .app-store-copy strong {
+            font-size: 1.28rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
         }
 
         .feature-strip {
@@ -345,6 +402,10 @@
 
             nav {
                 justify-content: flex-start;
+                flex-wrap: nowrap;
+                width: 100%;
+                overflow-x: auto;
+                padding-bottom: 2px;
             }
 
             nav a {
@@ -370,6 +431,7 @@
                 <a href="#features">Features</a>
                 <a href="#info">Info</a>
                 <a href="#contact">Contact</a>
+                <a class="nav-privacy" href="/sweetkeyboard/privacypolicy">Privacy</a>
             </nav>
         </div>
     </div>
@@ -386,7 +448,11 @@
                     Learn how to install the keyboard, understand each setting, review privacy details, and contact the developer.
                 </p>
                 <div class="actions">
-                    <a class="button primary" href="https://apps.apple.com/" rel="noopener">Download on the Apple App Store</a>
+                    <a class="button app-store-button" href="https://apps.apple.com/us/app/sweetkeyboard-pro/id6779302054" rel="noopener" aria-label="Download SweetKeyboard Pro on the App Store">
+                        <span class="apple-mark" aria-hidden="true"></span>
+                        <span class="app-store-copy"><small>Download on the</small><strong>App Store</strong></span>
+                    </a>
+                    <a class="button" href="/sweetkeyboard/privacypolicy">Read the Privacy Policy</a>
                     <a class="button" href="#features">View features</a>
                 </div>
                 <p class="meta">Last updated: June 10, 2026</p>
@@ -415,7 +481,7 @@
             <p class="eyebrow">Home</p>
             <h2>Install SweetKeyboard</h2>
             <ol>
-                <li>Install SweetKeyboard from the App Store.</li>
+                <li>Install <a href="https://apps.apple.com/us/app/sweetkeyboard-pro/id6779302054" rel="noopener">SweetKeyboard Pro from the App Store</a>.</li>
                 <li>Open the iPhone Settings app.</li>
                 <li>Go to <code>General</code> &gt; <code>Keyboard</code> &gt; <code>Keyboards</code>.</li>
                 <li>Tap <code>Add New Keyboard</code>.</li>
@@ -581,7 +647,7 @@
 
             <h3>Privacy policy</h3>
             <p>
-                Read the SweetKeyboard Privacy Policy at <a href="https://lafayette-consulting.us/sweetkeyboard/privacypolicy">https://lafayette-consulting.us/sweetkeyboard/privacypolicy</a>.
+                Read the <a href="/sweetkeyboard/privacypolicy">SweetKeyboard Privacy Policy</a>.
             </p>
         </section>
 

@@ -16,6 +16,9 @@
             --text: #172033;
             --muted: #5d687a;
             --border: #dde3ec;
+            --soft: #eef8fb;
+            --nav: rgba(255, 255, 255, 0.86);
+            --shadow: rgba(23, 32, 51, 0.08);
         }
 
         @media (prefers-color-scheme: dark) {
@@ -25,6 +28,9 @@
                 --text: #f4f5f7;
                 --muted: #b9c0cc;
                 --border: #30343b;
+                --soft: #152b31;
+                --nav: rgba(14, 16, 19, 0.86);
+                --shadow: rgba(0, 0, 0, 0.32);
             }
         }
 
@@ -38,12 +44,85 @@
             color: var(--text);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             line-height: 1.6;
+            padding-top: 74px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 94px;
+        }
+
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            border-bottom: 1px solid var(--border);
+            background: var(--nav);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .nav-inner {
+            width: min(980px, calc(100% - 32px));
+            min-height: 64px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--text);
+            font-size: 1rem;
+            font-weight: 800;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .brand-logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            box-shadow: 0 6px 16px var(--shadow);
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        nav a {
+            color: var(--muted);
+            border-radius: 999px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            padding: 8px 11px;
+            text-decoration: none;
+        }
+
+        nav a:hover {
+            color: var(--text);
+            background: var(--soft);
+        }
+
+        nav a[aria-current="page"] {
+            border: 1px solid var(--accent);
+            color: var(--accent);
         }
 
         main {
             width: min(760px, calc(100% - 32px));
             margin: 0 auto;
-            padding: 48px 0;
+            padding: 30px 0 40px;
         }
 
         article {
@@ -51,6 +130,7 @@
             border: 1px solid var(--border);
             border-radius: 18px;
             padding: clamp(24px, 5vw, 44px);
+            box-shadow: 0 16px 42px var(--shadow);
         }
 
         h1,
@@ -78,6 +158,80 @@
             font-weight: 650;
         }
 
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin-top: 22px;
+        }
+
+        .button {
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            color: var(--text);
+            display: inline-flex;
+            font-weight: 800;
+            padding: 10px 14px;
+            text-decoration: none;
+        }
+
+        .button:hover {
+            background: var(--soft);
+        }
+
+        .app-store-button {
+            align-items: center;
+            gap: 10px;
+            min-height: 56px;
+            padding: 7px 18px 8px 14px;
+            border: 1px solid #a6a6a6;
+            border-radius: 12px;
+            background: #000000;
+            color: #ffffff;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
+            transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+        }
+
+        .app-store-button:hover {
+            border-color: #ffffff;
+            background: #000000;
+            color: #ffffff;
+            box-shadow: 0 11px 28px rgba(0, 0, 0, 0.38);
+            transform: translateY(-1px);
+        }
+
+        .app-store-button:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 3px;
+        }
+
+        .apple-mark {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 2rem;
+            font-weight: 400;
+            line-height: 1;
+        }
+
+        .app-store-copy {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .app-store-copy small {
+            font-size: 0.65rem;
+            font-weight: 500;
+            letter-spacing: 0.01em;
+            margin-bottom: 4px;
+        }
+
+        .app-store-copy strong {
+            font-size: 1.28rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
         .eyebrow {
             color: var(--accent);
             font-size: 0.8rem;
@@ -97,9 +251,56 @@
             padding-top: 20px;
             text-align: center;
         }
+
+        @media (max-width: 760px) {
+            body {
+                padding-top: 112px;
+            }
+
+            html {
+                scroll-padding-top: 130px;
+            }
+
+            .nav-inner {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 8px;
+                padding: 12px 0;
+            }
+
+            nav {
+                justify-content: flex-start;
+                flex-wrap: nowrap;
+                width: 100%;
+                overflow-x: auto;
+                padding-bottom: 2px;
+            }
+
+            nav a {
+                padding: 6px 9px;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="topbar">
+        <div class="nav-inner">
+            <a class="brand" href="/sweetkeyboard/">
+                <img class="brand-logo" src="https://assets.lafayette-consulting.us/sweet-keyboard-icon-1024.png" alt="" width="34" height="34">
+                <span>SweetKeyboard</span>
+            </a>
+            <nav aria-label="Main navigation">
+                <a href="/sweetkeyboard/">Home</a>
+                <a href="/sweetkeyboard/#install">Install</a>
+                <a href="/sweetkeyboard/#settings">Settings</a>
+                <a href="/sweetkeyboard/#features">Features</a>
+                <a href="/sweetkeyboard/#info">Info</a>
+                <a href="/sweetkeyboard/#contact">Contact</a>
+                <a href="/sweetkeyboard/privacypolicy" aria-current="page">Privacy</a>
+            </nav>
+        </div>
+    </div>
+
     <main>
         <article>
             <p class="eyebrow">SweetKeyboard</p>
@@ -109,6 +310,14 @@
             <p>
                 SweetKeyboard is built as a local-first iOS custom keyboard. The app and keyboard extension do not use analytics, advertising SDKs, tracking SDKs, cloud sync, or remote text processing.
             </p>
+
+            <div class="actions">
+                <a class="button app-store-button" href="https://apps.apple.com/us/app/sweetkeyboard-pro/id6779302054" rel="noopener" aria-label="Download SweetKeyboard Pro on the App Store">
+                    <span class="apple-mark" aria-hidden="true"></span>
+                    <span class="app-store-copy"><small>Download on the</small><strong>App Store</strong></span>
+                </a>
+                <a class="button" href="/sweetkeyboard/">Back to SweetKeyboard</a>
+            </div>
 
             <h2>Data Collection</h2>
             <p>
@@ -146,7 +355,7 @@
             </p>
         </article>
         <footer>
-            Lafayette Consulting
+            SweetKeyboard · Lafayette Consulting · <a href="/sweetkeyboard/">Home</a>
         </footer>
     </main>
 </body>
