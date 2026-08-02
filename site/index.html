@@ -3,28 +3,38 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Lafayette Consulting</title>
-    <meta name="description" content="Lafayette Consulting website placeholder.">
-    <link rel="icon" type="image/png" href="https://assets.lafayette-consulting.us/sweet-keyboard-icon-1024.png">
-    <link rel="apple-touch-icon" href="https://assets.lafayette-consulting.us/sweet-keyboard-icon-1024.png">
+    <meta name="description" content="Lafayette Consulting creates thoughtful, focused software for Apple platforms.">
+    <meta name="theme-color" content="#f5f4f0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0a0b0d" media="(prefers-color-scheme: dark)">
+    <title>Lafayette Consulting — Independent software studio</title>
+    <link rel="icon" type="image/png" href="/assets/lafayette-icon-black.png" media="(prefers-color-scheme: light)">
+    <link rel="icon" type="image/png" href="/assets/lafayette-icon-white.png" media="(prefers-color-scheme: dark)">
+    <link rel="apple-touch-icon" href="/assets/lafayette-icon-black.png">
     <style>
         :root {
             color-scheme: light dark;
-            --accent: #00a9c7;
-            --bg: #f5f7fb;
-            --card: #ffffff;
-            --text: #172033;
-            --muted: #5d687a;
-            --border: #dde3ec;
+            --background: #f5f4f0;
+            --surface: rgba(255, 255, 255, 0.7);
+            --surface-hover: rgba(255, 255, 255, 0.94);
+            --text: #111217;
+            --muted: #666974;
+            --line: rgba(17, 18, 23, 0.1);
+            --shadow: 0 24px 70px rgba(30, 25, 46, 0.08);
+            --accent-a: #263ddd;
+            --accent-b: #d700df;
+            --focus: #4055e7;
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                --bg: #0e1013;
-                --card: #1b1d22;
-                --text: #f4f5f7;
-                --muted: #b9c0cc;
-                --border: #30343b;
+                --background: #0a0b0d;
+                --surface: rgba(255, 255, 255, 0.055);
+                --surface-hover: rgba(255, 255, 255, 0.09);
+                --text: #f7f7f8;
+                --muted: #a9abb3;
+                --line: rgba(255, 255, 255, 0.11);
+                --shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+                --focus: #87f6c6;
             }
         }
 
@@ -32,53 +42,337 @@
             box-sizing: border-box;
         }
 
+        html,
         body {
+            width: 100%;
+            height: 100%;
             margin: 0;
-            min-height: 100vh;
-            display: grid;
-            place-items: center;
-            background: var(--bg);
-            color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            line-height: 1.6;
+            overflow: hidden;
         }
 
-        main {
-            width: min(680px, calc(100% - 32px));
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            padding: clamp(28px, 6vw, 52px);
+        body {
+            background:
+                radial-gradient(circle at 11% 18%, rgba(74, 222, 174, 0.16), transparent 27rem),
+                radial-gradient(circle at 90% 82%, rgba(83, 69, 229, 0.15), transparent 30rem),
+                var(--background);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page {
+            width: min(1120px, 100%);
+            height: 100dvh;
+            margin: 0 auto;
+            padding: clamp(22px, 4vw, 48px);
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr);
+        }
+
+        .brand {
+            width: clamp(210px, 25vw, 285px);
+            line-height: 0;
+        }
+
+        .brand img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .stage {
+            min-height: 0;
+            display: grid;
+            grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
+            align-items: center;
+            gap: clamp(44px, 8vw, 104px);
+            padding-block: clamp(18px, 4vh, 44px);
+        }
+
+        .intro {
+            max-width: 660px;
         }
 
         .eyebrow {
-            color: var(--accent);
-            font-size: 0.8rem;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-            margin: 0 0 8px;
+            margin: 0 0 16px;
+            color: var(--muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.17em;
             text-transform: uppercase;
         }
 
         h1 {
-            margin: 0 0 12px;
-            font-size: clamp(2rem, 6vw, 3rem);
-            line-height: 1.2;
+            max-width: 720px;
+            margin: 0;
+            font-size: clamp(3.2rem, 6.4vw, 5.9rem);
+            font-weight: 620;
+            letter-spacing: -0.065em;
+            line-height: 0.94;
         }
 
-        p {
+        .gradient-word {
+            background: linear-gradient(115deg, var(--accent-a), var(--accent-b) 55%, #74ef84);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .lede {
+            max-width: 570px;
+            margin: clamp(20px, 3.2vh, 30px) 0 0;
             color: var(--muted);
-            margin-bottom: 0;
+            font-size: clamp(1rem, 1.55vw, 1.18rem);
+            line-height: 1.55;
+        }
+
+        .products {
+            display: grid;
+            gap: 14px;
+        }
+
+        .product {
+            min-height: 154px;
+            padding: clamp(20px, 2.5vw, 28px);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            grid-template-rows: auto 1fr auto;
+            gap: 8px 20px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            color: inherit;
+            text-decoration: none;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+        }
+
+        .product:hover {
+            transform: translateY(-3px);
+            border-color: rgba(94, 86, 221, 0.32);
+            background: var(--surface-hover);
+        }
+
+        .product:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 4px;
+        }
+
+        .product-index {
+            color: var(--muted);
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+        }
+
+        .product-arrow {
+            grid-column: 2;
+            grid-row: 1 / span 3;
+            align-self: center;
+            font-size: 1.45rem;
+            transition: transform 180ms ease;
+        }
+
+        .product:hover .product-arrow {
+            transform: translate(3px, -3px);
+        }
+
+        .product-name {
+            margin: 0;
+            align-self: end;
+            font-size: clamp(1.35rem, 2.4vw, 1.8rem);
+            font-weight: 650;
+            letter-spacing: -0.035em;
+        }
+
+        .product-copy {
+            margin: 0;
+            color: var(--muted);
+            font-size: 0.88rem;
+            line-height: 1.45;
+        }
+
+        @media (max-width: 760px) {
+            .page {
+                padding: clamp(20px, 6vw, 34px);
+            }
+
+            .brand {
+                width: clamp(190px, 58vw, 240px);
+            }
+
+            .stage {
+                grid-template-columns: 1fr;
+                align-content: center;
+                gap: clamp(24px, 5vh, 42px);
+                padding-block: 14px;
+            }
+
+            .intro {
+                max-width: 600px;
+            }
+
+            .eyebrow {
+                margin-bottom: 11px;
+            }
+
+            h1 {
+                max-width: 560px;
+                font-size: clamp(2.8rem, 12.5vw, 4.8rem);
+            }
+
+            .lede {
+                max-width: 520px;
+                margin-top: 17px;
+            }
+
+            .products {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .product {
+                min-height: 132px;
+                padding: clamp(15px, 4vw, 21px);
+                border-radius: 20px;
+                gap: 6px 10px;
+            }
+
+            .product-arrow {
+                font-size: 1.1rem;
+            }
+
+            .product-copy {
+                font-size: clamp(0.7rem, 2.7vw, 0.82rem);
+            }
+        }
+
+        @media (max-height: 620px) {
+            .page {
+                padding-block: 16px;
+            }
+
+            .brand {
+                width: 190px;
+            }
+
+            .stage {
+                gap: 22px;
+                padding-block: 10px;
+            }
+
+            .eyebrow {
+                margin-bottom: 8px;
+            }
+
+            h1 {
+                font-size: clamp(2.4rem, 10vh, 4.5rem);
+            }
+
+            .lede {
+                margin-top: 13px;
+                font-size: 0.9rem;
+            }
+
+            .product {
+                min-height: 112px;
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 760px) and (max-height: 500px) {
+            .page {
+                padding: 14px 24px;
+            }
+
+            .brand {
+                width: 156px;
+            }
+
+            .stage {
+                grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
+                gap: 24px;
+                padding-block: 8px;
+            }
+
+            .eyebrow {
+                font-size: 0.6rem;
+            }
+
+            h1 {
+                font-size: clamp(2.2rem, 9vw, 3.4rem);
+            }
+
+            .lede {
+                max-width: 420px;
+                font-size: 0.78rem;
+                line-height: 1.4;
+            }
+
+            .products {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .product {
+                min-height: 84px;
+                padding: 11px 14px;
+                border-radius: 16px;
+            }
+
+            .product-name {
+                font-size: 1.1rem;
+            }
+
+            .product-copy {
+                font-size: 0.68rem;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .product,
+            .product-arrow {
+                transition: none;
+            }
         }
     </style>
 </head>
 <body>
-    <main>
-        <p class="eyebrow">Lafayette Consulting</p>
-        <h1>Website coming soon</h1>
-        <p>
-            SweetKeyboard resources are available and up to date.
-        </p>
-    </main>
+    <div class="page">
+        <header aria-label="Lafayette Consulting">
+            <picture class="brand">
+                <source srcset="/assets/lafayette-logo-white.png" media="(prefers-color-scheme: dark)">
+                <img src="/assets/lafayette-logo-black.png" alt="Lafayette Consulting" width="1015" height="319">
+            </picture>
+        </header>
+
+        <main class="stage">
+            <div class="intro">
+                <p class="eyebrow">Independent software studio</p>
+                <h1>Useful software, <span class="gradient-word">thoughtfully made.</span></h1>
+                <p class="lede">
+                    Lafayette Consulting designs and publishes focused products for Apple platforms—private by design and polished in every detail.
+                </p>
+            </div>
+
+            <nav class="products" aria-label="Our products">
+                <a class="product" href="/sweetkeyboard/">
+                    <span class="product-index">01 · iPhone</span>
+                    <span class="product-arrow" aria-hidden="true">↗</span>
+                    <h2 class="product-name">SweetKeyboard</h2>
+                    <p class="product-copy">Faster, more practical everyday typing.</p>
+                </a>
+
+                <a class="product" href="/iriz/">
+                    <span class="product-index">02 · Mac</span>
+                    <span class="product-arrow" aria-hidden="true">↗</span>
+                    <h2 class="product-name">Iriz</h2>
+                    <p class="product-copy">A private, local-first memory companion.</p>
+                </a>
+            </nav>
+        </main>
+    </div>
 </body>
 </html>
