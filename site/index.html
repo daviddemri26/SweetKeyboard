@@ -1138,6 +1138,55 @@
             overflow: hidden;
         }
 
+        .project-app-icon {
+            position: absolute;
+            top: 28px;
+            right: 28px;
+            z-index: 5;
+            width: 112px;
+            aspect-ratio: 1;
+            padding: 7px;
+            border: 1px solid rgba(255, 255, 255, 0.74);
+            border-radius: 29px;
+            background: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 24px 48px rgba(13, 34, 54, 0.2);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            animation: app-icon-float 5.5s ease-in-out infinite;
+        }
+
+        .project-app-icon::before {
+            position: absolute;
+            inset: -10px;
+            z-index: -1;
+            border: 1px solid rgba(13, 34, 54, 0.16);
+            border-radius: 36px;
+            content: "";
+            animation: app-icon-pulse 3.6s ease-out infinite;
+        }
+
+        .project-app-icon img {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border-radius: 22px;
+            object-fit: cover;
+            transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1), filter 420ms ease;
+        }
+
+        .project-card:first-child .project-app-icon {
+            animation-delay: -1.4s;
+        }
+
+        .project-card:last-child .project-app-icon {
+            animation-delay: -3.2s;
+        }
+
+        .project-card:hover .project-app-icon img {
+            filter: saturate(1.08) contrast(1.03);
+            transform: rotate(4deg) scale(1.08);
+        }
+
         .project-card:first-child .project-visual {
             background: linear-gradient(145deg, #d9fff4, #edffc2);
         }
@@ -1234,6 +1283,17 @@
 
         @keyframes morph {
             50% { border-radius: 58% 42% 38% 62% / 38% 55% 45% 62%; transform: scale(1.06); }
+        }
+
+        @keyframes app-icon-float {
+            0%, 100% { transform: translate3d(0, 0, 0) rotate(2deg); }
+            50% { transform: translate3d(0, -11px, 0) rotate(-2deg); }
+        }
+
+        @keyframes app-icon-pulse {
+            0% { opacity: 0; transform: scale(0.86); }
+            28% { opacity: 0.6; }
+            100% { opacity: 0; transform: scale(1.16); }
         }
 
         .project-copy {
@@ -2281,6 +2341,18 @@
                 min-height: 290px;
             }
 
+            .project-app-icon {
+                top: 18px;
+                right: 18px;
+                width: 82px;
+                padding: 5px;
+                border-radius: 22px;
+            }
+
+            .project-app-icon img {
+                border-radius: 17px;
+            }
+
             .keyboard-art {
                 width: 88%;
                 padding: 18px 14px;
@@ -2664,6 +2736,7 @@
                                 <span class="key">A</span><span class="key">S</span><span class="key">D</span><span class="key">F</span><span class="key">G</span><span class="key">H</span><span class="key">J</span><span class="key">K</span>
                                 <span class="key">Z</span><span class="key">X</span><span class="key">C</span><span class="key">V</span><span class="key">B</span><span class="key">N</span><span class="key">M</span><span class="key">↵</span>
                             </div>
+                            <span class="project-app-icon"><img src="/assets/sweetkeyboard-icon-512.png" alt="" width="512" height="512"></span>
                         </div>
                         <div class="project-copy">
                             <div>
@@ -2681,6 +2754,7 @@
                                 <div class="orbit"></div>
                                 <div class="memory-core">I</div>
                             </div>
+                            <span class="project-app-icon"><img src="/assets/iriz-icon-512.png" alt="" width="512" height="512"></span>
                         </div>
                         <div class="project-copy">
                             <div>

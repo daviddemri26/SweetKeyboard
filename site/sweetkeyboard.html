@@ -351,6 +351,104 @@
             margin-top: 0;
         }
 
+        .lafayette-banner {
+            position: relative;
+            min-height: 190px;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: center;
+            gap: clamp(22px, 4vw, 42px);
+            overflow: hidden;
+            border-color: rgba(32, 253, 173, 0.28);
+            background:
+                radial-gradient(circle at 14% 28%, rgba(8, 255, 194, 0.2), transparent 25%),
+                #0d2236;
+            color: #fffdf8;
+        }
+
+        .lafayette-banner::after {
+            position: absolute;
+            right: -76px;
+            width: 220px;
+            aspect-ratio: 1;
+            border: 1px solid rgba(107, 251, 108, 0.25);
+            border-radius: 50%;
+            box-shadow: 0 0 0 28px rgba(8, 255, 194, 0.04), 0 0 0 58px rgba(167, 251, 58, 0.025);
+            content: "";
+            pointer-events: none;
+        }
+
+        .lafayette-mark {
+            position: relative;
+            z-index: 1;
+            width: 72px;
+            height: 72px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .lafayette-mark img {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+            animation: lafayette-float 4.6s ease-in-out infinite;
+        }
+
+        .lafayette-copy {
+            position: relative;
+            z-index: 1;
+        }
+
+        .lafayette-copy .eyebrow {
+            margin-bottom: 5px;
+            color: #20fdad;
+        }
+
+        .lafayette-copy h2 {
+            margin: 0 0 7px;
+            color: #fffdf8;
+            font-size: clamp(1.55rem, 3vw, 2.15rem);
+        }
+
+        .lafayette-copy p {
+            max-width: 580px;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.62);
+        }
+
+        .lafayette-link {
+            position: relative;
+            z-index: 1;
+            min-height: 48px;
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 10px 17px;
+            border: 1px solid rgba(32, 253, 173, 0.42);
+            border-radius: 999px;
+            color: #0d2236;
+            background: linear-gradient(112deg, #08ffc2, #6bfb6c 72%, #a7fb3a);
+            font-size: 0.88rem;
+            font-weight: 800;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .lafayette-link:hover {
+            color: #0d2236;
+            box-shadow: 0 12px 30px rgba(8, 255, 194, 0.2);
+            transform: translateY(-2px);
+        }
+
+        @keyframes lafayette-float {
+            0%, 100% { transform: translateY(0) rotate(0); }
+            50% { transform: translateY(-6px) rotate(4deg); }
+        }
+
         .note {
             border-left: 4px solid var(--accent);
             padding: 12px 14px;
@@ -374,6 +472,37 @@
 
         .footer-brand p {
             margin: 0;
+        }
+
+        .footer-lafayette {
+            max-width: 330px;
+            margin: 24px 0 20px;
+            padding-top: 22px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        .footer-lafayette span {
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .footer-lafayette img {
+            width: min(238px, 72vw);
+            height: auto;
+            display: block;
+            transition: opacity 180ms ease;
+        }
+
+        .footer-lafayette:hover img {
+            opacity: 0.74;
         }
 
         code {
@@ -414,6 +543,27 @@
 
             .hero {
                 grid-template-columns: 1fr;
+            }
+
+            .lafayette-banner {
+                grid-template-columns: auto 1fr;
+            }
+
+            .lafayette-link {
+                grid-column: 1 / -1;
+                justify-content: center;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            .lafayette-mark img,
+            .lafayette-link {
+                animation: none;
+                transition: none;
             }
         }
     </style>
@@ -476,6 +626,16 @@
                 </div>
             </div>
         </header>
+
+        <section class="lafayette-banner" aria-labelledby="lafayette-title">
+            <span class="lafayette-mark" aria-hidden="true"><img src="/assets/lafayette-icon-white.png" alt="" width="319" height="319"></span>
+            <div class="lafayette-copy">
+                <p class="eyebrow">Created by Lafayette Consulting</p>
+                <h2 id="lafayette-title">A product built by people who ship.</h2>
+                <p>SweetKeyboard is designed and developed by Lafayette Consulting, a San Francisco studio for digital products and business transformation.</p>
+            </div>
+            <a class="lafayette-link" href="/">Meet the studio <span aria-hidden="true">↗</span></a>
+        </section>
 
         <section id="install">
             <p class="eyebrow">Home</p>
@@ -656,6 +816,13 @@
                 <img class="footer-logo" src="https://assets.lafayette-consulting.us/sweet-keyboard-icon-1024.png" alt="SweetKeyboard app icon" width="54" height="54">
                 <p><strong>SweetKeyboard</strong><br>Lafayette Consulting</p>
             </div>
+            <a class="footer-lafayette" href="/" aria-label="Visit Lafayette Consulting">
+                <span>Created and published by</span>
+                <picture>
+                    <source srcset="/assets/lafayette-logo-white.png" media="(prefers-color-scheme: dark)">
+                    <img src="/assets/lafayette-logo-black.png" alt="Lafayette Consulting" width="1015" height="319">
+                </picture>
+            </a>
             <p>Website: <a href="https://lafayette-consulting.us/sweetkeyboard/">https://lafayette-consulting.us/sweetkeyboard/</a></p>
         </footer>
     </main>
