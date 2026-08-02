@@ -3,376 +3,2909 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Lafayette Consulting creates thoughtful, focused software for Apple platforms.">
-    <meta name="theme-color" content="#f5f4f0" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#0a0b0d" media="(prefers-color-scheme: dark)">
-    <title>Lafayette Consulting — Independent software studio</title>
+    <meta name="description" content="Lafayette Consulting brings 20+ years of experience to enterprise transformation, digital products, CRM, commerce, and modern business systems.">
+    <meta name="theme-color" content="#f4f1ea">
+    <meta property="og:title" content="Lafayette Consulting — Build what moves business forward">
+    <meta property="og:description" content="20+ years of strategy, design, and engineering for ambitious digital products and enterprise transformation.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://lafayette-consulting.us/">
+    <title>Lafayette Consulting — Digital products &amp; transformation</title>
     <link rel="icon" type="image/png" href="/assets/lafayette-icon-black.png" media="(prefers-color-scheme: light)">
     <link rel="icon" type="image/png" href="/assets/lafayette-icon-white.png" media="(prefers-color-scheme: dark)">
     <link rel="apple-touch-icon" href="/assets/lafayette-icon-black.png">
+    <script>document.documentElement.classList.add('js');</script>
     <style>
         :root {
-            color-scheme: light dark;
-            --background: #f5f4f0;
-            --surface: rgba(255, 255, 255, 0.7);
-            --surface-hover: rgba(255, 255, 255, 0.94);
-            --text: #111217;
-            --muted: #666974;
-            --line: rgba(17, 18, 23, 0.1);
-            --shadow: 0 24px 70px rgba(30, 25, 46, 0.08);
-            --accent-a: #263ddd;
-            --accent-b: #d700df;
-            --focus: #4055e7;
+            color-scheme: light;
+            --ink: #102337;
+            --ink-soft: #415164;
+            --night: #0d2236;
+            --paper: #f4f1ea;
+            --paper-deep: #e9e4da;
+            --white: #fffdf8;
+            --brand-mint: #08ffc2;
+            --brand-green: #20fdad;
+            --brand-leaf: #6bfb6c;
+            --brand-lime: #a7fb3a;
+            --brand-deep: #08735b;
+            --brand-soft: #ddfaee;
+            --brand-gradient: linear-gradient(112deg, var(--brand-mint) 0%, var(--brand-green) 38%, var(--brand-leaf) 72%, var(--brand-lime) 100%);
+            --usa-blue: #0a3161;
+            --usa-red: #b31942;
+            --line: rgba(16, 35, 55, 0.14);
+            --line-light: rgba(255, 255, 255, 0.16);
+            --shadow: 0 24px 64px rgba(16, 35, 55, 0.1);
+            --shadow-lift: 0 28px 68px rgba(16, 35, 55, 0.14);
+            --container: 1180px;
+            --radius: 28px;
         }
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --background: #0a0b0d;
-                --surface: rgba(255, 255, 255, 0.055);
-                --surface-hover: rgba(255, 255, 255, 0.09);
-                --text: #f7f7f8;
-                --muted: #a9abb3;
-                --line: rgba(255, 255, 255, 0.11);
-                --shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
-                --focus: #87f6c6;
-            }
-        }
-
-        * {
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
         }
 
-        html,
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 92px;
+        }
+
         body {
-            width: 100%;
-            height: 100%;
             margin: 0;
+            overflow-x: hidden;
+            background: var(--paper);
+            color: var(--ink);
+            font-family: "Avenir Next", Avenir, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+        }
+
+        body.menu-open {
             overflow: hidden;
         }
 
-        body {
-            background:
-                radial-gradient(circle at 11% 18%, rgba(74, 222, 174, 0.16), transparent 27rem),
-                radial-gradient(circle at 90% 82%, rgba(83, 69, 229, 0.15), transparent 30rem),
-                var(--background);
-            color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
-            -webkit-font-smoothing: antialiased;
+        ::selection {
+            background: var(--brand-mint);
+            color: var(--night);
         }
 
-        .page {
-            width: min(1120px, 100%);
-            height: 100dvh;
-            margin: 0 auto;
-            padding: clamp(22px, 4vw, 48px);
-            display: grid;
-            grid-template-rows: auto minmax(0, 1fr);
+        a {
+            color: inherit;
+        }
+
+        button,
+        a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button {
+            font: inherit;
+        }
+
+        .skip-link {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 1000;
+            padding: 10px 14px;
+            border-radius: 10px;
+            background: var(--white);
+            color: var(--night);
+            font-weight: 700;
+            transform: translateY(-150%);
+            transition: transform 160ms ease;
+        }
+
+        .skip-link:focus {
+            transform: translateY(0);
+        }
+
+        .container {
+            width: min(var(--container), calc(100% - 48px));
+            margin-inline: auto;
+        }
+
+        .site-header {
+            position: fixed;
+            inset: 0 0 auto;
+            z-index: 100;
+            padding: 16px 0;
+            transition: padding 220ms ease;
+        }
+
+        .site-header.scrolled {
+            padding: 8px 0;
+        }
+
+        .nav-shell {
+            min-height: 62px;
+            padding: 7px 8px 7px 17px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.11);
+            border-radius: 20px;
+            background: rgba(13, 34, 54, 0.94);
+            box-shadow: 0 16px 44px rgba(13, 34, 54, 0.16);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            transition: box-shadow 220ms ease, background-color 220ms ease, border-radius 220ms ease;
+        }
+
+        .site-header.scrolled .nav-shell {
+            background: rgba(13, 34, 54, 0.9);
+            box-shadow: 0 12px 38px rgba(13, 34, 54, 0.2);
         }
 
         .brand {
-            width: clamp(210px, 25vw, 285px);
+            position: relative;
+            z-index: 102;
+            display: inline-flex;
+            align-items: center;
+            color: var(--night);
+            line-height: 0;
+            text-decoration: none;
+        }
+
+        .brand-logo {
+            width: auto;
+            height: 40px;
+            display: block;
+            object-fit: contain;
+            object-position: left center;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-links > a {
+            position: relative;
+            padding: 10px 13px;
+            border-radius: 999px;
+            color: rgba(255, 255, 255, 0.68);
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: color 180ms ease, background-color 180ms ease;
+        }
+
+        .nav-links > a:not(.nav-cta):hover,
+        .nav-links > a:not(.nav-cta).active {
+            background: rgba(255, 255, 255, 0.07);
+            color: var(--white);
+        }
+
+        .nav-links .nav-cta {
+            margin-left: 6px;
+            padding-inline: 18px;
+            background: var(--brand-gradient);
+            background-size: 160% 100%;
+            color: var(--night);
+            transition: background-position 260ms ease, transform 180ms ease;
+        }
+
+        .nav-links .nav-cta:hover {
+            background-position: 100% 0;
+            transform: translateY(-1px);
+        }
+
+        .nav-toggle {
+            position: relative;
+            z-index: 103;
+            width: 46px;
+            height: 46px;
+            flex: 0 0 46px;
+            display: none;
+            place-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--white);
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: background-color 180ms ease, border-color 180ms ease;
+        }
+
+        .nav-toggle-icon {
+            position: relative;
+            width: 20px;
+            height: 16px;
+            display: block;
+            font-size: 0;
             line-height: 0;
         }
 
-        .brand img {
+        .nav-toggle-icon span {
+            position: absolute;
+            left: 0;
+            width: 20px;
+            height: 2px;
             display: block;
-            width: 100%;
-            height: auto;
+            border-radius: 999px;
+            background: currentColor;
+            transform-origin: center;
+            transition: top 180ms ease, bottom 180ms ease, transform 180ms ease;
         }
 
-        .stage {
-            min-height: 0;
+        .nav-toggle-icon span:first-child {
+            top: 3px;
+        }
+
+        .nav-toggle-icon span:last-child {
+            bottom: 3px;
+        }
+
+        .menu-active .nav-toggle {
+            border-color: rgba(8, 255, 194, 0.42);
+            background: rgba(8, 255, 194, 0.1);
+        }
+
+        .menu-active .nav-toggle-icon span:first-child {
+            top: 7px;
+            transform: rotate(45deg);
+        }
+
+        .menu-active .nav-toggle-icon span:last-child {
+            top: 7px;
+            bottom: auto;
+            transform: rotate(-45deg);
+        }
+
+        .hero {
+            position: relative;
+            min-height: 100svh;
             display: grid;
-            grid-template-columns: minmax(0, 1.12fr) minmax(320px, 0.88fr);
             align-items: center;
-            gap: clamp(44px, 8vw, 104px);
-            padding-block: clamp(18px, 4vh, 44px);
+            padding: 128px 0 76px;
+            isolation: isolate;
         }
 
-        .intro {
-            max-width: 660px;
+        .hero::before,
+        .hero::after {
+            position: absolute;
+            z-index: -1;
+            border-radius: 50%;
+            filter: blur(2px);
+            content: "";
+            pointer-events: none;
+        }
+
+        .hero::before {
+            width: min(44vw, 580px);
+            aspect-ratio: 1;
+            top: -18%;
+            right: -8%;
+            background: radial-gradient(circle, rgba(8, 255, 194, 0.24), rgba(8, 255, 194, 0) 68%);
+        }
+
+        .hero::after {
+            width: min(34vw, 430px);
+            aspect-ratio: 1;
+            bottom: -18%;
+            left: -10%;
+            background: radial-gradient(circle, rgba(167, 251, 58, 0.12), rgba(167, 251, 58, 0) 70%);
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.08fr) minmax(390px, 0.92fr);
+            align-items: center;
+            gap: clamp(52px, 8vw, 112px);
         }
 
         .eyebrow {
-            margin: 0 0 16px;
-            color: var(--muted);
-            font-size: 0.72rem;
-            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 22px;
+            color: var(--ink-soft);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            line-height: 1.3;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+            width: 28px;
+            height: 2px;
+            display: block;
+            background: var(--brand-gradient);
+            content: "";
+        }
+
+        .hero h1,
+        .section-heading,
+        .contact-title {
+            font-family: Georgia, "Times New Roman", serif;
+            font-weight: 400;
+            letter-spacing: -0.055em;
+        }
+
+        .hero h1 {
+            max-width: 720px;
+            margin: 0;
+            color: var(--night);
+            font-size: clamp(3.65rem, 7vw, 7.4rem);
+            line-height: 0.89;
+        }
+
+        .hero h1 em {
+            position: relative;
+            display: inline-block;
+            background: var(--brand-gradient);
+            background-size: 180% 100%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            font-style: italic;
+            white-space: nowrap;
+            animation: brand-shift 7s ease-in-out infinite alternate;
+        }
+
+        @keyframes brand-shift {
+            to { background-position: 100% 0; }
+        }
+
+        .hero-lead {
+            max-width: 610px;
+            margin: 30px 0 0;
+            color: var(--ink-soft);
+            font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+            line-height: 1.65;
+        }
+
+        .hero-actions,
+        .contact-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 34px;
+        }
+
+        .button {
+            min-height: 54px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 11px;
+            padding: 13px 22px;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            font-size: 14px;
+            font-weight: 750;
+            line-height: 1;
+            text-decoration: none;
+            transition: transform 180ms ease, background-color 180ms ease, background-position 260ms ease, border-color 180ms ease, color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        .button-primary {
+            background: var(--brand-gradient);
+            background-size: 170% 100%;
+            color: var(--night);
+            box-shadow: 0 14px 30px rgba(8, 115, 91, 0.24);
+        }
+
+        .button-primary:hover {
+            background-position: 100% 0;
+            box-shadow: 0 18px 38px rgba(8, 115, 91, 0.3);
+        }
+
+        .button-secondary {
+            border-color: var(--line);
+            background: rgba(255, 253, 248, 0.56);
+            color: var(--night);
+        }
+
+        .button-secondary:hover {
+            border-color: rgba(16, 35, 55, 0.3);
+            background: var(--white);
+        }
+
+        .button-arrow {
+            font-size: 18px;
+            transition: transform 180ms ease;
+        }
+
+        .button:hover .button-arrow {
+            transform: translateX(3px);
+        }
+
+        .hero-stage {
+            --pointer-x: 50%;
+            --pointer-y: 50%;
+            position: relative;
+            min-height: 540px;
+            padding: 24px;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            border: 1px solid rgba(16, 35, 55, 0.11);
+            border-radius: 42px;
+            background:
+                radial-gradient(circle at var(--pointer-x) var(--pointer-y), rgba(8, 255, 194, 0.3), rgba(8, 255, 194, 0) 34%),
+                linear-gradient(145deg, rgba(255, 253, 248, 0.9), rgba(233, 228, 218, 0.68));
+            box-shadow: var(--shadow);
+            transition: background-position 120ms ease;
+        }
+
+        .hero-stage::before {
+            position: absolute;
+            inset: 0;
+            opacity: 0.4;
+            background-image:
+                linear-gradient(var(--line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--line) 1px, transparent 1px);
+            background-size: 42px 42px;
+            mask-image: linear-gradient(to bottom, black, transparent 90%);
+            content: "";
+        }
+
+        .signal-card {
+            position: relative;
+            z-index: 2;
+            width: min(100%, 390px);
+            min-height: 360px;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 30px;
+            background: var(--night);
+            color: var(--white);
+            box-shadow: 0 30px 64px rgba(13, 34, 54, 0.28);
+            transform: rotate(-2.5deg);
+            transition: transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .hero-stage:hover .signal-card {
+            transform: rotate(0deg) translateY(-5px);
+        }
+
+        .signal-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            color: rgba(255, 255, 255, 0.62);
+            font-size: 10px;
+            font-weight: 800;
             letter-spacing: 0.17em;
             text-transform: uppercase;
         }
 
-        h1 {
-            max-width: 720px;
-            margin: 0;
-            font-size: clamp(3.2rem, 6.4vw, 5.9rem);
-            font-weight: 620;
-            letter-spacing: -0.065em;
-            line-height: 0.94;
+        .signal-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--brand-mint);
         }
 
-        .gradient-word {
-            background: linear-gradient(115deg, var(--accent-a), var(--accent-b) 55%, #74ef84);
+        .signal-status::before {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 0 6px rgba(8, 255, 194, 0.1);
+            content: "";
+        }
+
+        .signal-main {
+            margin: auto 0;
+        }
+
+        .signal-kicker {
+            margin: 0 0 12px;
+            color: rgba(255, 255, 255, 0.56);
+            font-size: 13px;
+        }
+
+        .signal-title {
+            max-width: 300px;
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(2rem, 4vw, 3.15rem);
+            font-weight: 400;
+            letter-spacing: -0.045em;
+            line-height: 1.02;
+        }
+
+        .signal-flow {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 12px;
+            padding-top: 22px;
+            border-top: 1px solid var(--line-light);
+        }
+
+        .signal-flow span {
+            font-size: 11px;
+            font-weight: 750;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .signal-flow span:last-child {
+            color: var(--brand-mint);
+            text-align: right;
+        }
+
+        .signal-line {
+            width: 74px;
+            height: 1px;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .signal-line::after {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, var(--brand-mint), transparent);
+            content: "";
+            animation: signal 2.4s ease-in-out infinite;
+        }
+
+        .stage-note {
+            position: absolute;
+            z-index: 3;
+            right: 7px;
+            bottom: 54px;
+            width: 160px;
+            padding: 16px;
+            border: 1px solid rgba(16, 35, 55, 0.1);
+            border-radius: 18px;
+            background: rgba(255, 253, 248, 0.92);
+            box-shadow: 0 16px 40px rgba(16, 35, 55, 0.14);
+            color: var(--ink-soft);
+            font-size: 11px;
+            line-height: 1.5;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            transform: rotate(4deg);
+        }
+
+        .stage-note strong {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--night);
+            font-size: 12px;
+        }
+
+        @keyframes signal {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(100%); }
+        }
+
+        .capability-bar {
+            border-block: 1px solid var(--line);
+            background: rgba(255, 253, 248, 0.45);
+        }
+
+        .capability-grid {
+            min-height: 116px;
+            display: grid;
+            grid-template-columns: 1.25fr repeat(4, 1fr);
+            align-items: center;
+        }
+
+        .experience-stat {
+            padding-right: 30px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .experience-stat strong {
+            background: var(--brand-gradient);
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 42px;
+            font-weight: 400;
+            letter-spacing: -0.05em;
+            line-height: 1;
         }
 
-        .lede {
-            max-width: 570px;
-            margin: clamp(20px, 3.2vh, 30px) 0 0;
-            color: var(--muted);
-            font-size: clamp(1rem, 1.55vw, 1.18rem);
-            line-height: 1.55;
+        .experience-stat span {
+            max-width: 150px;
+            color: var(--ink-soft);
+            font-size: 11px;
+            font-weight: 750;
+            letter-spacing: 0.05em;
+            line-height: 1.35;
+            text-transform: uppercase;
         }
 
-        .products {
+        .capability-item {
+            min-height: 50px;
+            padding-inline: 24px;
+            display: flex;
+            align-items: center;
+            border-left: 1px solid var(--line);
+            color: var(--night);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .section {
+            padding: clamp(92px, 12vw, 156px) 0;
+        }
+
+        .section-head {
+            max-width: 840px;
+            margin-bottom: clamp(42px, 6vw, 72px);
+        }
+
+        .section-heading {
+            margin: 0;
+            color: var(--night);
+            font-size: clamp(2.7rem, 5.3vw, 5.25rem);
+            line-height: 0.98;
+        }
+
+        .section-heading span {
+            background: var(--brand-gradient);
+            background-size: 170% 100%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            font-style: italic;
+            animation: brand-shift 8s ease-in-out infinite alternate;
+        }
+
+        .section-lead {
+            max-width: 650px;
+            margin: 24px 0 0;
+            color: var(--ink-soft);
+            font-size: clamp(1rem, 1.4vw, 1.18rem);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            border-top: 1px solid var(--line);
+        }
+
+        .service-card {
+            position: relative;
+            min-height: 310px;
+            padding: 38px 40px 42px;
+            overflow: hidden;
+            border-bottom: 1px solid var(--line);
+            transition: background-color 220ms ease;
+        }
+
+        .service-card:nth-child(odd) {
+            border-right: 1px solid var(--line);
+        }
+
+        .service-card::after {
+            position: absolute;
+            width: 180px;
+            aspect-ratio: 1;
+            right: -70px;
+            bottom: -90px;
+            border-radius: 50%;
+            background: var(--brand-mint);
+            opacity: 0;
+            transform: scale(0.65);
+            transition: opacity 260ms ease, transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+            content: "";
+        }
+
+        .service-card:hover {
+            background: rgba(255, 253, 248, 0.62);
+        }
+
+        .service-card:hover::after {
+            opacity: 0.3;
+            transform: scale(1);
+        }
+
+        .service-number {
+            color: var(--brand-deep);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+        }
+
+        .service-card h3 {
+            max-width: 420px;
+            margin: 72px 0 16px;
+            color: var(--night);
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(1.75rem, 3vw, 2.7rem);
+            font-weight: 400;
+            letter-spacing: -0.04em;
+            line-height: 1.05;
+        }
+
+        .service-card p {
+            max-width: 470px;
+            margin: 0;
+            color: var(--ink-soft);
+            font-size: 15px;
+        }
+
+        .service-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .transformation-section {
+            padding-top: 0;
+        }
+
+        .transformation-layout {
+            display: grid;
+            grid-template-columns: minmax(280px, 0.72fr) minmax(0, 1.28fr);
+            align-items: start;
+            gap: clamp(54px, 9vw, 132px);
+        }
+
+        .transformation-intro {
+            position: sticky;
+            top: 112px;
+        }
+
+        .transformation-intro .section-heading {
+            font-size: clamp(2.8rem, 4.6vw, 4.85rem);
+        }
+
+        .transformation-intro .section-lead {
+            font-size: 1rem;
+        }
+
+        .transformation-note {
+            margin-top: 30px;
+            padding: 20px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            border-top: 1px solid var(--line);
+            color: var(--ink-soft);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .transformation-note::before {
+            width: 9px;
+            height: 9px;
+            flex: 0 0 auto;
+            border-radius: 50%;
+            background: var(--brand-gradient);
+            box-shadow: 0 0 0 6px rgba(8, 255, 194, 0.12);
+            content: "";
+        }
+
+        .solution-stack {
             display: grid;
             gap: 14px;
         }
 
-        .product {
-            min-height: 154px;
-            padding: clamp(20px, 2.5vw, 28px);
+        .solution-card {
+            position: relative;
+            min-height: 250px;
+            padding: 32px;
             display: grid;
-            grid-template-columns: 1fr auto;
-            grid-template-rows: auto 1fr auto;
-            gap: 8px 20px;
+            grid-template-columns: auto 1fr;
+            gap: 26px;
             overflow: hidden;
             border: 1px solid var(--line);
             border-radius: 24px;
-            background: var(--surface);
-            box-shadow: var(--shadow);
-            color: inherit;
-            text-decoration: none;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+            background: rgba(255, 253, 248, 0.62);
+            transition: transform 240ms ease, background-color 240ms ease, border-color 240ms ease, box-shadow 240ms ease;
         }
 
-        .product:hover {
-            transform: translateY(-3px);
-            border-color: rgba(94, 86, 221, 0.32);
-            background: var(--surface-hover);
+        .solution-card:hover {
+            border-color: rgba(8, 115, 91, 0.3);
+            background: var(--white);
+            box-shadow: 0 18px 44px rgba(16, 35, 55, 0.08);
+            transform: translateX(6px);
         }
 
-        .product:focus-visible {
-            outline: 3px solid var(--focus);
-            outline-offset: 4px;
+        .solution-index {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(8, 115, 91, 0.2);
+            border-radius: 50%;
+            color: var(--brand-deep);
+            background: var(--brand-soft);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
         }
 
-        .product-index {
-            color: var(--muted);
-            font-size: 0.68rem;
-            font-weight: 700;
-            letter-spacing: 0.16em;
+        .solution-card h3 {
+            margin: 2px 0 10px;
+            color: var(--night);
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(1.65rem, 2.8vw, 2.4rem);
+            font-weight: 400;
+            letter-spacing: -0.04em;
+            line-height: 1.08;
         }
 
-        .product-arrow {
-            grid-column: 2;
-            grid-row: 1 / span 3;
-            align-self: center;
-            font-size: 1.45rem;
-            transition: transform 180ms ease;
-        }
-
-        .product:hover .product-arrow {
-            transform: translate(3px, -3px);
-        }
-
-        .product-name {
+        .solution-card p {
+            max-width: 560px;
             margin: 0;
-            align-self: end;
-            font-size: clamp(1.35rem, 2.4vw, 1.8rem);
-            font-weight: 650;
+            color: var(--ink-soft);
+            font-size: 14px;
+        }
+
+        .platform-tags {
+            margin-top: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+        }
+
+        .platform-tag {
+            padding: 6px 10px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: rgba(221, 250, 238, 0.62);
+            color: var(--night);
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .platform-band {
+            margin-top: 20px;
+            padding: 24px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            border-radius: 20px;
+            border: 1px solid rgba(8, 115, 91, 0.1);
+            background: var(--brand-soft);
+        }
+
+        .platform-band p {
+            max-width: 300px;
+            margin: 0;
+            color: var(--ink-soft);
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 16px;
+            font-style: italic;
+        }
+
+        .platform-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px 18px;
+            color: var(--night);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .approach-wrap {
+            --approach-x: 78%;
+            --approach-y: 18%;
+            position: relative;
+            padding: clamp(36px, 6vw, 72px);
+            overflow: hidden;
+            border-radius: 42px;
+            background:
+                radial-gradient(circle at var(--approach-x) var(--approach-y), rgba(8, 255, 194, 0.22), rgba(8, 255, 194, 0) 28%),
+                var(--night);
+            color: var(--white);
+        }
+
+        .approach-wrap::before {
+            position: absolute;
+            inset: 0;
+            opacity: 0.16;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+            background-size: 52px 52px;
+            mask-image: linear-gradient(135deg, transparent 4%, black 48%, transparent 96%);
+            content: "";
+            pointer-events: none;
+        }
+
+        .approach-wrap::after {
+            position: absolute;
+            width: 520px;
+            aspect-ratio: 1;
+            right: -310px;
+            bottom: -330px;
+            border: 1px solid rgba(8, 255, 194, 0.2);
+            border-radius: 50%;
+            box-shadow: 0 0 0 62px rgba(8, 255, 194, 0.035), 0 0 0 124px rgba(8, 255, 194, 0.025);
+            content: "";
+            pointer-events: none;
+        }
+
+        .approach-wrap > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .approach-intro {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 270px;
+            align-items: center;
+            gap: clamp(42px, 7vw, 92px);
+        }
+
+        .approach-intro .section-head {
+            margin-bottom: 0;
+        }
+
+        .approach-wrap .eyebrow {
+            color: rgba(255, 255, 255, 0.58);
+        }
+
+        .approach-wrap .section-heading {
+            max-width: 850px;
+            color: var(--white);
+        }
+
+        .approach-wrap .section-lead {
+            color: rgba(255, 255, 255, 0.62);
+        }
+
+        .momentum-display {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 50%;
+        }
+
+        .momentum-display::before,
+        .momentum-display::after {
+            position: absolute;
+            border: 1px solid rgba(8, 255, 194, 0.3);
+            border-radius: 50%;
+            content: "";
+        }
+
+        .momentum-display::before {
+            inset: 18px;
+            border-style: dashed;
+            animation: orbit 18s linear infinite;
+        }
+
+        .momentum-display::after {
+            inset: 50px;
+        }
+
+        .momentum-core {
+            position: relative;
+            z-index: 2;
+            width: 102px;
+            aspect-ratio: 1;
+            display: grid;
+            place-items: center;
+            border-radius: 50%;
+            background: var(--brand-gradient);
+            box-shadow: 0 0 52px rgba(8, 255, 194, 0.26);
+            color: var(--night);
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .momentum-node {
+            position: absolute;
+            z-index: 3;
+            padding: 7px 10px;
+            border: 1px solid rgba(255, 255, 255, 0.17);
+            border-radius: 999px;
+            background: rgba(13, 34, 54, 0.9);
+            color: rgba(255, 255, 255, 0.68);
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .momentum-node:nth-of-type(2) { top: 12px; left: 50%; transform: translateX(-50%); }
+        .momentum-node:nth-of-type(3) { right: -2px; bottom: 58px; }
+        .momentum-node:nth-of-type(4) { left: -4px; bottom: 58px; }
+
+        .momentum-pulse {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            top: 42px;
+            right: 40px;
+            border-radius: 50%;
+            background: var(--brand-gradient);
+            box-shadow: 0 0 0 0 rgba(8, 255, 194, 0.55);
+            animation: pulse 2.2s ease-out infinite;
+        }
+
+        @keyframes pulse {
+            70%, 100% { box-shadow: 0 0 0 16px rgba(8, 255, 194, 0); }
+        }
+
+        .steps {
+            margin-top: 70px;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .step {
+            position: relative;
+            min-height: 260px;
+            padding: 28px 28px 6px;
+            border-top: 1px solid var(--line-light);
+        }
+
+        .step:not(:last-child) {
+            border-right: 1px solid var(--line-light);
+        }
+
+        .step::before {
+            position: absolute;
+            width: 9px;
+            height: 9px;
+            top: -5px;
+            left: 28px;
+            border: 2px solid var(--night);
+            border-radius: 50%;
+            background: var(--brand-gradient);
+            box-shadow: 0 0 0 4px var(--brand-mint);
+            content: "";
+        }
+
+        .step-number {
+            color: var(--brand-mint);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .step h3 {
+            margin: 62px 0 14px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 27px;
+            font-weight: 400;
             letter-spacing: -0.035em;
         }
 
-        .product-copy {
+        .step p {
             margin: 0;
-            color: var(--muted);
-            font-size: 0.88rem;
-            line-height: 1.45;
+            color: rgba(255, 255, 255, 0.58);
+            font-size: 13px;
+            line-height: 1.65;
         }
 
-        @media (max-width: 760px) {
-            .page {
-                padding: clamp(20px, 6vw, 34px);
+        .work-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .project-card {
+            position: relative;
+            min-height: 590px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            background: var(--white);
+            color: var(--night);
+            text-decoration: none;
+            box-shadow: 0 14px 42px rgba(16, 35, 55, 0.06);
+            transition: transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 280ms ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-7px);
+            box-shadow: var(--shadow-lift);
+        }
+
+        .project-visual {
+            position: relative;
+            min-height: 360px;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+        }
+
+        .project-card:first-child .project-visual {
+            background: linear-gradient(145deg, #d9fff4, #edffc2);
+        }
+
+        .project-card:last-child .project-visual {
+            background: linear-gradient(145deg, #89ecd0, #b9f889);
+        }
+
+        .keyboard-art {
+            width: min(78%, 390px);
+            padding: 24px 20px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.68);
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.56);
+            box-shadow: 0 24px 50px rgba(8, 115, 91, 0.14);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            transform: perspective(700px) rotateX(8deg) rotateZ(-5deg);
+            transition: transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .project-card:hover .keyboard-art {
+            transform: perspective(700px) rotateX(3deg) rotateZ(-1deg) scale(1.03);
+        }
+
+        .key {
+            aspect-ratio: 1;
+            display: grid;
+            place-items: center;
+            border-radius: 7px;
+            background: rgba(255, 255, 255, 0.82);
+            box-shadow: 0 3px 0 rgba(8, 115, 91, 0.1);
+            color: rgba(16, 35, 55, 0.5);
+            font-size: 8px;
+            font-weight: 800;
+        }
+
+        .memory-art {
+            position: relative;
+            width: min(68%, 320px);
+            aspect-ratio: 1;
+            display: grid;
+            place-items: center;
+        }
+
+        .orbit,
+        .orbit::before,
+        .orbit::after {
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(13, 34, 54, 0.25);
+            border-radius: 50%;
+        }
+
+        .orbit {
+            animation: orbit 16s linear infinite;
+        }
+
+        .orbit::before,
+        .orbit::after {
+            content: "";
+        }
+
+        .orbit::before {
+            transform: rotate(60deg) scaleY(0.42);
+        }
+
+        .orbit::after {
+            transform: rotate(-60deg) scaleY(0.42);
+        }
+
+        .memory-core {
+            position: relative;
+            z-index: 2;
+            width: 42%;
+            aspect-ratio: 1;
+            display: grid;
+            place-items: center;
+            border-radius: 36% 64% 54% 46% / 48% 36% 64% 52%;
+            background: var(--night);
+            color: var(--brand-mint);
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 44px;
+            box-shadow: 0 22px 48px rgba(13, 34, 54, 0.25);
+            animation: morph 7s ease-in-out infinite;
+        }
+
+        @keyframes orbit {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes morph {
+            50% { border-radius: 58% 42% 38% 62% / 38% 55% 45% 62%; transform: scale(1.06); }
+        }
+
+        .project-copy {
+            padding: 30px 34px 34px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: end;
+            gap: 18px;
+        }
+
+        .project-type {
+            margin: 0 0 9px;
+            color: var(--ink-soft);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .project-copy h3 {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(2rem, 3.5vw, 3rem);
+            font-weight: 400;
+            letter-spacing: -0.045em;
+        }
+
+        .project-copy p:last-child {
+            max-width: 360px;
+            margin: 12px 0 0;
+            color: var(--ink-soft);
+            font-size: 14px;
+        }
+
+        .project-arrow {
+            width: 52px;
+            height: 52px;
+            display: grid;
+            place-items: center;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            font-size: 22px;
+            transition: transform 220ms ease, background-color 220ms ease, color 220ms ease;
+        }
+
+        .project-card:hover .project-arrow {
+            background: var(--night);
+            color: var(--white);
+            transform: rotate(45deg);
+        }
+
+        .manifesto {
+            position: relative;
+            background: transparent;
+            color: var(--white);
+        }
+
+        .manifesto::after {
+            display: none;
+        }
+
+        .about-shell {
+            overflow: hidden;
+            border-radius: 42px;
+            background: var(--usa-blue);
+            box-shadow: var(--shadow-lift);
+        }
+
+        .manifesto-grid {
+            position: relative;
+            z-index: 1;
+            padding: clamp(44px, 7vw, 86px);
+            display: grid;
+            grid-template-columns: minmax(250px, 0.85fr) minmax(0, 1.15fr);
+            gap: clamp(46px, 7vw, 100px);
+            overflow: hidden;
+            background: var(--usa-blue);
+        }
+
+        .manifesto-grid::after {
+            position: absolute;
+            width: 300px;
+            aspect-ratio: 1;
+            top: -210px;
+            right: -90px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 50%;
+            box-shadow: 0 0 0 52px rgba(255, 255, 255, 0.025), 0 0 0 104px rgba(255, 255, 255, 0.018);
+            content: "";
+            pointer-events: none;
+        }
+
+        .manifesto-grid::before {
+            position: absolute;
+            width: 168px;
+            height: 3px;
+            left: clamp(44px, 7vw, 86px);
+            bottom: 0;
+            border-radius: 999px 999px 0 0;
+            background: var(--usa-red);
+            content: "";
+        }
+
+        .manifesto-intro {
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .manifesto-label {
+            margin: 0;
+            color: rgba(255, 255, 255, 0.68);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .manifesto-global-copy {
+            max-width: 360px;
+            margin: clamp(38px, 6vw, 74px) 0 0;
+            color: rgba(255, 255, 255, 0.74);
+            font-size: 15px;
+            line-height: 1.72;
+        }
+
+        .global-route {
+            width: min(100%, 360px);
+            margin-top: auto;
+            padding-top: 56px;
+            display: grid;
+            grid-template-columns: auto minmax(46px, 1fr) auto;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 8px;
+            font-weight: 850;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+        }
+
+        .global-route-line {
+            height: 1px;
+            position: relative;
+            display: block;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.22);
+        }
+
+        .global-route-line::after {
+            position: absolute;
+            width: 34px;
+            height: 1px;
+            inset: 0 auto 0 -34px;
+            background: linear-gradient(90deg, transparent, var(--usa-red));
+            content: "";
+            animation: global-route 2.8s ease-in-out infinite;
+        }
+
+        @keyframes global-route {
+            to { transform: translateX(260px); }
+        }
+
+        .manifesto-quote {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(2.5rem, 5vw, 5.3rem);
+            font-weight: 400;
+            letter-spacing: -0.05em;
+            line-height: 0.98;
+        }
+
+        .manifesto-quote em {
+            color: var(--white);
+            font-style: italic;
+            text-decoration: underline;
+            text-decoration-color: var(--usa-red);
+            text-decoration-thickness: 0.08em;
+            text-underline-offset: 0.08em;
+        }
+
+        .principles {
+            margin-top: 62px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .principle {
+            padding-top: 19px;
+            border-top: 1px solid rgba(255, 255, 255, 0.28);
+        }
+
+        .principle strong {
+            display: block;
+            margin-bottom: 8px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 19px;
+            font-weight: 400;
+            letter-spacing: -0.02em;
+        }
+
+        .principle span {
+            display: block;
+            color: rgba(255, 255, 255, 0.73);
+            font-size: 13px;
+        }
+
+        .sf-card {
+            --sf-shift-x: 0px;
+            --sf-shift-y: 0px;
+            position: relative;
+            min-height: min(760px, 82svh);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            background: var(--night);
+            color: var(--white);
+            isolation: isolate;
+        }
+
+        .sf-image {
+            position: absolute;
+            z-index: -3;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transform: scale(1.015);
+            transition: transform 1.1s cubic-bezier(0.2, 0.8, 0.2, 1), filter 500ms ease;
+        }
+
+        .sf-card:hover .sf-image {
+            filter: saturate(1.05) contrast(1.02);
+            transform: scale(1.035);
+        }
+
+        .sf-card::before {
+            position: absolute;
+            z-index: -2;
+            inset: 0;
+            background:
+                linear-gradient(90deg, rgba(7, 25, 42, 0.98) 0%, rgba(7, 25, 42, 0.9) 27%, rgba(7, 25, 42, 0.22) 62%, rgba(7, 25, 42, 0.08) 100%),
+                linear-gradient(0deg, rgba(7, 25, 42, 0.78) 0%, transparent 34%);
+            content: "";
+        }
+
+        .sf-card::after {
+            position: absolute;
+            z-index: -1;
+            inset: 0;
+            opacity: 0.1;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.25) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.25) 1px, transparent 1px);
+            background-size: 64px 64px;
+            mask-image: linear-gradient(90deg, black, transparent 56%);
+            content: "";
+            pointer-events: none;
+        }
+
+        .sf-top {
+            position: relative;
+            z-index: 5;
+            padding: clamp(30px, 5vw, 58px);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .sf-brand-logo {
+            width: clamp(142px, 15vw, 190px);
+            height: auto;
+            display: block;
+            filter: drop-shadow(0 10px 26px rgba(0, 0, 0, 0.16));
+            transition: transform 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .sf-card:hover .sf-brand-logo {
+            transform: translateY(-3px) rotate(-1deg);
+        }
+
+        .sf-coordinates {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .sf-coordinates::before {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--usa-red);
+            box-shadow: 0 0 0 6px rgba(179, 25, 66, 0.2);
+            content: "";
+            animation: pulse 2.2s ease-out infinite;
+        }
+
+        .sf-copy {
+            position: relative;
+            z-index: 4;
+            width: min(710px, 68%);
+            margin: auto 0 64px;
+            padding: 0 clamp(30px, 5vw, 58px);
+        }
+
+        .sf-kicker {
+            margin: 0 0 22px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.78);
+            font-size: 10px;
+            font-weight: 850;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .sf-kicker::before {
+            width: 30px;
+            height: 2px;
+            background: currentColor;
+            content: "";
+        }
+
+        .sf-title {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(4rem, 7.2vw, 7.7rem);
+            font-weight: 400;
+            letter-spacing: -0.065em;
+            line-height: 0.86;
+        }
+
+        .sf-title em {
+            position: relative;
+            color: var(--white);
+            font-style: italic;
+            white-space: nowrap;
+            text-shadow: 4px 4px 0 var(--usa-red);
+        }
+
+        .sf-lead {
+            max-width: 610px;
+            margin: 28px 0 0;
+            color: rgba(255, 255, 255, 0.73);
+            font-size: clamp(0.98rem, 1.35vw, 1.14rem);
+            line-height: 1.68;
+        }
+
+        .sf-badges {
+            margin-top: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .sf-badge {
+            min-height: 34px;
+            padding: 8px 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 999px;
+            background: rgba(13, 34, 54, 0.38);
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 9px;
+            font-weight: 850;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .sf-badge:first-child::before {
+            color: var(--usa-red);
+            content: "★";
+        }
+
+        .sf-orbits {
+            position: absolute;
+            z-index: 6;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .sf-orbit {
+            position: absolute;
+            display: grid;
+            place-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.27);
+            border-radius: 50%;
+            transition: transform 300ms ease-out;
+        }
+
+        .sf-orbit::before,
+        .sf-orbit::after {
+            position: absolute;
+            border-radius: inherit;
+            content: "";
+        }
+
+        .sf-orbit::before {
+            inset: 16%;
+            border: 1px dashed rgba(255, 255, 255, 0.48);
+            animation: orbit 22s linear infinite;
+        }
+
+        .sf-orbit::after {
+            width: 10px;
+            height: 10px;
+            top: 14%;
+            right: 16%;
+            background: var(--usa-red);
+            box-shadow: 0 0 20px rgba(179, 25, 66, 0.65);
+        }
+
+        .sf-orbit-large {
+            width: clamp(250px, 29vw, 430px);
+            aspect-ratio: 1;
+            left: 36%;
+            top: 23%;
+            transform: translate(var(--sf-shift-x), var(--sf-shift-y));
+            border-color: rgba(255, 255, 255, 0.4);
+            mix-blend-mode: screen;
+        }
+
+        .sf-orbit-small {
+            width: clamp(138px, 16vw, 225px);
+            aspect-ratio: 1;
+            right: 9%;
+            top: 8%;
+            border-color: rgba(179, 25, 66, 0.82);
+            transform: translate(calc(var(--sf-shift-x) * -0.75), calc(var(--sf-shift-y) * -0.75));
+        }
+
+        .sf-orbit-logo {
+            width: clamp(84px, 8vw, 116px);
+            aspect-ratio: 1;
+            left: 44%;
+            bottom: 10%;
+            border-color: rgba(255, 255, 255, 0.56);
+            background: rgba(10, 49, 97, 0.48);
+            box-shadow: 0 18px 44px rgba(0, 0, 0, 0.18);
+            transform: translate(calc(var(--sf-shift-x) * -0.45), calc(var(--sf-shift-y) * -0.45));
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .sf-orbit-logo::before,
+        .sf-orbit-logo::after {
+            display: none;
+        }
+
+        .sf-orbit-logo img {
+            width: 54%;
+            height: 54%;
+            object-fit: contain;
+            animation: sf-logo-float 5s ease-in-out infinite;
+        }
+
+        @keyframes sf-logo-float {
+            50% { transform: rotate(8deg) scale(1.08); }
+        }
+
+        .contact {
+            padding: clamp(100px, 14vw, 178px) 0 64px;
+        }
+
+        .contact-card {
+            --contact-x: 80%;
+            --contact-y: 18%;
+            position: relative;
+            padding: clamp(42px, 8vw, 96px);
+            overflow: hidden;
+            border-radius: 42px;
+            background:
+                radial-gradient(circle at var(--contact-x) var(--contact-y), rgba(8, 255, 194, 0.2), rgba(8, 255, 194, 0) 30%),
+                var(--night);
+            color: var(--white);
+            box-shadow: var(--shadow-lift);
+        }
+
+        .contact-card::before {
+            position: absolute;
+            width: 540px;
+            aspect-ratio: 1;
+            top: -330px;
+            right: -150px;
+            border-radius: 50%;
+            border: 1px solid rgba(8, 255, 194, 0.25);
+            background: transparent;
+            box-shadow: 0 0 0 68px rgba(8, 255, 194, 0.025), 0 0 0 136px rgba(8, 255, 194, 0.015);
+            opacity: 0.7;
+            content: "";
+        }
+
+        .contact-title {
+            position: relative;
+            max-width: 880px;
+            margin: 0;
+            font-size: clamp(3.3rem, 7.2vw, 7.6rem);
+            line-height: 0.9;
+        }
+
+        .contact-title em {
+            background: var(--brand-gradient);
+            background-size: 170% 100%;
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            font-style: italic;
+            animation: brand-shift 7s ease-in-out infinite alternate;
+        }
+
+        .contact-bottom {
+            position: relative;
+            margin-top: 50px;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 36px;
+        }
+
+        .contact-copy {
+            max-width: 540px;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.66);
+            font-size: 16px;
+        }
+
+        .contact-actions {
+            margin: 0;
+            flex: 0 0 auto;
+        }
+
+        .contact-actions .button-primary {
+            background: var(--white);
+            color: var(--night);
+            box-shadow: none;
+        }
+
+        .contact-actions .button-primary:hover {
+            background: var(--brand-gradient);
+        }
+
+        .footer {
+            padding: 32px 0 8px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 0.8fr 0.8fr;
+            gap: 34px;
+            padding-top: 40px;
+            border-top: 1px solid var(--line);
+        }
+
+        .footer-brand {
+            max-width: 380px;
+        }
+
+        .footer-brand p {
+            margin: 18px 0 0;
+            color: var(--ink-soft);
+            font-size: 13px;
+        }
+
+        .footer-column h2 {
+            margin: 0 0 14px;
+            color: var(--ink-soft);
+            font-size: 10px;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+        }
+
+        .footer-column a {
+            width: fit-content;
+            display: block;
+            margin: 8px 0;
+            color: var(--night);
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .footer-column a:hover {
+            color: var(--brand-deep);
+        }
+
+        .footer-bottom {
+            margin-top: 50px;
+            padding: 18px 0;
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            border-top: 1px solid var(--line);
+            color: var(--ink-soft);
+            font-size: 11px;
+        }
+
+        .js .reveal {
+            opacity: 0;
+            transform: translateY(26px);
+            transition: opacity 700ms ease, transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .js .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .js .reveal-delay-1 { transition-delay: 100ms; }
+        .js .reveal-delay-2 { transition-delay: 200ms; }
+        .js .reveal-delay-3 { transition-delay: 300ms; }
+
+        :focus-visible {
+            outline: 3px solid var(--brand-deep);
+            outline-offset: 4px;
+        }
+
+        @media (max-width: 1020px) {
+            .hero-grid {
+                grid-template-columns: minmax(0, 1fr) minmax(330px, 0.72fr);
+                gap: 48px;
             }
 
-            .brand {
-                width: clamp(190px, 58vw, 240px);
+            .hero-stage {
+                min-height: 480px;
             }
 
-            .stage {
+            .signal-card {
+                min-height: 330px;
+                padding: 27px;
+            }
+
+            .capability-grid {
+                grid-template-columns: repeat(4, 1fr);
+                padding: 22px 0;
+            }
+
+            .experience-stat {
+                grid-column: 1 / -1;
+                padding: 0 0 18px;
+            }
+
+            .capability-item:nth-child(2) {
+                border-left: 0;
+                padding-left: 0;
+            }
+
+            .transformation-layout {
+                grid-template-columns: minmax(250px, 0.65fr) minmax(0, 1.35fr);
+                gap: 48px;
+            }
+
+            .approach-intro {
+                grid-template-columns: minmax(0, 1fr) 220px;
+                gap: 42px;
+            }
+
+            .steps {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .step:nth-child(2) {
+                border-right: 0;
+            }
+
+            .step:nth-child(n + 3) {
+                margin-top: 24px;
+            }
+        }
+
+        @media (max-width: 800px) {
+            html {
+                scroll-padding-top: 78px;
+            }
+
+            .container {
+                width: min(100% - 32px, var(--container));
+            }
+
+            .site-header {
+                padding: 12px 0;
+            }
+
+            .nav-shell {
+                min-height: 58px;
+                padding: 6px 7px 6px 14px;
+                border-radius: 18px;
+            }
+
+            .nav-toggle {
+                display: grid;
+            }
+
+            .nav-links {
+                position: fixed;
+                inset: 0;
+                z-index: 101;
+                width: 100%;
+                height: 100dvh;
+                min-height: 100dvh;
+                padding: max(106px, calc(env(safe-area-inset-top) + 92px)) 24px max(34px, calc(env(safe-area-inset-bottom) + 24px));
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                justify-content: center;
+                gap: 4px;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                background:
+                    radial-gradient(circle at 82% 18%, rgba(8, 255, 194, 0.18), transparent 28%),
+                    rgba(13, 34, 54, 0.99);
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                transition: opacity 180ms ease, visibility 180ms;
+            }
+
+            .menu-active .nav-links {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+            }
+
+            .nav-links > a {
+                padding: 13px 10px;
+                border-radius: 12px;
+                font-family: Georgia, "Times New Roman", serif;
+                font-size: clamp(2rem, 10vw, 3.7rem);
+                font-weight: 400;
+                letter-spacing: -0.04em;
+                line-height: 1;
+            }
+
+            .nav-links .nav-cta {
+                min-height: 58px;
+                margin: 26px 0 0;
+                display: grid;
+                place-items: center;
+                border-radius: 999px;
+                font-family: inherit;
+                font-size: 14px;
+                font-weight: 750;
+                letter-spacing: 0;
+            }
+
+            .hero {
+                min-height: auto;
+                padding: 120px 0 72px;
+            }
+
+            .hero-grid {
                 grid-template-columns: 1fr;
-                align-content: center;
-                gap: clamp(24px, 5vh, 42px);
-                padding-block: 14px;
+                gap: 54px;
             }
 
-            .intro {
-                max-width: 600px;
+            .hero-copy {
+                max-width: 680px;
             }
 
-            .eyebrow {
-                margin-bottom: 11px;
+            .hero h1 {
+                font-size: clamp(4rem, 14vw, 6.3rem);
             }
 
-            h1 {
-                max-width: 560px;
-                font-size: clamp(2.8rem, 12.5vw, 4.8rem);
+            .hero-stage {
+                min-height: 520px;
             }
 
-            .lede {
-                max-width: 520px;
-                margin-top: 17px;
+            .capability-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
 
-            .products {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+            .capability-item {
+                min-height: 54px;
             }
 
-            .product {
-                min-height: 132px;
-                padding: clamp(15px, 4vw, 21px);
+            .capability-item:nth-child(even) {
+                border-left: 0;
+                padding-left: 0;
+            }
+
+            .transformation-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .transformation-intro {
+                position: static;
+            }
+
+            .solution-stack {
+                gap: 12px;
+            }
+
+            .approach-intro {
+                grid-template-columns: 1fr;
+            }
+
+            .momentum-display {
+                width: min(260px, 80%);
+                margin-inline: auto;
+            }
+
+            .services-grid,
+            .work-grid,
+            .manifesto-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .service-card {
+                min-height: 280px;
+                padding-inline: 24px;
+            }
+
+            .service-card:nth-child(odd) {
+                border-right: 0;
+            }
+
+            .service-card h3 {
+                margin-top: 48px;
+            }
+
+            .approach-wrap,
+            .about-shell,
+            .contact-card {
+                border-radius: 30px;
+            }
+
+            .manifesto-grid {
+                gap: 34px;
+                padding: 54px 34px;
+            }
+
+            .manifesto-global-copy {
+                margin-top: 26px;
+            }
+
+            .global-route {
+                margin-top: 0;
+                padding-top: 32px;
+            }
+
+            .sf-card {
+                min-height: 760px;
+            }
+
+            .sf-image {
+                object-position: 62% center;
+            }
+
+            .sf-card::before {
+                background:
+                    linear-gradient(0deg, rgba(7, 25, 42, 0.98) 0%, rgba(7, 25, 42, 0.88) 42%, rgba(7, 25, 42, 0.2) 82%),
+                    linear-gradient(90deg, rgba(7, 25, 42, 0.62), rgba(7, 25, 42, 0.04));
+            }
+
+            .sf-copy {
+                width: min(760px, 92%);
+            }
+
+            .sf-orbit-large {
+                left: 48%;
+                top: 18%;
+            }
+
+            .sf-orbit-logo {
+                left: auto;
+                right: 10%;
+                bottom: 20%;
+            }
+
+            .principles {
+                margin-top: 48px;
+            }
+
+            .contact-bottom {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .footer-brand {
+                grid-column: 1 / -1;
+                margin-bottom: 14px;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .container {
+                width: min(100% - 24px, var(--container));
+            }
+
+            .brand-logo {
+                height: 38px;
+            }
+
+            .hero {
+                padding-top: 104px;
+            }
+
+            .hero h1 {
+                font-size: clamp(3.45rem, 17vw, 5rem);
+            }
+
+            .hero h1 em {
+                white-space: normal;
+            }
+
+            .hero-lead {
+                margin-top: 24px;
+                font-size: 1rem;
+            }
+
+            .hero-actions,
+            .contact-actions {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .button {
+                width: 100%;
+            }
+
+            .hero-stage {
+                min-height: 420px;
+                padding: 14px;
+                border-radius: 28px;
+            }
+
+            .signal-card {
+                width: calc(100% - 28px);
+                min-height: 300px;
+                padding: 23px;
+                border-radius: 23px;
+            }
+
+            .signal-title {
+                font-size: 2.3rem;
+            }
+
+            .signal-line {
+                width: 42px;
+            }
+
+            .stage-note {
+                right: 5px;
+                bottom: 15px;
+                width: 142px;
+            }
+
+            .capability-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .experience-stat {
+                padding-bottom: 22px;
+            }
+
+            .capability-item,
+            .capability-item:nth-child(even) {
+                min-height: 46px;
+                padding: 0;
+                border-left: 0;
+                border-top: 1px solid var(--line);
+            }
+
+            .solution-card {
+                min-height: 0;
+                padding: 25px 20px;
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+
+            .solution-card:hover {
+                transform: translateY(-3px);
+            }
+
+            .platform-band {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .platform-list {
+                justify-content: flex-start;
+            }
+
+            .section {
+                padding: 88px 0;
+            }
+
+            .section-heading {
+                font-size: clamp(2.65rem, 13vw, 4rem);
+            }
+
+            .service-card {
+                min-height: 260px;
+                padding: 28px 12px 32px;
+            }
+
+            .approach-wrap {
+                padding: 48px 22px;
+            }
+
+            .steps {
+                grid-template-columns: 1fr;
+                margin-top: 50px;
+            }
+
+            .step,
+            .step:nth-child(n + 3) {
+                min-height: 210px;
+                margin-top: 0;
+                padding-inline: 10px;
+                border-right: 0;
+            }
+
+            .step::before {
+                left: 10px;
+            }
+
+            .step h3 {
+                margin-top: 48px;
+            }
+
+            .project-card {
+                min-height: 500px;
+            }
+
+            .project-visual {
+                min-height: 290px;
+            }
+
+            .keyboard-art {
+                width: 88%;
+                padding: 18px 14px;
+                gap: 6px;
                 border-radius: 20px;
-                gap: 6px 10px;
             }
 
-            .product-arrow {
-                font-size: 1.1rem;
+            .project-copy {
+                padding: 24px;
             }
 
-            .product-copy {
-                font-size: clamp(0.7rem, 2.7vw, 0.82rem);
-            }
-        }
-
-        @media (max-height: 620px) {
-            .page {
-                padding-block: 16px;
+            .project-arrow {
+                width: 44px;
+                height: 44px;
             }
 
-            .brand {
-                width: 190px;
+            .manifesto-quote {
+                font-size: clamp(2.6rem, 13vw, 4rem);
             }
 
-            .stage {
-                gap: 22px;
-                padding-block: 10px;
+            .manifesto-grid {
+                padding: 48px 22px;
             }
 
-            .eyebrow {
-                margin-bottom: 8px;
+            .manifesto-grid::before {
+                left: 22px;
             }
 
-            h1 {
-                font-size: clamp(2.4rem, 10vh, 4.5rem);
-            }
-
-            .lede {
-                margin-top: 13px;
-                font-size: 0.9rem;
-            }
-
-            .product {
-                min-height: 112px;
-                padding: 15px;
-            }
-        }
-
-        @media (max-width: 760px) and (max-height: 500px) {
-            .page {
-                padding: 14px 24px;
-            }
-
-            .brand {
-                width: 156px;
-            }
-
-            .stage {
-                grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
-                gap: 24px;
-                padding-block: 8px;
-            }
-
-            .eyebrow {
-                font-size: 0.6rem;
-            }
-
-            h1 {
-                font-size: clamp(2.2rem, 9vw, 3.4rem);
-            }
-
-            .lede {
-                max-width: 420px;
-                font-size: 0.78rem;
-                line-height: 1.4;
-            }
-
-            .products {
+            .principles {
                 grid-template-columns: 1fr;
-                gap: 8px;
+                gap: 22px;
             }
 
-            .product {
-                min-height: 84px;
-                padding: 11px 14px;
-                border-radius: 16px;
+            .contact {
+                padding-top: 88px;
             }
 
-            .product-name {
-                font-size: 1.1rem;
+            .sf-card {
+                min-height: 720px;
             }
 
-            .product-copy {
-                font-size: 0.68rem;
+            .sf-image {
+                object-position: 66% center;
+            }
+
+            .sf-top {
+                padding: 26px 22px;
+            }
+
+            .sf-brand-logo {
+                width: 142px;
+            }
+
+            .sf-coordinates {
+                max-width: 120px;
+                text-align: right;
+                line-height: 1.45;
+            }
+
+            .sf-copy {
+                width: 100%;
+                margin-bottom: 44px;
+                padding: 0 22px;
+            }
+
+            .sf-title {
+                font-size: clamp(3.7rem, 17vw, 5.2rem);
+            }
+
+            .sf-title em {
+                white-space: normal;
+            }
+
+            .sf-lead {
+                font-size: 0.95rem;
+            }
+
+            .sf-orbit-large {
+                left: 26%;
+                top: 27%;
+                opacity: 0.72;
+            }
+
+            .sf-orbit-small {
+                right: -28px;
+                top: 14%;
+            }
+
+            .sf-orbit-logo {
+                right: 18px;
+                bottom: 16%;
+            }
+
+            .contact-card {
+                padding: 48px 24px;
+            }
+
+            .contact-title {
+                font-size: clamp(3.35rem, 16vw, 5rem);
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-brand {
+                grid-column: auto;
+            }
+
+            .footer-bottom {
+                align-items: flex-start;
+                flex-direction: column;
             }
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .product,
-            .product-arrow {
-                transition: none;
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: 0.01ms !important;
+            }
+
+            .js .reveal {
+                opacity: 1;
+                transform: none;
             }
         }
     </style>
 </head>
 <body>
-    <div class="page">
-        <header aria-label="Lafayette Consulting">
-            <picture class="brand">
-                <source srcset="/assets/lafayette-logo-white.png" media="(prefers-color-scheme: dark)">
-                <img src="/assets/lafayette-logo-black.png" alt="Lafayette Consulting" width="1015" height="319">
-            </picture>
-        </header>
+    <a class="skip-link" href="#main">Skip to content</a>
 
-        <main class="stage">
-            <div class="intro">
-                <p class="eyebrow">Independent software studio</p>
-                <h1>Useful software, <span class="gradient-word">thoughtfully made.</span></h1>
-                <p class="lede">
-                    Lafayette Consulting designs and publishes focused products for Apple platforms—private by design and polished in every detail.
-                </p>
-            </div>
+    <header class="site-header" id="site-header">
+        <div class="container nav-shell">
+            <a class="brand" href="#top" aria-label="Lafayette Consulting, back to top">
+                <img class="brand-logo" src="/assets/lafayette-logo-white.png" alt="Lafayette Consulting" width="1015" height="319">
+            </a>
 
-            <nav class="products" aria-label="Our products">
-                <a class="product" href="/sweetkeyboard/">
-                    <span class="product-index">01 · iPhone</span>
-                    <span class="product-arrow" aria-hidden="true">↗</span>
-                    <h2 class="product-name">SweetKeyboard</h2>
-                    <p class="product-copy">Faster, more practical everyday typing.</p>
-                </a>
+            <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-navigation" aria-label="Open menu">
+                <span class="nav-toggle-icon" aria-hidden="true"><span>&#8203;</span><span>&#8203;</span></span>
+            </button>
 
-                <a class="product" href="/iriz/">
-                    <span class="product-index">02 · Mac</span>
-                    <span class="product-arrow" aria-hidden="true">↗</span>
-                    <h2 class="product-name">Iriz</h2>
-                    <p class="product-copy">A private, local-first memory companion.</p>
-                </a>
+            <nav class="nav-links" id="primary-navigation" aria-label="Primary navigation">
+                <a href="#services">Services</a>
+                <a href="#transformation">Solutions</a>
+                <a href="#approach">Approach</a>
+                <a href="#work">Work</a>
+                <a href="#about">About</a>
+                <a class="nav-cta" href="#contact">Start a conversation</a>
             </nav>
-        </main>
-    </div>
+        </div>
+    </header>
+
+    <main id="main">
+        <section class="hero" id="top" aria-labelledby="hero-title">
+            <div class="container hero-grid">
+                <div class="hero-copy">
+                    <p class="eyebrow reveal">Enterprise transformation · digital products · growth</p>
+                    <h1 class="reveal reveal-delay-1" id="hero-title">Build what moves business <em>forward.</em></h1>
+                    <p class="hero-lead reveal reveal-delay-2">
+                        With 20+ years of experience, Lafayette Consulting turns ambitious ideas and complex operations into digital products people trust and business systems teams can scale.
+                    </p>
+                    <div class="hero-actions reveal reveal-delay-3">
+                        <a class="button button-primary" href="#contact">Tell us what you're building <span class="button-arrow" aria-hidden="true">→</span></a>
+                        <a class="button button-secondary" href="#services">Explore our capabilities</a>
+                    </div>
+                </div>
+
+                <div class="hero-stage reveal reveal-delay-2" aria-label="From operational friction to scalable business systems">
+                    <div class="signal-card">
+                        <div class="signal-top">
+                            <span>Lafayette / 01</span>
+                            <span class="signal-status">In motion</span>
+                        </div>
+                        <div class="signal-main">
+                            <p class="signal-kicker">Transformation, made tangible</p>
+                            <p class="signal-title">From operational friction to business flow.</p>
+                        </div>
+                        <div class="signal-flow">
+                            <span>Complexity</span>
+                            <span class="signal-line" aria-hidden="true">&#8203;</span>
+                            <span>Clarity</span>
+                        </div>
+                    </div>
+                    <div class="stage-note" aria-hidden="true">
+                        <strong>20+ years of experience</strong>
+                        Strategy, systems, design, and delivery—working as one.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <aside class="capability-bar" aria-label="Core disciplines">
+            <div class="container capability-grid">
+                <div class="experience-stat"><strong>20+</strong><span>Years turning technology into business value</span></div>
+                <div class="capability-item">Strategy</div>
+                <div class="capability-item">Experience</div>
+                <div class="capability-item">Engineering</div>
+                <div class="capability-item">Operations</div>
+            </div>
+        </aside>
+
+        <section class="section" id="services" aria-labelledby="services-title">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="eyebrow">What we do</p>
+                    <h2 class="section-heading" id="services-title">From first decision to <span>lasting advantage.</span></h2>
+                    <p class="section-lead">We connect business strategy with practical execution—so the roadmap is sharper, the product is stronger, and the technology earns its place.</p>
+                </div>
+
+                <div class="services-grid">
+                    <article class="service-card reveal">
+                        <span class="service-number">01</span>
+                        <h3>Digital product development</h3>
+                        <p>Customer portals, internal platforms, mobile apps, and new digital ventures—designed around real needs and engineered for dependable growth.</p>
+                    </article>
+                    <article class="service-card reveal reveal-delay-1">
+                        <span class="service-number">02</span>
+                        <h3>Business transformation</h3>
+                        <p>We simplify fragmented processes, connect the right tools, and turn manual operations into clear, resilient systems that teams actually use.</p>
+                    </article>
+                    <article class="service-card reveal">
+                        <span class="service-number">03</span>
+                        <h3>CRM &amp; revenue operations</h3>
+                        <p>CRM strategy, implementation, integration, and optimization that give sales and service teams one trustworthy view of the customer.</p>
+                    </article>
+                    <article class="service-card reveal reveal-delay-1">
+                        <span class="service-number">04</span>
+                        <h3>Web experiences &amp; growth</h3>
+                        <p>Fast, distinctive websites and digital journeys that clarify your value, build confidence, and convert attention into meaningful action.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="section transformation-section" id="transformation" aria-labelledby="transformation-title">
+            <div class="container transformation-layout">
+                <div class="transformation-intro reveal">
+                    <p class="eyebrow">Enterprise transformation</p>
+                    <h2 class="section-heading" id="transformation-title">Make the whole business <span>work better.</span></h2>
+                    <p class="section-lead">We modernize the journeys that cross teams and tools—not just one screen at a time. The result is less friction, better information, and a business that can move with confidence.</p>
+                    <p class="transformation-note">Platform-neutral advice. Practical implementation.</p>
+                </div>
+
+                <div class="solution-stack">
+                    <article class="solution-card reveal">
+                        <span class="solution-index">01</span>
+                        <div>
+                            <h3>Connect lead to cash</h3>
+                            <p>Capture demand, qualify opportunities, produce proposals, collect signatures, invoice, and manage renewals through one clear revenue process.</p>
+                            <div class="platform-tags" aria-label="Example platforms">
+                                <span class="platform-tag">HubSpot</span>
+                                <span class="platform-tag">Odoo CRM</span>
+                                <span class="platform-tag">Stripe</span>
+                                <span class="platform-tag">E-signature</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="solution-card reveal">
+                        <span class="solution-index">02</span>
+                        <div>
+                            <h3>Modernize commerce operations</h3>
+                            <p>Build the storefront, connect catalog and inventory, simplify fulfillment, and give customer service the context it needs from order through resolution.</p>
+                            <div class="platform-tags" aria-label="Example platforms">
+                                <span class="platform-tag">Shopify</span>
+                                <span class="platform-tag">Odoo ERP</span>
+                                <span class="platform-tag">Klaviyo</span>
+                                <span class="platform-tag">Payments</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="solution-card reveal">
+                        <span class="solution-index">03</span>
+                        <div>
+                            <h3>Replace manual operations</h3>
+                            <p>Turn spreadsheets, duplicate entry, email approvals, and fragile handoffs into guided workflows, client portals, and connected operating systems.</p>
+                            <div class="platform-tags" aria-label="Example platforms">
+                                <span class="platform-tag">Odoo</span>
+                                <span class="platform-tag">Google Workspace</span>
+                                <span class="platform-tag">Custom apps</span>
+                                <span class="platform-tag">APIs</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <article class="solution-card reveal">
+                        <span class="solution-index">04</span>
+                        <div>
+                            <h3>Turn data into decisions</h3>
+                            <p>Unify customer and operational data, repair migrations, create trustworthy dashboards, and automate the repetitive work that slows teams down.</p>
+                            <div class="platform-tags" aria-label="Example capabilities">
+                                <span class="platform-tag">Data migration</span>
+                                <span class="platform-tag">BI &amp; dashboards</span>
+                                <span class="platform-tag">AI workflows</span>
+                                <span class="platform-tag">Integrations</span>
+                            </div>
+                        </div>
+                    </article>
+
+                    <div class="platform-band reveal">
+                        <p>The right stack is the one that fits the business.</p>
+                        <div class="platform-list" aria-label="Example technology ecosystem">
+                            <span>Odoo</span>
+                            <span>Shopify</span>
+                            <span>HubSpot</span>
+                            <span>Salesforce</span>
+                            <span>Stripe</span>
+                            <span>Custom</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="approach" aria-labelledby="approach-title">
+            <div class="container">
+                <div class="approach-wrap">
+                    <div class="approach-intro">
+                        <div class="section-head reveal">
+                            <p class="eyebrow">How we work</p>
+                            <h2 class="section-heading" id="approach-title">Momentum without the <span>theater.</span></h2>
+                            <p class="section-lead">Small, senior teams stay close to the problem and the people it affects. Every phase ends with something useful—not just another presentation.</p>
+                        </div>
+                        <div class="momentum-display reveal reveal-delay-1" aria-hidden="true">
+                            <span class="momentum-core">Ship</span>
+                            <span class="momentum-node">Frame</span>
+                            <span class="momentum-node">Build</span>
+                            <span class="momentum-node">Scale</span>
+                            <span class="momentum-pulse">&#8203;</span>
+                        </div>
+                    </div>
+
+                    <div class="steps">
+                        <article class="step reveal">
+                            <span class="step-number">Phase 01</span>
+                            <h3>Frame</h3>
+                            <p>Align on the opportunity, the constraints, and what a meaningful outcome looks like.</p>
+                        </article>
+                        <article class="step reveal reveal-delay-1">
+                            <span class="step-number">Phase 02</span>
+                            <h3>Design</h3>
+                            <p>Turn insight into a clear system, experience, and delivery plan before complexity compounds.</p>
+                        </article>
+                        <article class="step reveal reveal-delay-2">
+                            <span class="step-number">Phase 03</span>
+                            <h3>Build</h3>
+                            <p>Ship in focused increments, test with real users, and keep decisions visible as the work evolves.</p>
+                        </article>
+                        <article class="step reveal reveal-delay-3">
+                            <span class="step-number">Phase 04</span>
+                            <h3>Scale</h3>
+                            <p>Strengthen adoption, operations, and measurement so the solution keeps creating value.</p>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="work" aria-labelledby="work-title">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="eyebrow">Built by Lafayette</p>
+                    <h2 class="section-heading" id="work-title">We advise. We build. We <span>ship.</span></h2>
+                    <p class="section-lead">Our own products keep our advice grounded in the realities of product decisions, technical tradeoffs, launch, and continuous improvement.</p>
+                </div>
+
+                <div class="work-grid">
+                    <a class="project-card reveal" href="/sweetkeyboard/" aria-label="Explore SweetKeyboard">
+                        <div class="project-visual" aria-hidden="true">
+                            <div class="keyboard-art">
+                                <span class="key">Q</span><span class="key">W</span><span class="key">E</span><span class="key">R</span><span class="key">T</span><span class="key">Y</span><span class="key">U</span><span class="key">I</span>
+                                <span class="key">A</span><span class="key">S</span><span class="key">D</span><span class="key">F</span><span class="key">G</span><span class="key">H</span><span class="key">J</span><span class="key">K</span>
+                                <span class="key">Z</span><span class="key">X</span><span class="key">C</span><span class="key">V</span><span class="key">B</span><span class="key">N</span><span class="key">M</span><span class="key">↵</span>
+                            </div>
+                        </div>
+                        <div class="project-copy">
+                            <div>
+                                <p class="project-type">Mobile product · iPhone</p>
+                                <h3>SweetKeyboard</h3>
+                                <p>A focused keyboard experience designed to make everyday typing faster and more practical.</p>
+                            </div>
+                            <span class="project-arrow" aria-hidden="true">↗</span>
+                        </div>
+                    </a>
+
+                    <a class="project-card reveal reveal-delay-1" href="/iriz/" aria-label="Explore Iriz">
+                        <div class="project-visual" aria-hidden="true">
+                            <div class="memory-art">
+                                <div class="orbit"></div>
+                                <div class="memory-core">I</div>
+                            </div>
+                        </div>
+                        <div class="project-copy">
+                            <div>
+                                <p class="project-type">AI product · macOS</p>
+                                <h3>Iriz</h3>
+                                <p>A private, local-first memory companion that turns daily digital context into useful recall.</p>
+                            </div>
+                            <span class="project-arrow" aria-hidden="true">↗</span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section manifesto" id="about" aria-labelledby="about-title">
+            <div class="container">
+                <div class="about-shell">
+                    <div class="manifesto-grid">
+                        <div class="manifesto-intro reveal">
+                            <p class="manifesto-label">About Lafayette</p>
+                            <p class="manifesto-global-copy">We have led international projects and worked with clients and multidisciplinary teams across continents—from North America and Europe to Africa, Asia-Pacific, and Latin America. We know how to keep people aligned across cultures, organizations, and time zones.</p>
+                            <div class="global-route" aria-label="Based in San Francisco and working with teams worldwide">
+                                <span>San Francisco</span>
+                                <span class="global-route-line" aria-hidden="true">&#8203;</span>
+                                <span>Worldwide teams</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h2 class="manifesto-quote reveal reveal-delay-1" id="about-title">Technology should make a business feel <em>simpler.</em></h2>
+                            <div class="principles">
+                                <div class="principle reveal">
+                                    <strong>20+ years</strong>
+                                    <span>Experience from strategy through shipped systems.</span>
+                                </div>
+                                <div class="principle reveal reveal-delay-1">
+                                    <strong>American &amp; local</strong>
+                                    <span>Based in San Francisco, with senior people close to the work.</span>
+                                </div>
+                                <div class="principle reveal reveal-delay-2">
+                                    <strong>English + French</strong>
+                                    <span>Clear collaboration in both languages.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sf-card reveal">
+                        <img class="sf-image" src="/assets/lafayette-san-francisco.jpg" alt="Editorial view of the Palace of Fine Arts in San Francisco with California sea lions beside the water" width="1774" height="887" loading="lazy">
+
+                        <div class="sf-top">
+                            <img class="sf-brand-logo" src="/assets/lafayette-logo-white.png" alt="Lafayette Consulting" width="1015" height="319">
+                            <span class="sf-coordinates">37.7749° N · 122.4194° W</span>
+                        </div>
+
+                        <div class="sf-copy">
+                            <p class="sf-kicker">San Francisco · California</p>
+                            <h2 class="sf-title">This is<br><em>home.</em></h2>
+                            <p class="sf-lead">Built close to our clients and accountable from first conversation to final launch.</p>
+                            <div class="sf-badges" aria-label="American company">
+                                <span class="sf-badge">Made in the USA</span>
+                            </div>
+                        </div>
+
+                        <div class="sf-orbits" aria-hidden="true">
+                            <span class="sf-orbit sf-orbit-large">&#8203;</span>
+                            <span class="sf-orbit sf-orbit-small">&#8203;</span>
+                            <span class="sf-orbit sf-orbit-logo"><img src="/assets/lafayette-icon-white.png" alt="" width="319" height="319"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="contact" id="contact" aria-labelledby="contact-title">
+            <div class="container">
+                <div class="contact-card reveal">
+                    <h2 class="contact-title" id="contact-title">Bring us the <em>hard part.</em></h2>
+                    <div class="contact-bottom">
+                        <p class="contact-copy">Planning a product, rethinking an operation, or evaluating Odoo, Shopify, HubSpot, or a custom platform? Tell us where you are and what needs to change.</p>
+                        <div class="contact-actions">
+                            <a class="button button-primary" href="mailto:support@lafayette-consulting.us?subject=New%20project%20inquiry">Start a conversation <span class="button-arrow" aria-hidden="true">↗</span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a class="brand" href="#top" aria-label="Lafayette Consulting, back to top">
+                        <img class="brand-logo" src="/assets/lafayette-logo-black.png" alt="Lafayette Consulting" width="1015" height="319">
+                    </a>
+                    <p>20+ years of strategy, design, and engineering for ambitious digital products and enterprise transformation.</p>
+                </div>
+                <div class="footer-column">
+                    <h2>Explore</h2>
+                    <a href="#services">Services</a>
+                    <a href="#transformation">Solutions</a>
+                    <a href="#approach">Approach</a>
+                    <a href="#work">Work</a>
+                    <a href="#about">About</a>
+                </div>
+                <div class="footer-column">
+                    <h2>Connect</h2>
+                    <a href="mailto:support@lafayette-consulting.us?subject=New%20project%20inquiry">Email us</a>
+                    <a href="/sweetkeyboard/">SweetKeyboard</a>
+                    <a href="/iriz/">Iriz</a>
+                    <a href="/privacy/">Privacy</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© <span id="current-year">2026</span> Lafayette Consulting. All rights reserved.</span>
+                <span>Built with intent in California.</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        (() => {
+            const header = document.getElementById('site-header');
+            const toggle = document.querySelector('.nav-toggle');
+            const menuLinks = [...document.querySelectorAll('.nav-links a')];
+            const sectionLinks = [...document.querySelectorAll('.nav-links a[href^="#"]')];
+            const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const mobileMenuQuery = window.matchMedia('(max-width: 800px)');
+
+            const setMenu = (open) => {
+                const nextOpen = Boolean(open && mobileMenuQuery.matches);
+                header.classList.toggle('menu-active', nextOpen);
+                document.body.classList.toggle('menu-open', nextOpen);
+                toggle.setAttribute('aria-expanded', String(nextOpen));
+                toggle.setAttribute('aria-label', nextOpen ? 'Close menu' : 'Open menu');
+            };
+
+            toggle.addEventListener('click', () => {
+                setMenu(!header.classList.contains('menu-active'));
+            });
+
+            menuLinks.forEach((link) => link.addEventListener('click', () => setMenu(false)));
+            document.addEventListener('keydown', (event) => {
+                if (event.key !== 'Escape' || !header.classList.contains('menu-active')) return;
+                setMenu(false);
+                toggle.focus();
+            });
+
+            const closeMenuOnDesktop = (event) => {
+                if (!event.matches) setMenu(false);
+            };
+            if (typeof mobileMenuQuery.addEventListener === 'function') {
+                mobileMenuQuery.addEventListener('change', closeMenuOnDesktop);
+            } else {
+                mobileMenuQuery.addListener(closeMenuOnDesktop);
+            }
+
+            const updateHeader = () => header.classList.toggle('scrolled', window.scrollY > 24);
+            updateHeader();
+            window.addEventListener('scroll', updateHeader, { passive: true });
+
+            const reveals = [...document.querySelectorAll('.reveal')];
+            if (reducedMotion || !('IntersectionObserver' in window)) {
+                reveals.forEach((element) => element.classList.add('is-visible'));
+            } else {
+                const revealObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach((entry) => {
+                        if (!entry.isIntersecting) return;
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    });
+                }, { threshold: 0.12, rootMargin: '0px 0px -40px' });
+                reveals.forEach((element) => revealObserver.observe(element));
+            }
+
+            if ('IntersectionObserver' in window) {
+                const sections = [...document.querySelectorAll('main section[id]')];
+                const activeObserver = new IntersectionObserver((entries) => {
+                    const visible = entries
+                        .filter((entry) => entry.isIntersecting)
+                        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+                    if (!visible) return;
+                    sectionLinks.forEach((link) => {
+                        link.classList.toggle('active', link.getAttribute('href') === `#${visible.target.id}`);
+                    });
+                }, { rootMargin: '-30% 0px -55%', threshold: [0, 0.2, 0.5] });
+                sections.forEach((section) => activeObserver.observe(section));
+            }
+
+            const pointerGlows = [
+                ['.hero-stage', '--pointer-x', '--pointer-y'],
+                ['.approach-wrap', '--approach-x', '--approach-y'],
+                ['.contact-card', '--contact-x', '--contact-y']
+            ];
+            if (!reducedMotion) {
+                pointerGlows.forEach(([selector, xProperty, yProperty]) => {
+                    const element = document.querySelector(selector);
+                    if (!element) return;
+                    element.addEventListener('pointermove', (event) => {
+                        const bounds = element.getBoundingClientRect();
+                        const x = ((event.clientX - bounds.left) / bounds.width) * 100;
+                        const y = ((event.clientY - bounds.top) / bounds.height) * 100;
+                        element.style.setProperty(xProperty, `${x}%`);
+                        element.style.setProperty(yProperty, `${y}%`);
+                    });
+                });
+            }
+
+            const sfCard = document.querySelector('.sf-card');
+            if (sfCard && !reducedMotion) {
+                sfCard.addEventListener('pointermove', (event) => {
+                    const bounds = sfCard.getBoundingClientRect();
+                    const x = ((event.clientX - bounds.left) / bounds.width - 0.5) * 24;
+                    const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * 24;
+                    sfCard.style.setProperty('--sf-shift-x', `${x}px`);
+                    sfCard.style.setProperty('--sf-shift-y', `${y}px`);
+                });
+                sfCard.addEventListener('pointerleave', () => {
+                    sfCard.style.setProperty('--sf-shift-x', '0px');
+                    sfCard.style.setProperty('--sf-shift-y', '0px');
+                });
+            }
+
+            document.getElementById('current-year').textContent = new Date().getFullYear();
+        })();
+    </script>
 </body>
 </html>
