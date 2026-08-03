@@ -362,8 +362,7 @@
             line-height: 1.65;
         }
 
-        .hero-actions,
-        .contact-actions {
+        .hero-actions {
             display: flex;
             align-items: center;
             flex-wrap: wrap;
@@ -1502,6 +1501,206 @@
             font-size: 13px;
         }
 
+        .founder-profile {
+            position: relative;
+            z-index: 2;
+            padding: clamp(34px, 6vw, 76px);
+            display: grid;
+            grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
+            align-items: center;
+            gap: clamp(46px, 7vw, 94px);
+            overflow: hidden;
+            border-top: 1px solid rgba(255, 255, 255, 0.14);
+            background: var(--white);
+            color: var(--night);
+        }
+
+        .founder-profile::after {
+            position: absolute;
+            width: 340px;
+            aspect-ratio: 1;
+            right: -230px;
+            bottom: -220px;
+            border: 1px solid rgba(8, 115, 91, 0.16);
+            border-radius: 50%;
+            box-shadow: 0 0 0 55px rgba(8, 255, 194, 0.025), 0 0 0 110px rgba(167, 251, 58, 0.018);
+            content: "";
+            pointer-events: none;
+        }
+
+        .founder-portrait {
+            position: relative;
+            min-height: 560px;
+            overflow: hidden;
+            border-radius: 30px;
+            background: var(--paper-deep);
+            box-shadow: 0 30px 70px rgba(16, 35, 55, 0.16);
+            isolation: isolate;
+        }
+
+        .founder-portrait::before {
+            position: absolute;
+            z-index: 2;
+            inset: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.48);
+            border-radius: 21px;
+            content: "";
+            pointer-events: none;
+        }
+
+        .founder-portrait::after {
+            position: absolute;
+            z-index: 3;
+            left: 28px;
+            bottom: 28px;
+            padding: 9px 13px;
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-radius: 999px;
+            background: rgba(13, 34, 54, 0.7);
+            color: var(--white);
+            font-size: 9px;
+            font-weight: 850;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            content: "David / San Francisco";
+        }
+
+        .founder-portrait img {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            inset: 0;
+            display: block;
+            object-fit: cover;
+            object-position: center;
+            filter: saturate(0.92) contrast(1.02);
+            transform: scale(1.012);
+            transition: filter 450ms ease, transform 850ms cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .founder-profile:hover .founder-portrait img {
+            filter: saturate(1.02) contrast(1.02);
+            transform: scale(1.04);
+        }
+
+        .founder-copy {
+            position: relative;
+            z-index: 1;
+        }
+
+        .founder-copy h2 {
+            max-width: 740px;
+            margin: 12px 0 24px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(3rem, 5vw, 5.7rem);
+            font-weight: 400;
+            letter-spacing: -0.058em;
+            line-height: 0.94;
+        }
+
+        .founder-copy h2 em {
+            background: var(--brand-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            font-style: italic;
+        }
+
+        .founder-lead {
+            max-width: 700px;
+            margin: 0;
+            color: var(--ink);
+            font-size: clamp(1.05rem, 1.45vw, 1.24rem);
+            line-height: 1.62;
+        }
+
+        .founder-story {
+            max-width: 720px;
+            margin-top: 24px;
+            color: var(--ink-soft);
+            font-size: 14px;
+            line-height: 1.75;
+        }
+
+        .founder-story p {
+            margin: 0;
+        }
+
+        .founder-story p + p {
+            margin-top: 14px;
+        }
+
+        .founder-signals {
+            margin-top: 32px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 17px;
+            background: var(--line);
+        }
+
+        .founder-signal {
+            min-height: 112px;
+            padding: 17px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: var(--white);
+        }
+
+        .founder-signal strong {
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 18px;
+            font-weight: 400;
+            letter-spacing: -0.025em;
+        }
+
+        .founder-signal span {
+            color: var(--ink-soft);
+            font-size: 10px;
+            line-height: 1.45;
+        }
+
+        .founder-actions {
+            margin-top: 28px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+
+        .linkedin-button {
+            min-height: 50px;
+            padding: 12px 18px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border-radius: 999px;
+            background: var(--night);
+            color: var(--white);
+            font-size: 13px;
+            font-weight: 760;
+            text-decoration: none;
+            transition: background-color 180ms ease, transform 180ms ease;
+        }
+
+        .linkedin-button:hover {
+            background: var(--brand-deep);
+            transform: translateY(-2px);
+        }
+
+        .founder-note {
+            color: var(--ink-soft);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
         .sf-card {
             --sf-shift-x: 0px;
             --sf-shift-y: 0px;
@@ -1819,13 +2018,159 @@
             animation: brand-shift 7s ease-in-out infinite alternate;
         }
 
-        .contact-bottom {
+        .contact-layout {
             position: relative;
-            margin-top: 50px;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: minmax(0, 0.78fr) minmax(420px, 1.22fr);
+            align-items: start;
+            gap: clamp(48px, 7vw, 96px);
+        }
+
+        .contact-intro .contact-title {
+            font-size: clamp(3.3rem, 6vw, 6.7rem);
+        }
+
+        .contact-intro .contact-copy {
+            margin-top: 30px;
+        }
+
+        .contact-direct {
+            margin-top: 24px;
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            color: var(--brand-mint);
+            font-size: 13px;
+            font-weight: 750;
+            text-decoration: none;
+        }
+
+        .contact-direct:hover {
+            text-decoration: underline;
+            text-underline-offset: 4px;
+        }
+
+        .contact-form {
+            position: relative;
+            padding: clamp(24px, 4vw, 38px);
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.065);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.16);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .form-field {
             display: flex;
-            align-items: end;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-field-wide {
+            grid-column: 1 / -1;
+        }
+
+        .form-field label {
+            color: rgba(255, 255, 255, 0.72);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 13px;
+            outline: 0;
+            background: rgba(255, 255, 255, 0.075);
+            color: var(--white);
+            font: inherit;
+            font-size: 14px;
+            transition: border-color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+        }
+
+        .form-field input,
+        .form-field select {
+            height: 52px;
+            padding: 0 15px;
+        }
+
+        .form-field textarea {
+            min-height: 150px;
+            padding: 14px 15px;
+            resize: vertical;
+        }
+
+        .form-field input::placeholder,
+        .form-field textarea::placeholder {
+            color: rgba(255, 255, 255, 0.34);
+        }
+
+        .form-field select {
+            color-scheme: dark;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            border-color: rgba(8, 255, 194, 0.72);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 0 4px rgba(8, 255, 194, 0.09);
+        }
+
+        .form-submit-row {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
             justify-content: space-between;
-            gap: 36px;
+            gap: 18px;
+        }
+
+        .form-submit {
+            min-height: 52px;
+            padding: 12px 19px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border: 0;
+            border-radius: 999px;
+            background: var(--brand-gradient);
+            color: var(--night);
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .form-submit:hover {
+            box-shadow: 0 14px 34px rgba(8, 255, 194, 0.16);
+            transform: translateY(-2px);
+        }
+
+        .form-note {
+            max-width: 280px;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.42);
+            font-size: 10px;
+            line-height: 1.5;
+        }
+
+        .form-status {
+            min-height: 20px;
+            margin: 13px 0 0;
+            color: var(--brand-mint);
+            font-size: 11px;
         }
 
         .contact-copy {
@@ -1833,21 +2178,6 @@
             margin: 0;
             color: rgba(255, 255, 255, 0.66);
             font-size: 16px;
-        }
-
-        .contact-actions {
-            margin: 0;
-            flex: 0 0 auto;
-        }
-
-        .contact-actions .button-primary {
-            background: var(--white);
-            color: var(--night);
-            box-shadow: none;
-        }
-
-        .contact-actions .button-primary:hover {
-            background: var(--brand-gradient);
         }
 
         .footer {
@@ -1975,6 +2305,19 @@
 
             .step:nth-child(n + 3) {
                 margin-top: 24px;
+            }
+
+            .founder-profile {
+                gap: 48px;
+            }
+
+            .founder-portrait {
+                min-height: 500px;
+            }
+
+            .contact-layout {
+                grid-template-columns: minmax(0, 0.72fr) minmax(390px, 1.28fr);
+                gap: 44px;
             }
         }
 
@@ -2148,6 +2491,20 @@
                 padding-top: 32px;
             }
 
+            .founder-profile {
+                grid-template-columns: 1fr;
+            }
+
+            .founder-portrait {
+                width: min(100%, 540px);
+                min-height: 0;
+                aspect-ratio: 1;
+            }
+
+            .contact-layout {
+                grid-template-columns: 1fr;
+            }
+
             .sf-card {
                 min-height: 760px;
             }
@@ -2179,11 +2536,6 @@
 
             .principles {
                 margin-top: 48px;
-            }
-
-            .contact-bottom {
-                align-items: flex-start;
-                flex-direction: column;
             }
 
             .footer-grid {
@@ -2222,8 +2574,7 @@
                 font-size: 1rem;
             }
 
-            .hero-actions,
-            .contact-actions {
+            .hero-actions {
                 align-items: stretch;
                 flex-direction: column;
             }
@@ -2386,6 +2737,31 @@
                 gap: 22px;
             }
 
+            .founder-profile {
+                padding: 48px 22px;
+            }
+
+            .founder-copy h2 {
+                font-size: clamp(2.8rem, 14vw, 4.2rem);
+            }
+
+            .founder-signals {
+                grid-template-columns: 1fr;
+            }
+
+            .founder-signal {
+                min-height: 92px;
+            }
+
+            .founder-actions {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .linkedin-button {
+                justify-content: center;
+            }
+
             .contact {
                 padding-top: 88px;
             }
@@ -2452,6 +2828,25 @@
 
             .contact-title {
                 font-size: clamp(3.35rem, 16vw, 5rem);
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-field-wide {
+                grid-column: auto;
+            }
+
+            .form-submit-row {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .form-submit,
+            .form-note {
+                width: 100%;
+                max-width: none;
             }
 
             .footer-grid {
@@ -2801,6 +3196,34 @@
                         </div>
                     </div>
 
+                    <div class="founder-profile">
+                        <div class="founder-portrait reveal">
+                            <img src="/assets/david-demri.jpg" alt="David Demri, founder and principal of Lafayette Consulting" width="800" height="800" loading="lazy">
+                        </div>
+
+                        <div class="founder-copy">
+                            <p class="eyebrow reveal">Founder &amp; principal</p>
+                            <h2 class="reveal reveal-delay-1">Meet David. An operator who has been on <em>every side of change.</em></h2>
+                            <p class="founder-lead reveal reveal-delay-1">David Demri is a technical solutions consultant, founder, and hands-on builder. His career has moved from engineering and entrepreneurship to independent consulting, agency leadership, and long-term transformation roles inside growing and global companies.</p>
+
+                            <div class="founder-story reveal reveal-delay-2">
+                                <p>He has built and scaled a marketplace, advised businesses independently—including two major organizations—and embedded with companies for missions lasting from months to years. That range matters: he knows how change looks from the founder’s seat, the consultant’s side of the table, and inside the teams expected to make it stick.</p>
+                                <p>Having lived and worked across France, Israel, and the United States, David is comfortable crossing cultures, functions, and time zones. He brings the calm, adaptability, and scar tissue of a seasoned field operator—close enough to the work to solve it, experienced enough to see around corners.</p>
+                            </div>
+
+                            <div class="founder-signals reveal reveal-delay-2" aria-label="David Demri experience highlights">
+                                <div class="founder-signal"><strong>France · Israel · USA</strong><span>Built and led across markets and cultures.</span></div>
+                                <div class="founder-signal"><strong>Founder · Consultant · Operator</strong><span>Experience from every side of the table.</span></div>
+                                <div class="founder-signal"><strong>Months to multi-year</strong><span>Stays long enough to make transformation stick.</span></div>
+                            </div>
+
+                            <div class="founder-actions reveal reveal-delay-3">
+                                <a class="linkedin-button" href="https://www.linkedin.com/in/david-demri/" target="_blank" rel="noreferrer">Connect with David on LinkedIn <span aria-hidden="true">↗</span></a>
+                                <span class="founder-note">Hard problems · long missions · no theater</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="sf-card reveal">
                         <img class="sf-image" src="/assets/lafayette-san-francisco.jpg" alt="Editorial view of the Palace of Fine Arts in San Francisco with California sea lions beside the water" width="1774" height="887" loading="lazy">
 
@@ -2831,12 +3254,50 @@
         <section class="contact" id="contact" aria-labelledby="contact-title">
             <div class="container">
                 <div class="contact-card reveal">
-                    <h2 class="contact-title" id="contact-title">Bring us the <em>hard part.</em></h2>
-                    <div class="contact-bottom">
-                        <p class="contact-copy">Planning a product, rethinking an operation, or evaluating Odoo, Shopify, HubSpot, or a custom platform? Tell us where you are and what needs to change.</p>
-                        <div class="contact-actions">
-                            <a class="button button-primary" href="mailto:support@lafayette-consulting.us?subject=New%20project%20inquiry">Start a conversation <span class="button-arrow" aria-hidden="true">↗</span></a>
+                    <div class="contact-layout">
+                        <div class="contact-intro">
+                            <p class="eyebrow">Start a conversation</p>
+                            <h2 class="contact-title" id="contact-title">Bring us the <em>hard part.</em></h2>
+                            <p class="contact-copy">Planning a product, rethinking an operation, or evaluating Odoo, Shopify, HubSpot, or a custom platform? Give us the short version—we will ask the right questions from there.</p>
+                            <a class="contact-direct" href="mailto:contact@lafayette-consulting.us">contact@lafayette-consulting.us <span aria-hidden="true">↗</span></a>
                         </div>
+
+                        <form class="contact-form" id="contact-form" action="mailto:contact@lafayette-consulting.us" method="post" enctype="text/plain">
+                            <div class="form-grid">
+                                <div class="form-field">
+                                    <label for="contact-name">Name</label>
+                                    <input id="contact-name" name="name" type="text" autocomplete="name" placeholder="Your name" required>
+                                </div>
+                                <div class="form-field">
+                                    <label for="contact-email">Work email</label>
+                                    <input id="contact-email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required>
+                                </div>
+                                <div class="form-field">
+                                    <label for="contact-company">Company</label>
+                                    <input id="contact-company" name="company" type="text" autocomplete="organization" placeholder="Company name">
+                                </div>
+                                <div class="form-field">
+                                    <label for="contact-project">What are we solving?</label>
+                                    <select id="contact-project" name="project">
+                                        <option value="Digital product">Digital product</option>
+                                        <option value="Business transformation">Business transformation</option>
+                                        <option value="CRM or ERP">CRM or ERP</option>
+                                        <option value="Commerce or website">Commerce or website</option>
+                                        <option value="Integration or automation">Integration or automation</option>
+                                        <option value="Something else">Something else</option>
+                                    </select>
+                                </div>
+                                <div class="form-field form-field-wide">
+                                    <label for="contact-message">The short version</label>
+                                    <textarea id="contact-message" name="message" placeholder="Where are you today, what needs to change, and what would a good outcome look like?" required></textarea>
+                                </div>
+                            </div>
+                            <div class="form-submit-row">
+                                <button class="form-submit" type="submit">Continue in email <span aria-hidden="true">↗</span></button>
+                                <p class="form-note">This page does not upload or store your message. Your email app opens with everything ready for you to review and send.</p>
+                            </div>
+                            <p class="form-status" id="contact-form-status" role="status" aria-live="polite"></p>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -2862,14 +3323,15 @@
                 </div>
                 <div class="footer-column">
                     <h2>Connect</h2>
-                    <a href="mailto:support@lafayette-consulting.us?subject=New%20project%20inquiry">Email us</a>
+                    <a href="mailto:contact@lafayette-consulting.us?subject=New%20project%20inquiry">Email us</a>
+                    <a href="https://www.linkedin.com/in/david-demri/" target="_blank" rel="noreferrer">David on LinkedIn</a>
                     <a href="/sweetkeyboard/">SweetKeyboard</a>
                     <a href="/iriz/">Iriz</a>
-                    <a href="/privacy/">Privacy</a>
+                    <a href="/sweetkeyboard/privacypolicy">SweetKeyboard privacy</a>
                 </div>
             </div>
             <div class="footer-bottom">
-                <span>© <span id="current-year">2026</span> Lafayette Consulting. All rights reserved.</span>
+                <span>© <span id="current-year">2026</span> Lafayette Consulting · San Francisco, California · All rights reserved.</span>
                 <span>Built with intent in California.</span>
             </div>
         </div>
@@ -2911,6 +3373,33 @@
             } else {
                 mobileMenuQuery.addListener(closeMenuOnDesktop);
             }
+
+            const contactForm = document.getElementById('contact-form');
+            const contactFormStatus = document.getElementById('contact-form-status');
+            contactForm.addEventListener('submit', (event) => {
+                event.preventDefault();
+                if (!contactForm.reportValidity()) return;
+
+                const formData = new FormData(contactForm);
+                const cleanLine = (value) => String(value || '').replace(/[\r\n]+/g, ' ').trim();
+                const name = cleanLine(formData.get('name'));
+                const email = cleanLine(formData.get('email'));
+                const company = cleanLine(formData.get('company')) || 'Not provided';
+                const project = cleanLine(formData.get('project'));
+                const message = String(formData.get('message') || '').trim();
+                const subject = `Lafayette website inquiry — ${project} — ${name}`;
+                const body = [
+                    `Name: ${name}`,
+                    `Email: ${email}`,
+                    `Company: ${company}`,
+                    `Project: ${project}`,
+                    '',
+                    message
+                ].join('\n');
+
+                contactFormStatus.textContent = 'Opening your email app… If nothing happens, use the email address on the left.';
+                window.location.href = `mailto:contact@lafayette-consulting.us?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            });
 
             const updateHeader = () => header.classList.toggle('scrolled', window.scrollY > 24);
             updateHeader();
