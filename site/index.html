@@ -2283,14 +2283,18 @@
             min-height: 52px;
             padding: 12px 19px;
             display: inline-flex;
+            flex: 0 0 auto;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            order: 2;
+            margin-left: auto;
             border: 0;
             border-radius: 999px;
             background: var(--brand-gradient);
             color: var(--night);
             font-weight: 800;
+            white-space: nowrap;
             cursor: pointer;
             transition: transform 180ms ease, box-shadow 180ms ease;
         }
@@ -2308,18 +2312,21 @@
         }
 
         .form-note {
+            flex: 1 1 auto;
+            order: 1;
             max-width: 280px;
             margin: 0;
-            color: rgba(255, 255, 255, 0.42);
+            color: rgba(255, 255, 255, 0.58);
             font-size: 10px;
             line-height: 1.5;
         }
 
         .form-status {
-            min-height: 20px;
+            min-height: 22px;
             margin: 13px 0 0;
             color: var(--brand-mint);
-            font-size: 11px;
+            font-size: 13px;
+            line-height: 1.5;
         }
 
         .form-status[data-state="error"] {
@@ -3003,14 +3010,18 @@
             }
 
             .form-submit-row {
-                align-items: stretch;
+                align-items: flex-end;
                 flex-direction: column;
             }
 
-            .form-submit,
             .form-note {
                 width: 100%;
                 max-width: none;
+            }
+
+            .form-submit {
+                width: auto;
+                max-width: 100%;
             }
 
             .footer-grid {
