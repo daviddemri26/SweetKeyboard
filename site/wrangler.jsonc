@@ -1,7 +1,18 @@
 {
   "name": "lafayette-sweetkeyboard-websites",
   "compatibility_date": "2026-08-02",
+  "main": "worker.js",
   "assets": {
-    "directory": "."
-  }
+    "directory": ".",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/api/contact"
+    ]
+  },
+  "send_email": [
+    {
+      "name": "CONTACT_EMAIL",
+      "destination_address": "david.demri@gmail.com"
+    }
+  ]
 }

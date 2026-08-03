@@ -2211,6 +2211,15 @@
             grid-column: 1 / -1;
         }
 
+        .form-field-trap {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip-path: inset(50%);
+            white-space: nowrap;
+        }
+
         .form-field label {
             color: rgba(255, 255, 255, 0.72);
             font-size: 10px;
@@ -2291,6 +2300,13 @@
             transform: translateY(-2px);
         }
 
+        .form-submit:disabled {
+            cursor: wait;
+            opacity: 0.72;
+            transform: none;
+            box-shadow: none;
+        }
+
         .form-note {
             max-width: 280px;
             margin: 0;
@@ -2304,6 +2320,10 @@
             margin: 13px 0 0;
             color: var(--brand-mint);
             font-size: 11px;
+        }
+
+        .form-status[data-state="error"] {
+            color: #ff9c9c;
         }
 
         .contact-copy {
@@ -3424,15 +3444,15 @@
                             <div class="form-grid">
                                 <div class="form-field">
                                     <label for="contact-name">Name</label>
-                                    <input id="contact-name" name="name" type="text" autocomplete="name" placeholder="Your name" required>
+                                    <input id="contact-name" name="name" type="text" minlength="2" maxlength="80" autocomplete="name" placeholder="Your name" required>
                                 </div>
                                 <div class="form-field">
                                     <label for="contact-email">Work email</label>
-                                    <input id="contact-email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required>
+                                    <input id="contact-email" name="email" type="email" maxlength="254" autocomplete="email" placeholder="you@company.com" required>
                                 </div>
                                 <div class="form-field">
                                     <label for="contact-company">Company</label>
-                                    <input id="contact-company" name="company" type="text" autocomplete="organization" placeholder="Company name">
+                                    <input id="contact-company" name="company" type="text" maxlength="120" autocomplete="organization" placeholder="Company name">
                                 </div>
                                 <div class="form-field">
                                     <label for="contact-project">What are we solving?</label>
@@ -3447,12 +3467,16 @@
                                 </div>
                                 <div class="form-field form-field-wide">
                                     <label for="contact-message">The short version</label>
-                                    <textarea id="contact-message" name="message" placeholder="Where are you today, what needs to change, and what would a good outcome look like?" required></textarea>
+                                    <textarea id="contact-message" name="message" minlength="10" maxlength="4000" placeholder="Where are you today, what needs to change, and what would a good outcome look like?" required></textarea>
+                                </div>
+                                <div class="form-field-trap" aria-hidden="true">
+                                    <label for="contact-website">Website</label>
+                                    <input id="contact-website" name="website" type="text" tabindex="-1" autocomplete="off">
                                 </div>
                             </div>
                             <div class="form-submit-row">
-                                <button class="form-submit" type="submit">Continue in email <span aria-hidden="true">↗</span></button>
-                                <p class="form-note">This page does not upload or store your message. Your email app opens with everything ready for you to review and send.</p>
+                                <button class="form-submit" type="submit"><span class="form-submit-label">Send inquiry</span> <span aria-hidden="true">↗</span></button>
+                                <p class="form-note">Your message is sent securely to Lafayette Consulting. It is never stored on this website.</p>
                             </div>
                             <p class="form-status" id="contact-form-status" role="status" aria-live="polite"></p>
                         </form>
@@ -3534,29 +3558,45 @@
 
             const contactForm = document.getElementById('contact-form');
             const contactFormStatus = document.getElementById('contact-form-status');
-            contactForm.addEventListener('submit', (event) => {
+            const contactSubmit = contactForm.querySelector('.form-submit');
+            const contactSubmitLabel = contactSubmit.querySelector('.form-submit-label');
+            let contactFormStartedAt = Date.now();
+
+            contactForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
                 if (!contactForm.reportValidity()) return;
 
                 const formData = new FormData(contactForm);
-                const cleanLine = (value) => String(value || '').replace(/[\r\n]+/g, ' ').trim();
-                const name = cleanLine(formData.get('name'));
-                const email = cleanLine(formData.get('email'));
-                const company = cleanLine(formData.get('company')) || 'Not provided';
-                const project = cleanLine(formData.get('project'));
-                const message = String(formData.get('message') || '').trim();
-                const subject = `Lafayette website inquiry — ${project} — ${name}`;
-                const body = [
-                    `Name: ${name}`,
-                    `Email: ${email}`,
-                    `Company: ${company}`,
-                    `Project: ${project}`,
-                    '',
-                    message
-                ].join('\n');
+                const payload = Object.fromEntries(formData.entries());
+                payload.formStartedAt = contactFormStartedAt;
 
-                contactFormStatus.textContent = 'Opening your email app… If nothing happens, use the email address on the left.';
-                window.location.href = `mailto:contact@lafayette-consulting.us?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                contactSubmit.disabled = true;
+                contactSubmit.setAttribute('aria-busy', 'true');
+                contactSubmitLabel.textContent = 'Sending…';
+                contactFormStatus.dataset.state = '';
+                contactFormStatus.textContent = 'Sending your message securely…';
+
+                try {
+                    const response = await fetch('/api/contact', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error('Contact request failed');
+
+                    contactForm.reset();
+                    contactFormStartedAt = Date.now();
+                    contactFormStatus.dataset.state = 'success';
+                    contactFormStatus.textContent = 'Thank you. Your message has been sent to Lafayette Consulting.';
+                } catch (error) {
+                    contactFormStatus.dataset.state = 'error';
+                    contactFormStatus.textContent = 'We could not send your message. Please try again or email contact@lafayette-consulting.us.';
+                } finally {
+                    contactSubmit.disabled = false;
+                    contactSubmit.removeAttribute('aria-busy');
+                    contactSubmitLabel.textContent = 'Send inquiry';
+                }
             });
 
             const updateHeader = () => header.classList.toggle('scrolled', window.scrollY > 24);
