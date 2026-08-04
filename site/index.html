@@ -1364,10 +1364,6 @@
         .about-story {
             position: relative;
             padding: clamp(52px, 7vw, 90px);
-            display: grid;
-            grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.18fr);
-            align-items: center;
-            gap: clamp(50px, 7vw, 102px);
             overflow: hidden;
             color: var(--night);
         }
@@ -1380,6 +1376,18 @@
             right: clamp(52px, 7vw, 90px);
             background: var(--brand-gradient);
             content: "";
+        }
+
+        .about-heading {
+            max-width: 1050px;
+            margin-bottom: clamp(48px, 6vw, 76px);
+        }
+
+        .founder-profile-grid {
+            display: grid;
+            grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1.22fr);
+            align-items: center;
+            gap: clamp(50px, 7vw, 94px);
         }
 
         .founder-portrait {
@@ -1476,16 +1484,17 @@
         }
 
         .about-title {
-            max-width: 730px;
-            margin: 18px 0 26px;
+            max-width: 1050px;
+            margin: 18px 0 0;
             font-family: Georgia, "Times New Roman", serif;
-            font-size: clamp(3.15rem, 5.4vw, 6rem);
+            font-size: clamp(4.2rem, 7vw, 7.8rem);
             font-weight: 400;
             letter-spacing: -0.06em;
-            line-height: 0.92;
+            line-height: 0.88;
         }
 
         .about-title em {
+            display: block;
             background: var(--brand-gradient);
             background-clip: text;
             -webkit-background-clip: text;
@@ -1494,10 +1503,10 @@
         }
 
         .about-lead {
-            max-width: 720px;
+            max-width: 690px;
             margin: 0;
             color: var(--ink);
-            font-size: clamp(1.05rem, 1.5vw, 1.24rem);
+            font-size: clamp(1.12rem, 1.55vw, 1.3rem);
             line-height: 1.62;
         }
 
@@ -1517,10 +1526,18 @@
             margin-top: 14px;
         }
 
+        .about-summary {
+            margin-top: clamp(54px, 7vw, 82px);
+            padding: clamp(24px, 3vw, 36px);
+            border: 1px solid rgba(16, 35, 55, 0.08);
+            border-radius: 26px;
+            background: rgba(16, 35, 55, 0.035);
+        }
+
         .experience-line {
-            margin-top: 30px;
-            padding: 18px 0;
-            border-top: 1px solid var(--line);
+            margin: 0;
+            padding: 0 0 22px;
+            border-top: 0;
             border-bottom: 1px solid var(--line);
         }
 
@@ -1565,8 +1582,16 @@
             to { transform: translateX(250px); }
         }
 
+        .about-summary-bottom {
+            padding-top: 24px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 28px 44px;
+        }
+
         .about-proof {
-            margin-top: 28px;
+            margin: 0;
             display: flex;
             flex-wrap: wrap;
             gap: 10px 22px;
@@ -1592,11 +1617,12 @@
         }
 
         .founder-actions {
-            margin-top: 30px;
+            margin: 0;
             display: flex;
             align-items: center;
+            justify-content: flex-end;
             flex-wrap: wrap;
-            gap: 18px;
+            gap: 12px 18px;
         }
 
         .linkedin-button {
@@ -1629,6 +1655,8 @@
         }
 
         .founder-note {
+            width: 100%;
+            text-align: right;
             color: var(--ink-soft);
             font-size: 10px;
             font-weight: 720;
@@ -2174,7 +2202,7 @@
                 margin-top: 24px;
             }
 
-            .about-story {
+            .founder-profile-grid {
                 gap: 48px;
             }
 
@@ -2340,14 +2368,33 @@
             }
 
             .about-story {
-                grid-template-columns: 1fr;
-                gap: 46px;
                 padding: 58px 34px;
+            }
+
+            .about-heading {
+                margin-bottom: 52px;
+            }
+
+            .founder-profile-grid {
+                grid-template-columns: 1fr;
+                gap: 42px;
             }
 
             .founder-portrait {
                 width: min(100%, 500px);
                 margin-inline: auto;
+            }
+
+            .about-summary-bottom {
+                grid-template-columns: 1fr;
+            }
+
+            .founder-actions {
+                justify-content: flex-start;
+            }
+
+            .founder-note {
+                text-align: left;
             }
 
             .contact-layout {
@@ -2559,7 +2606,6 @@
             }
 
             .about-story {
-                gap: 38px;
                 padding: 48px 22px;
             }
 
@@ -2579,7 +2625,21 @@
             }
 
             .about-title {
-                font-size: clamp(2.85rem, 14vw, 4.25rem);
+                font-size: clamp(3.15rem, 15.5vw, 4.8rem);
+            }
+
+            .about-heading {
+                margin-bottom: 40px;
+            }
+
+            .founder-profile-grid {
+                gap: 34px;
+            }
+
+            .about-summary {
+                margin-top: 46px;
+                padding: 24px 18px;
+                border-radius: 22px;
             }
 
             .experience-line-track {
@@ -2602,6 +2662,10 @@
             .founder-actions {
                 align-items: stretch;
                 flex-direction: column;
+            }
+
+            .founder-note {
+                width: auto;
             }
 
             .linkedin-button {
@@ -2988,27 +3052,34 @@
             <div class="container">
                 <div class="about-shell">
                     <div class="about-story">
-                        <figure class="founder-portrait reveal">
-                            <div class="founder-image-frame">
-                                <img src="/assets/david-demri.jpg" alt="David Demri, founder and principal of Lafayette Consulting" width="800" height="800" loading="lazy">
-                            </div>
-                            <figcaption class="founder-caption">
-                                <strong>David Demri</strong>
-                                <span>Founder &amp; principal · San Francisco</span>
-                            </figcaption>
-                        </figure>
-
-                        <div class="founder-copy">
+                        <header class="about-heading">
                             <p class="about-label reveal">About Lafayette</p>
                             <h2 class="about-title reveal reveal-delay-1" id="about-title">Modern execution. <em>Earned experience.</em></h2>
-                            <p class="about-lead reveal reveal-delay-1">Modern tools can accelerate delivery. They cannot replace the judgment earned by building companies, leading complex transformations, and working inside the teams that have to make change stick.</p>
+                        </header>
 
-                            <div class="about-body reveal reveal-delay-2">
-                                <p>Lafayette is led by David Demri, a founder, operator, technical consultant, and hands-on builder with more than two decades across digital products, business systems, and transformation. He has built businesses, advised major organizations independently, and joined established teams for mandates lasting from months to years.</p>
-                                <p>Every engagement stays senior and directly led. When a mission needs more depth, Lafayette assembles trusted specialists from an international network built through years of work across cultures, teams, and markets.</p>
+                        <div class="founder-profile-grid">
+                            <figure class="founder-portrait reveal">
+                                <div class="founder-image-frame">
+                                    <img src="/assets/david-demri.jpg" alt="David Demri, founder and principal of Lafayette Consulting" width="800" height="800" loading="lazy">
+                                </div>
+                                <figcaption class="founder-caption">
+                                    <strong>David Demri</strong>
+                                    <span>Founder &amp; principal · San Francisco</span>
+                                </figcaption>
+                            </figure>
+
+                            <div class="founder-copy">
+                                <p class="about-lead reveal reveal-delay-1">Modern tools can accelerate delivery. They cannot replace the judgment earned by building companies, leading complex transformations, and working inside the teams that have to make change stick.</p>
+
+                                <div class="about-body reveal reveal-delay-2">
+                                    <p>Lafayette is led by David Demri, a founder, operator, technical consultant, and hands-on builder with more than two decades across digital products, business systems, and transformation. He has built businesses, advised major organizations independently, and joined established teams for mandates lasting from months to years.</p>
+                                    <p>Every engagement stays senior and directly led. When a mission needs more depth, Lafayette assembles trusted specialists from an international network built through years of work across cultures, teams, and markets.</p>
+                                </div>
                             </div>
+                        </div>
 
-                            <div class="experience-line reveal reveal-delay-2" aria-label="Operational, functional, and technical experience">
+                        <div class="about-summary reveal reveal-delay-2">
+                            <div class="experience-line" aria-label="Operational, functional, and technical experience">
                                 <div class="experience-line-track">
                                     <span>Operational judgment</span>
                                     <span class="experience-connector" aria-hidden="true">&#8203;</span>
@@ -3019,15 +3090,17 @@
                                 <p>From how the business runs to the working system that supports it.</p>
                             </div>
 
-                            <div class="about-proof reveal reveal-delay-2" aria-label="Lafayette facts">
-                                <span>20+ years in the field</span>
-                                <span>Founder-led throughout</span>
-                                <span>English + French</span>
-                            </div>
+                            <div class="about-summary-bottom">
+                                <div class="about-proof" aria-label="Lafayette facts">
+                                    <span>20+ years in the field</span>
+                                    <span>Founder-led throughout</span>
+                                    <span>English + French</span>
+                                </div>
 
-                            <div class="founder-actions reveal reveal-delay-3">
-                                <a class="linkedin-button" href="https://www.linkedin.com/in/david-demri/" target="_blank" rel="noreferrer">Connect with David on LinkedIn <span aria-hidden="true">↗</span></a>
-                                <span class="founder-note">Senior accountability from first decision to delivery</span>
+                                <div class="founder-actions">
+                                    <a class="linkedin-button" href="https://www.linkedin.com/in/david-demri/" target="_blank" rel="noreferrer">Connect with David on LinkedIn <span aria-hidden="true">↗</span></a>
+                                    <span class="founder-note">Senior accountability from first decision to delivery</span>
+                                </div>
                             </div>
                         </div>
                     </div>
