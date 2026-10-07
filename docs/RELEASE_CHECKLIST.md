@@ -55,9 +55,9 @@ Use this checklist before each App Store or TestFlight submission.
 - Test light mode, dark mode, portrait, landscape, and iPad if iPad remains supported.
 - Confirm secure fields and apps that block custom keyboards fail gracefully.
 
-## Cloudflare Static Privacy Page
+## Public Website and Privacy Policy
 
-- Deploy `site/sweetkeyboard/privacypolicy/index.html` to Cloudflare Pages or another static host.
-- Route it to `https://lafayette-consulting.us/sweetkeyboard/privacypolicy`.
-- Configure `privacy@lafayette-consulting.us` through Cloudflare Email Routing or an equivalent mailbox.
-- Verify the page loads without scripts, analytics, redirects, or authentication.
+- The website source and Cloudflare deployment are maintained in [lafayette-websites](https://github.com/daviddemri26/lafayette-websites), separately from this native app repository.
+- Edit `public/sweetkeyboard/` in that repository and follow its README for validation and deployment.
+- Before submission, verify `https://lafayette-consulting.us/sweetkeyboard/privacypolicy` returns the privacy policy directly with HTTP 200, without scripts, analytics, redirects, or authentication.
+- Verify that `privacy@lafayette-consulting.us` reaches the monitored destination configured through Cloudflare Email Routing.

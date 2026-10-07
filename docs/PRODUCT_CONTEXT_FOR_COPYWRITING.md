@@ -7,7 +7,7 @@ This document is a standalone product brief for an agent or writer who does not 
 - Product name: SweetKeyboard
 - Product type: iOS custom keyboard app with a containing setup app and a keyboard extension
 - Current primary language/layout: English QWERTY
-- Privacy policy URL: https://lafayette-consulting.us/sweetkeyboard/privacypolicy/
+- Privacy policy URL: https://lafayette-consulting.us/sweetkeyboard/privacypolicy
 - Core positioning: fast everyday typing with fewer layout switches, practical editing controls, optional local clipboard tools, and a local-first privacy model
 - Main constraint: SweetKeyboard is an iOS third-party keyboard, so it must respect iOS keyboard-extension limitations, including secure-field restrictions and Full Access rules
 
